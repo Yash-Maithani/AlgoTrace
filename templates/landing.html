@@ -4,659 +4,303 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Algorithm Visualizer | Interactive Learning Platform</title>
+    <meta name="theme-color" content="#FAF8F5" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1A1A18" media="(prefers-color-scheme: dark)">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
-        :root {
-            /* Primary Colors - Blue Gradient */
-            --primary-blue: #667eea;
-            --primary-blue-light: #764ba2;
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            
-            /* Secondary Colors - Teal/Green */
-            --secondary-teal: #4ecdc4;
-            --secondary-green: #44a08d;
-            --secondary-gradient: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
-            
-            /* Accent Colors - Purple/Pink */
-            --accent-purple: #a8edea;
-            --accent-pink: #fed6e3;
-            --accent-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-            
-            /* Pastel Colors */
-            --pastel-blue: #e3f2fd;
-            --pastel-green: #e8f5e8;
-            --pastel-purple: #f3e5f5;
-            --pastel-pink: #fce4ec;
-            --pastel-yellow: #fff8e1;
-            --pastel-orange: #fff3e0;
-            
-            /* Text Colors */
-            --text-primary: #2d3748;
-            --text-secondary: #4a5568;
-            --text-muted: #718096;
-            --text-white: #ffffff;
-            
-            /* Background Colors */
-            --bg-primary: linear-gradient(to bottom right, #F0F4FD, #FDF9FF);
-            --bg-secondary: #edf2f7;
-            --bg-card: #ffffff;
-            --bg-overlay: rgba(255, 255, 255, 0.9);
-            
-            /* Shadow Colors */
-            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
-            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
-            --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.1);
-            
-            /* Border Colors */
-            --border-light: #e2e8f0;
-            --border-medium: #cbd5e0;
-            
-            /* Spacing */
-            --spacing-xs: 0.25rem;
-            --spacing-sm: 0.5rem;
-            --spacing-md: 1rem;
-            --spacing-lg: 1.5rem;
-            --spacing-xl: 2rem;
-            --spacing-2xl: 3rem;
-            --spacing-3xl: 4rem;
-            
-            /* Border Radius */
-            --radius-sm: 0.375rem;
-            --radius-md: 0.5rem;
-            --radius-lg: 0.75rem;
-            --radius-xl: 1rem;
-            --radius-2xl: 1.5rem;
-            --radius-full: 50px;
-            
-            /* Transitions */
-            --transition-fast: 150ms ease-out;
-            --transition-normal: 300ms ease-out;
-            --transition-slow: 500ms ease-out;
-        }
-        
-        /* Reset and Base Styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            color: var(--text-primary);
-            background: linear-gradient(to bottom right, #F0F4FD, #FDF9FF);
-            background-attachment: fixed;
-            overflow-x: hidden;
-            min-height: 100vh;
-        }
-        
-        /* Smooth scrolling */
-        html {
-            scroll-behavior: smooth;
-        }
-        
-        /* Container Grid System */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 var(--spacing-lg);
-        }
-        
-        /* Navigation Header */
-        .header {
-            background: var(--bg-card);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border-light);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            transition: background-color var(--transition-normal),
-                        box-shadow var(--transition-normal);
-        }
-        
-        .header.scrolled {
-            box-shadow: var(--shadow-md);
-            background: var(--bg-overlay);
-        }
-        
-        .nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: var(--spacing-lg) 0;
-        }
-        
-        .logo {
-            font-size: 1.75rem;
-            font-weight: 800;
-            color: var(--text-primary);
-            text-decoration: none;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            transition: transform var(--transition-normal);
-        }
-        
-        .logo:hover {
-            transform: scale(1.05);
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: var(--spacing-xl);
-            list-style: none;
-        }
-        
-        .nav-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 1rem;
-            padding: var(--spacing-sm) var(--spacing-md);
-            border-radius: var(--radius-md);
-            transition: color var(--transition-normal),
-                        background-color var(--transition-normal),
-                        transform var(--transition-normal);
-            position: relative;
-        }
-        
-        .nav-links a:hover {
-            color: var(--primary-blue);
-            background: var(--pastel-blue);
-            transform: translateY(-2px);
-        }
-        
-        .nav-links a.active {
-            color: var(--primary-blue);
-            background: var(--pastel-blue);
-        }
-        
-        /* Mobile Menu Toggle */
-        .mobile-menu-toggle {
-            display: none;
-            flex-direction: column;
-            gap: 4px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: var(--spacing-sm);
-        }
-        
-        .mobile-menu-toggle span {
-            width: 25px;
-            height: 3px;
-            background: var(--text-primary);
-            border-radius: 2px;
-            transition: transform var(--transition-normal),
-                        opacity var(--transition-normal);
-        }
-        
-        /* Main Content */
-        .main {
-            min-height: calc(100vh - 80px);
-        }
-        
-        /* Hero Section */
+        /* Page specific only. Colour, type, spacing, radius, elevation and
+           motion come from the tokens in styles.css. */
+
+        html { scroll-behavior: smooth; }
+
+        .main { min-height: calc(100dvh - 80px); }
+
+        /* Hero ------------------------------------------------------------ */
+
         .hero {
-            padding: var(--spacing-3xl) 0;
+            padding: var(--space-12) 0 var(--space-8);
             text-align: center;
-            background: linear-gradient(135deg, rgba(240, 244, 253, 0.8) 0%, rgba(253, 249, 255, 0.6) 100%);
-            position: relative;
-            overflow: hidden;
+            background-color: var(--sunken);
+            border-bottom: 1px solid var(--border);
         }
-        
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 20% 50%, var(--pastel-purple) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 20%, var(--pastel-pink) 0%, transparent 50%),
-                        radial-gradient(circle at 40% 80%, var(--pastel-yellow) 0%, transparent 50%);
-            opacity: 0.3;
-            z-index: -1;
-        }
-        
-        .hero-content {
-            max-width: 800px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 1;
-        }
-        
+
+        .hero-content { max-width: 760px; margin: 0 auto; }
+
         .hero h1 {
-            font-size: clamp(2.5rem, 5vw, 4rem);
-            font-weight: 800;
-            line-height: 1.1;
-            margin-bottom: var(--spacing-lg);
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            animation: fadeInUp 1s ease-out;
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 700;
+            line-height: 1.15;
+            margin-bottom: var(--space-4);
+            color: var(--text);
         }
-        
+
         .hero-subtitle {
-            font-size: clamp(1.1rem, 2.5vw, 1.4rem);
-            color: var(--text-secondary);
-            margin-bottom: var(--spacing-xl);
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            animation: fadeInUp 1s ease-out 0.2s both;
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
+            color: var(--text-muted);
+            margin: 0 auto var(--space-6);
+            max-width: 62ch;
         }
-        
+
+        /* The one piece of colour in the hero: a row of the nine state hues,
+           which is also a preview of what the visualisers use. */
+        .hue-rule {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+            margin: 0 auto var(--space-6);
+            max-width: 260px;
+        }
+
+        .hue-rule span {
+            height: 6px;
+            flex: 1 1 0;
+            border-radius: 2px;
+            background-color: var(--hue);
+        }
+
         .team-info {
             display: inline-flex;
             align-items: center;
-            gap: var(--spacing-md);
-            background: var(--bg-card);
-            padding: var(--spacing-md) var(--spacing-xl);
-            border-radius: var(--radius-full);
-            box-shadow: var(--shadow-sm);
+            gap: var(--space-2);
+            background-color: var(--surface);
+            padding: var(--space-2) var(--space-4);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
             font-weight: 500;
-            color: var(--text-secondary);
-            animation: fadeInUp 1s ease-out 0.4s both;
-            border: 1px solid var(--border-light);
+            color: var(--text);
+            box-shadow: var(--shadow-1);
         }
-        
-        .team-info::before {
-            content: '👥';
-            font-size: 1.2rem;
+
+        .team-info svg { flex: 0 0 auto; color: var(--queued-ink); }
+
+        /* Sections -------------------------------------------------------- */
+
+        .features, .algorithms { padding: var(--space-12) 0; }
+
+        .algorithms {
+            background-color: var(--sunken);
+            border-top: 1px solid var(--border);
         }
-        
-        /* Feature Cards Section */
-        .features {
-            padding: var(--spacing-3xl) 0;
-            background: rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(10px);
+
+        .section-title {
+            text-align: center;
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: var(--space-8);
+            text-wrap: balance;
         }
-        
+
+        /* Feature cards --------------------------------------------------- */
+
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: var(--spacing-2xl);
-            margin-top: var(--spacing-2xl);
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-6);
         }
-        
+
         .feature-card {
-            background: var(--bg-card);
-            border-radius: var(--radius-2xl);
-            padding: var(--spacing-2xl);
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--border-light);
-            transition: transform var(--transition-normal),
-                        box-shadow var(--transition-normal);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--primary-gradient);
-            border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
-        }
-        
-        .feature-card:nth-child(2)::before {
-            background: var(--secondary-gradient);
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-8px);
-            box-shadow: var(--shadow-xl);
-        }
-        
-        .feature-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: var(--radius-xl);
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-top: 4px solid var(--card-accent);
+            border-radius: var(--radius-md);
+            padding: var(--space-8);
+            box-shadow: var(--shadow-1);
             display: flex;
+            flex-direction: column;
+            transition: box-shadow var(--dur-base) var(--ease-out),
+                        border-color var(--dur-base) var(--ease-out);
+        }
+
+        .feature-card:hover {
+            box-shadow: var(--shadow-2);
+            border-color: var(--card-accent);
+        }
+
+        .feature-card:nth-child(1) { --card-accent: var(--idle-sort); --card-ink: var(--idle-sort-ink); --card-wash: var(--idle-sort-wash); }
+        .feature-card:nth-child(2) { --card-accent: var(--pivot); --card-ink: var(--pivot-ink); --card-wash: var(--pivot-wash); }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-sm);
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
-            margin-bottom: var(--spacing-lg);
-            background: var(--primary-gradient);
-            color: var(--text-white);
+            margin-bottom: var(--space-4);
+            background-color: var(--card-wash);
+            color: var(--card-ink);
         }
-        
-        .feature-card:nth-child(2) .feature-icon {
-            background: var(--secondary-gradient);
-        }
-        
+
         .feature-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: var(--spacing-md);
+            font-size: var(--text-xl);
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: var(--space-3);
         }
-        
+
         .feature-description {
             color: var(--text-muted);
-            margin-bottom: var(--spacing-xl);
-            line-height: 1.6;
+            margin-bottom: var(--space-6);
+            flex: 1 1 auto;
         }
-        
+
         .feature-btn {
-            background: var(--primary-gradient);
-            color: var(--text-white);
+            align-self: flex-start;
+            background-color: var(--card-accent);
+            color: #FFFFFF;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
-            gap: var(--spacing-sm);
-            padding: var(--spacing-md) var(--spacing-xl);
-            border-radius: var(--radius-lg);
+            gap: var(--space-2);
+            padding: var(--space-3) var(--space-6);
+            min-height: var(--target);
+            border-radius: var(--radius-sm);
             font-weight: 600;
-            transition: transform var(--transition-normal),
-                        box-shadow var(--transition-normal);
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
+            touch-action: manipulation;
+            transition: filter var(--dur-fast) var(--ease-out),
+                        transform var(--dur-fast) var(--ease-out);
         }
-        
-        .feature-card:nth-child(2) .feature-btn {
-            background: var(--secondary-gradient);
+
+        .feature-btn:hover { filter: brightness(1.1); }
+        .feature-btn:active { transform: translateY(1px); }
+
+        .feature-btn:focus-visible {
+            outline: 3px solid var(--focus-ring);
+            outline-offset: 2px;
         }
-        
-        .feature-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .feature-btn::after {
-            content: '→';
-            transition: transform var(--transition-normal);
-        }
-        
-        .feature-btn:hover::after {
-            transform: translateX(4px);
-        }
-        
-        /* Algorithms Section */
-        .algorithms {
-            padding: var(--spacing-3xl) 0;
-            background: linear-gradient(135deg, rgba(237, 242, 247, 0.6) 0%, rgba(232, 245, 233, 0.4) 100%);
-            backdrop-filter: blur(5px);
-        }
-        
-        .section-title {
-            text-align: center;
-            font-size: clamp(2rem, 4vw, 2.5rem);
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: var(--spacing-2xl);
-        }
-        
+
+        .feature-btn svg { transition: transform var(--dur-fast) var(--ease-out); }
+        .feature-btn:hover svg { transform: translateX(3px); }
+
+        /* Algorithm index -------------------------------------------------- */
+
         .algorithms-container {
-            background: var(--bg-card);
-            border-radius: var(--radius-2xl);
-            padding: var(--spacing-2xl);
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--border-light);
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: var(--space-8);
+            box-shadow: var(--shadow-1);
         }
-        
-        .algorithm-category {
-            margin-bottom: var(--spacing-2xl);
-        }
-        
-        .algorithm-category:last-child {
-            margin-bottom: 0;
-        }
-        
+
+        .algorithm-category + .algorithm-category { margin-top: var(--space-8); }
+
         .category-title {
-            font-size: 1.5rem;
+            font-size: var(--text-lg);
             font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: var(--spacing-lg);
+            color: var(--text);
+            margin-bottom: var(--space-4);
             display: flex;
             align-items: center;
-            gap: var(--spacing-md);
+            gap: var(--space-3);
         }
-        
+
         .category-title::before {
             content: '';
             width: 4px;
-            height: 24px;
-            background: var(--primary-gradient);
+            height: 20px;
             border-radius: 2px;
+            background-color: var(--cat-accent, var(--queued));
         }
-        
-        .algorithm-category:nth-child(2) .category-title::before {
-            background: var(--secondary-gradient);
-        }
-        
+
+        .algorithm-category:nth-child(1) { --cat-accent: var(--idle-sort); }
+        .algorithm-category:nth-child(2) { --cat-accent: var(--pivot); }
+
         .algorithm-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: var(--spacing-md);
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--space-2);
         }
-        
-        .algorithm-btn {
-            background: var(--bg-primary);
-            color: var(--text-secondary);
-            border: 2px solid var(--border-light);
-            border-radius: var(--radius-lg);
-            padding: var(--spacing-md) var(--spacing-lg);
-            font-weight: 500;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: background-color var(--transition-normal),
-                        background-image var(--transition-normal),
-                        color var(--transition-normal),
-                        border-color var(--transition-normal),
-                        transform var(--transition-normal),
-                        box-shadow var(--transition-normal);
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-        }
-        
-        .algorithm-btn:hover {
-            background: var(--primary-gradient);
-            color: var(--text-white);
-            border-color: transparent;
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-        }
-        
-        .algorithm-category:nth-child(2) .algorithm-btn:hover {
-            background: var(--secondary-gradient);
-        }
-        
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        @keyframes pulse {
-            0%, 100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.05);
-            }
-        }
-        
-        /* Loading Animation */
+
+        .algorithm-grid .algorithm-btn { justify-content: center; text-align: center; }
+
+        /* Loading state --------------------------------------------------- */
+
         .loading {
             display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
+            width: 16px;
+            height: 16px;
+            border: 2px solid currentColor;
+            border-top-color: transparent;
             border-radius: 50%;
-            border-top-color: var(--text-white);
-            animation: spin 1s ease-in-out infinite;
+            animation: spin 1s linear infinite;
         }
-        
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-        
-        /* Responsive Design */
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Responsive ------------------------------------------------------- */
+
         @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                right: 0;
-                background: var(--bg-card);
-                flex-direction: column;
-                padding: var(--spacing-lg);
-                box-shadow: var(--shadow-lg);
-                border-top: 1px solid var(--border-light);
-            }
-            
-            .nav-links.active {
-                display: flex;
-            }
-            
-            .mobile-menu-toggle {
-                display: flex;
-            }
-            
-            .mobile-menu-toggle.active span:nth-child(1) {
-                transform: rotate(45deg) translate(5px, 5px);
-            }
-            
-            .mobile-menu-toggle.active span:nth-child(2) {
-                opacity: 0;
-            }
-            
-            .mobile-menu-toggle.active span:nth-child(3) {
-                transform: rotate(-45deg) translate(7px, -6px);
-            }
-            
-            .hero {
-                padding: var(--spacing-2xl) 0;
-            }
-            
-            .features-grid {
-                grid-template-columns: 1fr;
-                gap: var(--spacing-lg);
-            }
-            
-            .algorithm-grid {
-                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-                gap: var(--spacing-sm);
-            }
-            
-            .team-info {
-                flex-direction: column;
-                text-align: center;
-                gap: var(--spacing-sm);
-            }
+            .hero { padding: var(--space-8) 0; }
+            .features-grid { grid-template-columns: 1fr; }
         }
-        
+
         @media (max-width: 480px) {
-            .container {
-                padding: 0 var(--spacing-md);
-            }
-            
-            .hero {
-                padding: var(--spacing-xl) 0;
-            }
-            
-            .features,
-            .algorithms {
-                padding: var(--spacing-xl) 0;
-            }
-            
-            .feature-card,
-            .algorithms-container {
-                padding: var(--spacing-lg);
-            }
-            
-            .algorithm-grid {
-                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            }
-            
-            .algorithm-btn {
-                padding: var(--spacing-sm) var(--spacing-md);
-                font-size: 0.8rem;
-            }
+            .hero, .features, .algorithms { padding: var(--space-8) 0; }
+            .feature-card, .algorithms-container { padding: var(--space-4); }
+            .algorithm-grid { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
         }
+
         @media (prefers-reduced-motion: reduce) {
-            .logo:hover,
-            .nav-links a:hover,
-            .feature-card:hover,
-            .feature-btn:hover,
-            .feature-btn:hover::after,
-            .algorithm-btn:hover {
-                transform: none;
-            }
-
-            /* fadeInUp uses `both`, so it must be cleared rather than paused -
-               otherwise the hero would stay at opacity 0. */
-            .hero-title,
-            .hero-subtitle,
-            .team-info {
-                animation: none;
-            }
-
-            /* The spinner is the only motion that carries meaning; slow it
-               down instead of stopping it dead. */
-            .loading {
-                animation-duration: 3s;
-            }
+            .feature-btn:active,
+            .feature-btn:hover svg { transform: none; }
+            .loading { animation-duration: 3s; }
         }
     </style>
 </head>
 <body>
+    <a href="#main" class="skip-link">Skip to main content</a>
+
     <!-- Header Navigation -->
-    <header class="header" id="header">
-        <div class="container">
-            <nav class="nav">
-                <a href="{{ url_for('index') }}" class="logo">Algorithm Visualizer</a>
-                
-                <ul class="nav-links" id="navLinks">
-                    <li><a href="{{ url_for('index') }}" class="active">Home</a></li>
-                    <li><a href="{{ url_for('sorting_page') }}">Sorting</a></li>
-                    <li><a href="{{ url_for('graph_page') }}">Graph</a></li>
-                </ul>
-                
-                <button class="mobile-menu-toggle" id="mobileMenuToggle">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-            </nav>
-        </div>
+    <header id="header">
+        <nav aria-label="Primary">
+            <a href="{{ url_for('index') }}" class="logo">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+                    <line x1="5" y1="19" x2="5" y2="12"></line>
+                    <line x1="12" y1="19" x2="12" y2="5"></line>
+                    <line x1="19" y1="19" x2="19" y2="9"></line>
+                </svg>
+                Algorithm Visualizer
+            </a>
+            <div class="nav-links">
+                <a href="{{ url_for('index') }}" class="nav-link active" aria-current="page">Home</a>
+                <a href="{{ url_for('sorting_page') }}" class="nav-link">Sorting</a>
+                <a href="{{ url_for('graph_page') }}" class="nav-link">Graph</a>
+            </div>
+        </nav>
     </header>
 
     <!-- Main Content -->
-    <main class="main">
+    <main class="main" id="main">
         <!-- Hero Section -->
         <section class="hero">
-            <div class="container">
+            <div class="wrap">
                 <div class="hero-content">
-                    <h1>Interactive Algorithm Visualizer</h1>
-                    <p class="hero-subtitle">
-                        Explore, learn, and understand algorithms through beautiful, interactive visualizations. 
+                    <h1 class="reveal">Interactive Algorithm Visualizer</h1>
+                    <p class="hero-subtitle reveal">
+                        Explore, learn, and understand algorithms through beautiful, interactive visualizations.
                         Master sorting and graph algorithms with step-by-step guidance and real-time analysis.
                     </p>
-                    <div class="team-info">
+                    <div class="hue-rule reveal" aria-hidden="true">
+                        <span style="--hue: var(--idle-sort)"></span>
+                        <span style="--hue: var(--queued)"></span>
+                        <span style="--hue: var(--active)"></span>
+                        <span style="--hue: var(--done)"></span>
+                        <span style="--hue: var(--select)"></span>
+                        <span style="--hue: var(--reject)"></span>
+                        <span style="--hue: var(--current)"></span>
+                        <span style="--hue: var(--pivot)"></span>
+                    </div>
+                    <div class="team-info reveal">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
                         <span>Team Tri Logic: Yash Maithani</span>
                     </div>
                 </div>
@@ -665,32 +309,54 @@
 
         <!-- Feature Cards Section -->
         <section class="features">
-            <div class="container">
+            <div class="wrap">
                 <h2 class="section-title">Choose Your Learning Path</h2>
                 <div class="features-grid">
                     <div class="feature-card">
-                        <div class="feature-icon">🔄</div>
+                        <div class="feature-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+                                <line x1="4" y1="19" x2="4" y2="11"></line>
+                                <line x1="10" y1="19" x2="10" y2="5"></line>
+                                <line x1="16" y1="19" x2="16" y2="9"></line>
+                                <line x1="22" y1="19" x2="22" y2="14"></line>
+                            </svg>
+                        </div>
                         <h3 class="feature-title">Sorting Visualizer</h3>
                         <p class="feature-description">
-                            Watch sorting algorithms come to life with animated visualizations. 
-                            Understand time complexity, space complexity, and algorithm behavior 
+                            Watch sorting algorithms come to life with animated visualizations.
+                            Understand time complexity, space complexity, and algorithm behavior
                             through interactive step-by-step execution.
                         </p>
                         <a href="{{ url_for('sorting_page') }}" class="feature-btn">
                             Explore Sorting
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
                         </a>
                     </div>
-                    
+
                     <div class="feature-card">
-                        <div class="feature-icon">🕸️</div>
+                        <div class="feature-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+                                <circle cx="12" cy="5" r="2.5"></circle>
+                                <circle cx="5" cy="18" r="2.5"></circle>
+                                <circle cx="19" cy="18" r="2.5"></circle>
+                                <line x1="10.5" y1="7" x2="6.5" y2="15.8"></line>
+                                <line x1="13.5" y1="7" x2="17.5" y2="15.8"></line>
+                                <line x1="7.5" y1="18" x2="16.5" y2="18"></line>
+                            </svg>
+                        </div>
                         <h3 class="feature-title">Graph Visualizer</h3>
                         <p class="feature-description">
-                            Discover the power of graph algorithms with dynamic network visualizations. 
-                            Trace paths, find shortest routes, and explore tree structures with 
+                            Discover the power of graph algorithms with dynamic network visualizations.
+                            Trace paths, find shortest routes, and explore tree structures with
                             comprehensive algorithm analysis.
                         </p>
                         <a href="{{ url_for('graph_page') }}" class="feature-btn">
                             Explore Graphs
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
                         </a>
                     </div>
                 </div>
@@ -699,12 +365,12 @@
 
         <!-- Algorithms Section -->
         <section class="algorithms">
-            <div class="container">
+            <div class="wrap">
                 <h2 class="section-title">Available Algorithms</h2>
                 <div class="algorithms-container">
                     <div class="algorithm-category">
                         <h3 class="category-title">Sorting Algorithms</h3>
-                        <div class="algorithm-grid">
+                        <div class="algorithm-grid algorithm-buttons">
                             <a href="{{ url_for('sorting_page', algorithm='Bubble Sort') }}" class="algorithm-btn">Bubble Sort</a>
                             <a href="{{ url_for('sorting_page', algorithm='Selection Sort') }}" class="algorithm-btn">Selection Sort</a>
                             <a href="{{ url_for('sorting_page', algorithm='Insertion Sort') }}" class="algorithm-btn">Insertion Sort</a>
@@ -713,10 +379,10 @@
                             <a href="{{ url_for('sorting_page', algorithm='Heap Sort') }}" class="algorithm-btn">Heap Sort</a>
                         </div>
                     </div>
-                    
+
                     <div class="algorithm-category">
                         <h3 class="category-title">Graph Algorithms</h3>
-                        <div class="algorithm-grid">
+                        <div class="algorithm-grid algorithm-buttons">
                             <a href="{{ url_for('graph_page', algo='dfs') }}" class="algorithm-btn">Depth-First Search</a>
                             <a href="{{ url_for('graph_page', algo='bfs') }}" class="algorithm-btn">Breadth-First Search</a>
                             <a href="{{ url_for('graph_page', algo='prim') }}" class="algorithm-btn">Prim's MST</a>
@@ -728,20 +394,20 @@
         </section>
     </main>
 
-    <!-- JavaScript for Mobile Menu and Scroll Effects -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>Algorithm Visualizer</span>
+            <nav class="footer-links" aria-label="Footer">
+                <a href="{{ url_for('static', filename='privacy.html') }}">Privacy Policy</a>
+                <a href="{{ url_for('static', filename='terms.html') }}">Terms and Conditions</a>
+            </nav>
+        </div>
+    </footer>
+
     <script>
-        // Mobile menu toggle
-        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-        const navLinks = document.getElementById('navLinks');
-        
-        mobileMenuToggle.addEventListener('click', () => {
-            mobileMenuToggle.classList.toggle('active');
-            navLinks.classList.toggle('active');
-        });
-        
         // Header scroll effect
         const header = document.getElementById('header');
-        
+
         window.addEventListener('scroll', () => {
             if (window.scrollY > 50) {
                 header.classList.add('scrolled');
@@ -749,29 +415,18 @@
                 header.classList.remove('scrolled');
             }
         });
-        
+
         // Smooth scrolling for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
-                e.preventDefault();
                 const target = document.querySelector(this.getAttribute('href'));
                 if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             });
         });
-        
-        // Close mobile menu when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.nav') && navLinks.classList.contains('active')) {
-                mobileMenuToggle.classList.remove('active');
-                navLinks.classList.remove('active');
-            }
-        });
-        
+
         // Add loading state to buttons
         document.querySelectorAll('.feature-btn, .algorithm-btn').forEach(btn => {
             btn.addEventListener('click', function(e) {

@@ -68,7 +68,7 @@
     </div>
     
     <div id="resultsPanel" class="results-panel">
-        <h3>🎯 DFS Results</h3>
+        <h3>DFS Results</h3>
         <div class="result-item">
             <strong>Start Node:</strong> <span id="startNodeResult"></span>
         </div>
@@ -176,7 +176,7 @@
             let backtrackHtml = '';
             backtrackingPoints.forEach(point => {
                 backtrackHtml += `<div style="margin: 3px 0; color: #d32f2f;">
-                    🔄 Backtracked from ${point}
+                     Backtracked from ${point}
                 </div>`;
             });
             document.getElementById('backtrackingPoints').innerHTML = backtrackHtml;

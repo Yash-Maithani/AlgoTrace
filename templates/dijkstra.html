@@ -54,7 +54,7 @@
             margin-top: 15px;
             padding: 15px;
             background-color: #fff3e0;
-            border: 2px solid #ff9800;
+            border: 2px solid var(--considering-color);
             border-radius: 8px;
             display: none;
         }
@@ -93,7 +93,7 @@
         }
         
         .dijkstra-summary-table thead {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-color: var(--accent);
             color: white;
         }
         
@@ -189,7 +189,7 @@
             background: white;
             padding: 12px;
             border-radius: 6px;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid var(--accent);
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
@@ -289,7 +289,7 @@
     </div>
     
     <div id="resultsPanel" class="results-panel">
-        <h3>📈 Final Dijkstra's Shortest Path Summary</h3>
+        <h3>Final Dijkstra's Shortest Path Summary</h3>
         
         <!-- Summary Table -->
         <div class="summary-table-container">
@@ -311,7 +311,7 @@
 
         <!-- Algorithm Statistics -->
         <div class="algorithm-stats">
-            <h4>🔍 Algorithm Statistics</h4>
+            <h4>Algorithm Statistics</h4>
             <div class="stats-grid">
                 <div class="stat-item">
                     <span class="stat-label">Start Node:</span>
@@ -335,10 +335,10 @@
         <!-- Action Buttons -->
         <div class="result-actions">
             <button id="resetBtn" class="action-btn reset-btn" onclick="resetVisualization()">
-                🔄 Reset & Visualize Again
+                 Reset & Visualize Again
             </button>
             <button id="exportBtn" class="action-btn export-btn" onclick="exportResults()">
-                📊 Export Results
+                 Export Results
             </button>
         </div>
     </div>
@@ -408,7 +408,7 @@
                     ctx.beginPath();
                     ctx.moveTo(pos1.x, pos1.y);
                     ctx.lineTo(pos2.x, pos2.y);
-                    ctx.strokeStyle = isPathEdge ? '#e53935' : (isHighlighted ? '#ff9800' : '#aaa');
+                    ctx.strokeStyle = isPathEdge ? 'var(--path-color)' : (isHighlighted ? 'var(--considering-color)' : 'var(--default-edge-color)');
                     ctx.lineWidth = isPathEdge ? 4 : (isHighlighted ? 4 : 2);
                     ctx.stroke();
                     
@@ -435,7 +435,7 @@
                 // Color based on state
                 let fillColor = '#3498db'; // Blue: unvisited
                 if (visitedNodes.has(node)) fillColor = '#27ae60'; // Green: visited
-                else if (highlightedNode === node) fillColor = '#ff9800'; // Orange: current
+                else if (highlightedNode === node) fillColor = 'var(--considering-color)'; // Orange: current
                 ctx.fillStyle = fillColor;
                 ctx.fill();
                 ctx.strokeStyle = '#000';
@@ -529,18 +529,18 @@
                 } else if (isReachable) {
                     distanceCell.innerHTML = `<span class="distance-value">${distance}</span> units`;
                 } else {
-                    distanceCell.innerHTML = `<span style="color: #999;">∞ (unreachable)</span>`;
+                    distanceCell.innerHTML = `<span style="color: var(--text-muted);">∞ (unreachable)</span>`;
                 }
                 row.appendChild(distanceCell);
                 
                 // Previous Node column
                 const previousCell = document.createElement('td');
                 if (isStart) {
-                    previousCell.innerHTML = '<span style="color: #999;">—</span>';
+                    previousCell.innerHTML = '<span style="color: var(--text-muted);">-</span>';
                 } else if (isReachable && previousNodes[node]) {
                     previousCell.innerHTML = `<span class="node-highlight">${previousNodes[node]}</span>`;
                 } else {
-                    previousCell.innerHTML = '<span style="color: #999;">None</span>';
+                    previousCell.innerHTML = '<span style="color: var(--text-muted);">None</span>';
                 }
                 row.appendChild(previousCell);
                 
@@ -551,7 +551,7 @@
                 } else if (isReachable && Array.isArray(path) && path.length > 1) {
                     pathCell.innerHTML = `<span class="path-chain">${path.join(' → ')}</span>`;
                 } else {
-                    pathCell.innerHTML = '<span style="color: #999;">No path</span>';
+                    pathCell.innerHTML = '<span style="color: var(--text-muted);">No path</span>';
                 }
                 row.appendChild(pathCell);
                 
@@ -619,8 +619,8 @@
             // Show success message
             const exportBtn = document.getElementById('exportBtn');
             const originalText = exportBtn.textContent;
-            exportBtn.textContent = '✅ Exported!';
-            exportBtn.style.background = 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)';
+            exportBtn.textContent = ' Exported!';
+            exportBtn.style.backgroundColor = 'var(--done)';
             
             setTimeout(() => {
                 exportBtn.textContent = originalText;

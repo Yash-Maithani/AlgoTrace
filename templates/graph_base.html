@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Graph Algorithm Visualizer{% endblock %}</title>
+    <meta name="theme-color" content="#FAF8F5" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1A1A18" media="(prefers-color-scheme: dark)">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -18,16 +23,9 @@
             position: relative;
         }
         
-        /* Color scheme according to specifications */
-        :root {
-            --visited-color: #4caf50;      /* Green for visited nodes */
-            --frontier-color: #ff9800;     /* Orange for in-queue/frontier nodes */
-            --ignored-color: #f44336;      /* Red for ignored/not chosen nodes/edges */
-            --unvisited-color: #9e9e9e;    /* Gray for unvisited nodes */
-            --mst-edge-color: #4caf50;     /* Green for MST edges */
-            --considering-color: #ff9800;   /* Orange for edges being considered */
-            --default-edge-color: #757575;  /* Default edge color */
-        }
+        /* Node and edge colours come from static/styles.css, which defines
+           --visited-color and friends once for both themes. This page used to
+           redeclare them here, which overrode the shared palette. */
         
         /* Node states */
         .node-visited {
@@ -89,7 +87,7 @@
         }
         
         .shortest-path {
-            stroke: #2196f3 !important;
+            stroke: var(--path-color) !important;
             stroke-width: 6px !important;
             stroke-opacity: 1 !important;
             animation: pathFlow 2s ease-in-out infinite;
@@ -116,7 +114,7 @@
         }
         
         .shortest-path {
-            stroke: #2196f3 !important;
+            stroke: var(--path-color) !important;
             stroke-width: 6px !important;
             stroke-opacity: 1 !important;
             animation: pathFlow 2s ease-in-out infinite;
@@ -226,7 +224,7 @@
         }
         
         .demo-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-color: var(--accent);
             color: white;
             border: none;
             padding: 6px 12px;
@@ -241,7 +239,7 @@
         .demo-btn:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            background-color: var(--accent-hover);
         }
         
         .demo-btn:active {
@@ -268,9 +266,16 @@
             gap: 8px;
         }
         
+        /* Simple SVG bar-chart mark, drawn with currentColor via mask so it
+           follows the theme instead of being a fixed-colour glyph. */
         .status-display h4::before {
-            content: "📊";
-            font-size: 20px;
+            content: "";
+            width: 18px;
+            height: 18px;
+            flex: 0 0 auto;
+            background-color: currentColor;
+            -webkit-mask: var(--icon-chart) center / contain no-repeat;
+            mask: var(--icon-chart) center / contain no-repeat;
         }
         
         .status-current {
@@ -301,9 +306,9 @@
         }
         
         .demo-btn {
-            background: linear-gradient(145deg, #f8f9ff, #e8eaf6);
+            background-color: var(--sunken);
             border: 1px solid #c5cae9;
-            color: #5c6bc0;
+            color: var(--text);
             padding: 8px 12px;
             border-radius: 6px;
             margin: 5px;
@@ -317,7 +322,7 @@
         }
         
         .demo-btn:hover {
-            background: linear-gradient(145deg, #e8eaf6, #c5cae9);
+            background-color: var(--border);
             transform: translateY(-1px);
             box-shadow: 0 2px 8px rgba(92, 107, 192, 0.2);
         }
@@ -352,28 +357,40 @@
 </head>
 <body>
     <!-- Header with Navigation -->
+    <a href="#main" class="skip-link">Skip to main content</a>
+
     <header>
-        <nav>
-            <a href="{{ url_for('index') }}" class="logo">Algorithm Visualizer</a>
+        <nav aria-label="Primary">
+            <a href="{{ url_for('index') }}" class="logo">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+                    <line x1="5" y1="19" x2="5" y2="12"></line>
+                    <line x1="12" y1="19" x2="12" y2="5"></line>
+                    <line x1="19" y1="19" x2="19" y2="9"></line>
+                </svg>
+                Algorithm Visualizer
+            </a>
             <div class="nav-links">
                 <a href="{{ url_for('index') }}" class="nav-link">Home</a>
                 <a href="{{ url_for('sorting_page') }}" class="nav-link">Sorting</a>
-                <a href="{{ url_for('graph_page') }}" class="nav-link active">Graph</a>
+                <a href="{{ url_for('graph_page') }}" class="nav-link active" aria-current="page">Graph</a>
             </div>
         </nav>
     </header>
 
-    <div class="container">
+    <main class="container" id="main">
         <h1>{{ self.title() }}</h1>
         
         <!-- Algorithm Selection Box -->
         <div class="algorithm-selection">
-            <h3>Choose Algorithm</h3>
+            <h2>Choose Algorithm</h2>
             <div class="algorithm-buttons">
                 <a href="{{ url_for('graph_page') }}?algo=bfs" class="algorithm-btn {% if algorithm == 'bfs' %}active{% endif %}">BFS</a>
                 <a href="{{ url_for('graph_page') }}?algo=dfs" class="algorithm-btn {% if algorithm == 'dfs' %}active{% endif %}">DFS</a>
                 <a href="{{ url_for('graph_page') }}?algo=dijkstra" class="algorithm-btn {% if algorithm == 'dijkstra' %}active{% endif %}">Dijkstra</a>
                 <a href="{{ url_for('graph_page') }}?algo=prim" class="algorithm-btn {% if algorithm == 'prim' %}active{% endif %}">Prim</a>
+                <a href="{{ url_for('graph_page') }}?algo=kruskal" class="algorithm-btn {% if algorithm == 'kruskal' %}active{% endif %}">Kruskal</a>
+                <a href="{{ url_for('graph_page') }}?algo=floyd_warshall" class="algorithm-btn {% if algorithm == 'floyd_warshall' %}active{% endif %}">Floyd-Warshall</a>
+                <a href="{{ url_for('graph_page') }}?algo=bellman_ford" class="algorithm-btn {% if algorithm == 'bellman_ford' %}active{% endif %}">Bellman-Ford</a>
             </div>
         </div>
         
@@ -526,7 +543,7 @@ A</pre>
                 
                 <!-- Demo Buttons -->
                 <div class="demo-buttons" style="margin-top: 15px;">
-                    <h4 style="margin: 0 0 10px 0; color: #5c6bc0;">Quick Demos:</h4>
+                    <h4 style="margin: 0 0 10px 0; color: var(--text);">Quick Demos:</h4>
                     <button type="button" class="demo-btn" onclick="loadMSTDemo()" title="Load a demo graph for MST algorithms">
                         <i class="fas fa-project-diagram" aria-hidden="true"></i> Load MST Demo
                     </button>
@@ -559,6 +576,14 @@ A</pre>
 
             <!-- Visualization Area -->
             <div class="visualization-area">
+                <ul class="legend" aria-label="Graph colour key">
+                    <li class="legend-item"><span class="legend-swatch is-node" style="--swatch: var(--unvisited-color)"></span>Unvisited</li>
+                    <li class="legend-item"><span class="legend-swatch is-node" style="--swatch: var(--frontier-color)"></span>Queued or processing</li>
+                    <li class="legend-item"><span class="legend-swatch is-node" style="--swatch: var(--visited-color)"></span>Visited</li>
+                    <li class="legend-item"><span class="legend-swatch is-edge" style="--swatch: var(--mst-edge-color)"></span>Path or MST edge</li>
+                    <li class="legend-item"><span class="legend-swatch is-node" style="--swatch: var(--ignored-color); opacity: .55"></span>Ignored</li>
+                </ul>
+
                 <div id="graph-container" class="graph-container">
                 </div>
                 
@@ -585,8 +610,8 @@ A</pre>
             </div>
         </div>
         
-        <div style="margin-top: 25px; font-size: 0.9rem; color: #666; background-color: #f8f9ff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-            <h3 style="color: #5c6bc0; font-size: 1.1rem; margin-top: 0;">Instructions</h3>
+        <div class="instructions-panel">
+            <h2>Instructions</h2>
             <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 15px;">
                 <div style="flex: 1; min-width: 250px;">
                     <p><strong>1.</strong> Select algorithm from the top selection</p>
@@ -595,16 +620,26 @@ A</pre>
                     <p><strong>4.</strong> Use the controls to play, pause, or reset the animation</p>
                 </div>
                 <div style="flex: 1; min-width: 250px;">
-                    <p><i class="fas fa-info-circle" style="color: #5c6bc0;" aria-hidden="true"></i> <strong>Tip:</strong> Drag nodes to rearrange the graph</p>
-                    <p><span style="color: #4caf50; font-weight: bold;">■</span> Green = Visited Node</p>
-                    <p><span style="color: #ff9800; font-weight: bold;">■</span> Orange = Queued/Processing Node</p>
-                    <p><span style="color: #f44336; font-weight: bold;">■</span> Red = Path/MST Edge</p>
+                    <p><strong>Tip:</strong> Drag nodes to rearrange the graph</p>
+                    <p><span class="legend-swatch is-node" style="--swatch: var(--visited-color)"></span> Green = Visited Node</p>
+                    <p><span class="legend-swatch is-node" style="--swatch: var(--frontier-color)"></span> Orange = Queued/Processing Node</p>
+                    <p><span class="legend-swatch is-edge" style="--swatch: var(--mst-edge-color)"></span> Red = Path/MST Edge</p>
                 </div>
             </div>
         </div>
 
         {% block extra_content %}{% endblock %}
-    </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>Algorithm Visualizer</span>
+            <nav class="footer-links" aria-label="Footer">
+                <a href="{{ url_for('static', filename='privacy.html') }}">Privacy Policy</a>
+                <a href="{{ url_for('static', filename='terms.html') }}">Terms and Conditions</a>
+            </nav>
+        </div>
+    </footer>
 
     <script>
         let graph = {};
@@ -1229,7 +1264,7 @@ A</pre>
             svg.append('rect')
                 .attr('width', '100%')
                 .attr('height', '100%')
-                .attr('fill', '#f8f9ff');
+                .attr('fill', 'var(--sunken)');
 
             // Add grid pattern
             const defs = svg.append('defs');
@@ -1286,7 +1321,7 @@ A</pre>
                 svg.append('rect')
                     .attr('width', '100%')
                     .attr('height', '100%')
-                    .attr('fill', '#f8f9ff');
+                    .attr('fill', 'var(--sunken)');
             }
 
             // Add grid lines
@@ -1300,7 +1335,7 @@ A</pre>
                 .attr('y1', 0)
                 .attr('x2', d => d * (width / 20))
                 .attr('y2', height)
-                .attr('stroke', '#e8eaf6')
+                .attr('stroke', 'var(--border)')
                 .attr('stroke-width', 1);
                 
             svg.append('g')
@@ -1313,7 +1348,7 @@ A</pre>
                 .attr('y1', d => d * (height / 20))
                 .attr('x2', width)
                 .attr('y2', d => d * (height / 20))
-                .attr('stroke', '#e8eaf6')
+                .attr('stroke', 'var(--border)')
                 .attr('stroke-width', 1);
 
             // Add decoration elements - subtle background dots (only once)
@@ -1326,7 +1361,7 @@ A</pre>
                 .attr('cx', d => Math.random() * width)
                 .attr('cy', d => Math.random() * height)
                 .attr('r', d => Math.random() * 3 + 1)
-                .attr('fill', '#c5cae9')
+                .attr('fill', 'var(--border-strong)')
                 .attr('opacity', 0.2)
                 .attr('class', 'decoration');
 
@@ -1383,7 +1418,7 @@ A</pre>
                     .append('circle')
                     .attr('r', 18)
                     .attr('fill', 'white')
-                    .attr('stroke', '#e0e0e0')
+                    .attr('stroke', 'var(--border)')
                     .attr('stroke-width', 2)
                     .attr('opacity', 0.95)
                     .attr('class', 'edge-label-bg');
@@ -1399,7 +1434,7 @@ A</pre>
                     .attr('font-weight', 'bold')
                     .attr('text-anchor', 'middle')
                     .attr('dominant-baseline', 'central')
-                    .attr('fill', '#333')
+                    .attr('fill', 'var(--text)')
                     .attr('pointer-events', 'none')
                     .text(d => d.value);
             }
@@ -1445,8 +1480,8 @@ A</pre>
                 .enter()
                 .append('circle')
                 .attr('r', isWeightedAlgorithm ? 35 : 24)
-                .attr('fill', d => d.color || '#5c6bc0')
-                .attr('stroke', '#fff')
+                .attr('fill', d => d.color || 'var(--unvisited-color)')
+                .attr('stroke', 'var(--node-stroke)')
                 .attr('stroke-width', '3px')
                 .attr('filter', 'url(#shadow)')
                 .attr('cursor', 'grab')
@@ -1975,9 +2010,9 @@ A</pre>
             sortedEdges.forEach(([u, v, w], i) => {
                 html += `<tr id="${kruskalRowId(u, v)}">
                             <td class="matrix-cell">${i + 1}</td>
-                            <td class="matrix-cell">${u} — ${v}</td>
+                            <td class="matrix-cell">${u} - ${v}</td>
                             <td class="matrix-cell">${w}</td>
-                            <td class="matrix-cell kr-verdict">—</td>
+                            <td class="matrix-cell kr-verdict">-</td>
                          </tr>`;
             });
             html += '</table>';
@@ -2492,7 +2527,7 @@ A</pre>
                         case 'mst': return 'var(--mst-edge-color)';
                         case 'considering': return 'var(--considering-color)';
                         case 'ignored': return 'var(--ignored-color)';
-                        case 'shortest-path': return '#2196f3';
+                        case 'shortest-path': return 'var(--path-color)';
                         default: return 'var(--default-edge-color)';
                     }
                 })
@@ -2584,69 +2619,69 @@ A</pre>
             switch (action) {
                 case 'sort_edges':
                     const sortedEdges = params[0];
-                    return `🔄 <strong>Step 1:</strong> Sorted all edges by weight in ascending order<br>
-                           <small>Edges: ${sortedEdges.map(e => `${e[0]}—${e[1]} (${e[2]})`).join(', ')}</small>`;
+                    return `<strong>Step 1:</strong> Sorted all edges by weight in ascending order<br>
+                           <small>Edges: ${sortedEdges.map(e => `${e[0]}-${e[1]} (${e[2]})`).join(', ')}</small>`;
                 case 'consider_edge':
-                    return `🔍 <strong>Considering edge:</strong> ${params[0]}—${params[1]} with weight <span style="font-weight:bold; color:#ff9800;">${params[2]}</span><br>
+                    return `<strong>Considering edge:</strong> ${params[0]}-${params[1]} with weight <span style="font-weight:bold; color:var(--considering-color);">${params[2]}</span><br>
                            <small>Checking if this edge creates a cycle using Union-Find...</small>`;
                 case 'add_edge':
-                    return `✅ <strong>Added to MST:</strong> ${params[0]}—${params[1]} (weight: <span style="font-weight:bold; color:#4caf50;">${params[2]}</span>)<br>
+                    return `<strong>Added to MST:</strong> ${params[0]}-${params[1]} (weight: <span style="font-weight:bold; color:var(--visited-color);">${params[2]}</span>)<br>
                            <small>This edge connects different components without creating a cycle.</small>`;
                 case 'reject_edge':
-                    return `❌ <strong>Rejected edge:</strong> ${params[0]}—${params[1]} (weight: ${params[2]})<br>
-                           <small style="color:#f44336;">This edge would create a cycle in the MST.</small>`;
+                    return `<strong>Rejected edge:</strong> ${params[0]}-${params[1]} (weight: ${params[2]})<br>
+                           <small style="color:var(--ignored-color);">This edge would create a cycle in the MST.</small>`;
                 case 'final':
                     const totalEdges = params[0].length;
-                    return `🎉 <strong>Kruskal's MST Complete!</strong><br>
-                           <small>Found ${totalEdges} edges with total weight: <span style="font-weight:bold; color:#4caf50;">${params[1]}</span></small>`;
+                    return `<strong>Kruskal's MST Complete!</strong><br>
+                           <small>Found ${totalEdges} edges with total weight: <span style="font-weight:bold; color:var(--visited-color);">${params[1]}</span></small>`;
                 default:
-                    return `🔄 Processing Kruskal's algorithm...`;
+                    return ` Processing Kruskal's algorithm...`;
             }
         }
         
         function getPrimStatus(action, params) {
             switch (action) {
                 case 'start':
-                    return `🚀 <strong>Starting Prim's algorithm</strong> from node <span style="font-weight:bold; color:#4caf50;">${params[0]}</span><br>
+                    return `<strong>Starting Prim's algorithm</strong> from node <span style="font-weight:bold; color:var(--visited-color);">${params[0]}</span><br>
                            <small>This node is now part of the growing MST.</small>`;
                 case 'add_frontier':
-                    return `🔄 <strong>Updated frontier:</strong> ${params.join(', ')}<br>
-                           <small style="color:#ff9800;">These nodes are now candidates to be added to the MST.</small>`;
+                    return `<strong>Updated frontier:</strong> ${params.join(', ')}<br>
+                           <small style="color:var(--considering-color);">These nodes are now candidates to be added to the MST.</small>`;
                 case 'consider_edge':
-                    return `🔍 <strong>Considering edge:</strong> ${params[0]}—${params[1]} with weight <span style="font-weight:bold; color:#ff9800;">${params[2]}</span><br>
+                    return `<strong>Considering edge:</strong> ${params[0]}-${params[1]} with weight <span style="font-weight:bold; color:var(--considering-color);">${params[2]}</span><br>
                            <small>This is the minimum weight edge connecting MST to a new node.</small>`;
                 case 'add_edge':
-                    return `✅ <strong>Added to MST:</strong> ${params[0]}—${params[1]} (weight: <span style="font-weight:bold; color:#4caf50;">${params[2]}</span>)<br>
+                    return `<strong>Added to MST:</strong> ${params[0]}-${params[1]} (weight: <span style="font-weight:bold; color:var(--visited-color);">${params[2]}</span>)<br>
                            <small>Node ${params[1]} is now connected to the MST.</small>`;
                 case 'ignore_edge':
-                    return `⚠️ <strong>Ignored edge:</strong> ${params[0]}—${params[1]} (weight: ${params[2]})<br>
-                           <small style="color:#f44336;">This edge connects to an already visited node.</small>`;
+                    return `<strong>Ignored edge:</strong> ${params[0]}-${params[1]} (weight: ${params[2]})<br>
+                           <small style="color:var(--ignored-color);">This edge connects to an already visited node.</small>`;
                 case 'final':
                     const totalEdges = params[0].length;
-                    return `🎉 <strong>Prim's MST Complete!</strong><br>
-                           <small>Found ${totalEdges} edges with total weight: <span style="font-weight:bold; color:#4caf50;">${params[1]}</span></small>`;
+                    return `<strong>Prim's MST Complete!</strong><br>
+                           <small>Found ${totalEdges} edges with total weight: <span style="font-weight:bold; color:var(--visited-color);">${params[1]}</span></small>`;
                 default:
-                    return `🔄 Processing Prim's algorithm...`;
+                    return ` Processing Prim's algorithm...`;
             }
         }
         
         function getDijkstraStatus(action, params) {
             switch (action) {
                 case 'start':
-                    return `🚀 <strong>Starting Dijkstra's algorithm</strong> from node <span style="font-weight:bold; color:#4caf50;">${params[0]}</span><br>
+                    return `<strong>Starting Dijkstra's algorithm</strong> from node <span style="font-weight:bold; color:var(--visited-color);">${params[0]}</span><br>
                            <small>Distance to start node is 0.</small>`;
                 case 'update':
                     const via = params[2] ? ` (via ${params[2]})` : '';
-                    return `📈 <strong>Updated distance</strong> to <span style="font-weight:bold; color:#ff9800;">${params[0]}</span>: ${params[1]}${via}<br>
+                    return `<strong>Updated distance</strong> to <span style="font-weight:bold; color:var(--considering-color);">${params[0]}</span>: ${params[1]}${via}<br>
                            <small>Found a shorter path to this node.</small>`;
                 case 'visit':
-                    return `✅ <strong>Visited node:</strong> <span style="font-weight:bold; color:#4caf50;">${params[0]}</span> with final distance <span style="font-weight:bold;">${params[1]}</span><br>
+                    return `<strong>Visited node:</strong> <span style="font-weight:bold; color:var(--visited-color);">${params[0]}</span> with final distance <span style="font-weight:bold;">${params[1]}</span><br>
                            <small>This is the shortest possible distance to this node.</small>`;
                 case 'final':
-                    return `🎉 <strong>Dijkstra's algorithm complete!</strong><br>
+                    return `<strong>Dijkstra's algorithm complete!</strong><br>
                            <small>All shortest paths from the start node have been found.</small>`;
                 default:
-                    return `🔄 Processing Dijkstra's algorithm...`;
+                    return ` Processing Dijkstra's algorithm...`;
             }
         }
         
@@ -2656,7 +2691,7 @@ A</pre>
                     return `\u{1F680} <strong>Initialized distance matrix</strong><br>
                            <small>Direct edge weights where an edge exists, \u221E everywhere else.</small>`;
                 case 'start_iteration':
-                    return `\u{1F504} <strong>Pass ${params[0] + 1} \u2014 intermediate node <span style="color:#ff9800;">${params[1]}</span></strong><br>
+                    return `\u{1F504} <strong>Pass ${params[0] + 1} \u2014 intermediate node <span style="color:var(--considering-color);">${params[1]}</span></strong><br>
                            <small>Every pair is now retested allowing ${params[1]} as a waypoint.</small>`;
                 case 'consider_path': {
                     const [i, j, k, current, toK, fromK, viaK] = params;
@@ -2668,7 +2703,7 @@ A</pre>
                     return `\u26AA <strong>${params[0]} \u2192 ${params[1]}</strong>: no route through ${params[2]}<br>
                            <small>One of the two legs is still \u221E, so there is nothing to compare.</small>`;
                 case 'update_distance':
-                    return `\u2705 <strong>Shorter path found:</strong> ${params[0]} \u2192 ${params[1]} = <span style="font-weight:bold; color:#4caf50;">${params[3]}</span><br>
+                    return `\u2705 <strong>Shorter path found:</strong> ${params[0]} \u2192 ${params[1]} = <span style="font-weight:bold; color:var(--visited-color);">${params[3]}</span><br>
                            <small>Routing through ${params[2]} beats the previous distance.</small>`;
                 case 'no_update':
                     return `\u26AA <strong>No update:</strong> ${params[0]} \u2192 ${params[1]} stays at ${params[3]}<br>
@@ -2691,7 +2726,7 @@ A</pre>
                            <small>Can the distance to ${params[1]} be improved by going through ${params[0]}?</small>`;
                 case 'relax':
                     return `\u2705 <strong>Relaxed:</strong> ${params[0]} \u2192 ${params[1]} with weight ${params[2]}<br>
-                           <small>New distance to ${params[1]} is <span style="font-weight:bold; color:#4caf50;">${params[3][params[1]]}</span> (pass ${params[4]}).</small>`;
+                           <small>New distance to ${params[1]} is <span style="font-weight:bold; color:var(--visited-color);">${params[3][params[1]]}</span> (pass ${params[4]}).</small>`;
                 case 'no_relax':
                     return `\u26AA <strong>No relaxation:</strong> ${params[0]} \u2192 ${params[1]} (weight ${params[2]})<br>
                            <small>The existing distance to ${params[1]} is already at least as short.</small>`;
@@ -2701,7 +2736,7 @@ A</pre>
                 case 'final':
                     return params[1]
                         ? `\u26A0\uFE0F <strong>Negative cycle detected!</strong><br>
-                           <small style="color:#f44336;">A distance still improves after ${params[2]} passes, so no shortest path exists.</small>`
+                           <small style="color:var(--ignored-color);">A distance still improves after ${params[2]} passes, so no shortest path exists.</small>`
                         : `\u{1F389} <strong>Bellman-Ford complete!</strong><br>
                            <small>Shortest paths settled after ${params[2]} ${params[2] === 1 ? 'pass' : 'passes'}; no negative cycle.</small>`;
                 default:
@@ -2715,22 +2750,22 @@ A</pre>
             
             switch (action) {
                 case 'start':
-                    return `🚀 <strong>Starting ${algoName}</strong> from node <span style="font-weight:bold; color:#4caf50;">${params[0]}</span><br>
+                    return `<strong>Starting ${algoName}</strong> from node <span style="font-weight:bold; color:var(--visited-color);">${params[0]}</span><br>
                            <small>Added to ${structure} and marked as visited.</small>`;
                 case 'queue':
-                    return `📥 <strong>Added to queue:</strong> <span style="font-weight:bold; color:#ff9800;">${params[0]}</span><br>
+                    return `<strong>Added to queue:</strong> <span style="font-weight:bold; color:var(--considering-color);">${params[0]}</span><br>
                            <small>Node will be processed in FIFO order (breadth-first).</small>`;
                 case 'stack':
-                    return `📤 <strong>Added to stack:</strong> <span style="font-weight:bold; color:#ff9800;">${params[0]}</span><br>
+                    return `<strong>Added to stack:</strong> <span style="font-weight:bold; color:var(--considering-color);">${params[0]}</span><br>
                            <small>Node will be processed in LIFO order (depth-first).</small>`;
                 case 'visit':
-                    return `✅ <strong>Visited node:</strong> <span style="font-weight:bold; color:#4caf50;">${params[0]}</span><br>
+                    return `<strong>Visited node:</strong> <span style="font-weight:bold; color:var(--visited-color);">${params[0]}</span><br>
                            <small>Exploring neighbors and adding unvisited ones to ${structure}.</small>`;
                 case 'final':
-                    return `🎉 <strong>${algoName} traversal complete!</strong><br>
+                    return `<strong>${algoName} traversal complete!</strong><br>
                            <small>Visited path: <span style="font-weight:bold;">${params[0].join(' → ')}</span></small>`;
                 default:
-                    return `🔄 Processing ${algoName}...`;
+                    return ` Processing ${algoName}...`;
             }
         }
         
@@ -2769,7 +2804,7 @@ A</pre>
                             content += `<tr>
                                 <td style="padding:8px; border:1px solid #ddd;"><strong>${node}</strong></td>
                                 <td style="padding:8px; border:1px solid #ddd; text-align:center; font-weight:bold;">${distance}</td>
-                                <td style="padding:8px; border:1px solid #ddd; color:#f44336;">${path.join(' → ')}</td>
+                                <td style="padding:8px; border:1px solid #ddd; color:var(--ignored-color);">${path.join(' → ')}</td>
                             </tr>`;
                         } else {
                             content += `<tr>
@@ -2790,7 +2825,7 @@ A</pre>
                 
                 for (const [u, v, w] of resultEdges) {
                     content += `<tr>
-                        <td style="padding:8px; border:1px solid #ddd;"><strong>${u} — ${v}</strong></td>
+                        <td style="padding:8px; border:1px solid #ddd;"><strong>${u} - ${v}</strong></td>
                         <td style="padding:8px; border:1px solid #ddd; text-align:center;">${w}</td>
                     </tr>`;
                 }
@@ -2814,7 +2849,7 @@ A</pre>
                 
                 for (const [u, v, w] of mstEdges) {
                     content += `<tr>
-                        <td style="padding:8px; border:1px solid #ddd;"><strong>${u} — ${v}</strong></td>
+                        <td style="padding:8px; border:1px solid #ddd;"><strong>${u} - ${v}</strong></td>
                         <td style="padding:8px; border:1px solid #ddd; text-align:center;">${w}</td>
                     </tr>`;
                 }
@@ -2844,7 +2879,7 @@ A</pre>
                     content += `<tr>
                         <td style="padding:8px; border:1px solid #ddd;"><strong>${label}</strong></td>
                         <td style="padding:8px; border:1px solid #ddd; text-align:center;">${distance}</td>
-                        <td style="padding:8px; border:1px solid #ddd; color:#3f51b5;">${path.join(' → ')}</td>
+                        <td style="padding:8px; border:1px solid var(--border); color:var(--accent);">${path.join(' → ')}</td>
                     </tr>`;
                 }
                 content += '</table>';
@@ -2853,7 +2888,7 @@ A</pre>
                 const [distances, hasNegativeCycle, iterations] = params;
 
                 if (hasNegativeCycle) {
-                    content += `<div style="padding:12px; background:#ffebee; border-left:4px solid #f44336; border-radius:5px; margin-bottom:12px;">
+                    content += `<div style="padding:12px; background:var(--reject-wash); border-left:4px solid var(--reject); border-radius:5px; margin-bottom:12px;">
                         <strong>Negative cycle detected.</strong> A distance still improves after
                         ${iterations} ${iterations === 1 ? 'pass' : 'passes'}, so the shortest
                         distances below are not final.
