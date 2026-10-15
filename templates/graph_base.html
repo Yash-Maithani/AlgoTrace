@@ -1,0 +1,3148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Graph Algorithm Visualizer{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        /* Enhanced styles for graph visualization with proper color coding */
+        .graph-container {
+            background-color: #f8f9ff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: box-shadow 0.3s ease;
+            min-height: 600px;
+            position: relative;
+        }
+        
+        /* Color scheme according to specifications */
+        :root {
+            --visited-color: #4caf50;      /* Green for visited nodes */
+            --frontier-color: #ff9800;     /* Orange for in-queue/frontier nodes */
+            --ignored-color: #f44336;      /* Red for ignored/not chosen nodes/edges */
+            --unvisited-color: #9e9e9e;    /* Gray for unvisited nodes */
+            --mst-edge-color: #4caf50;     /* Green for MST edges */
+            --considering-color: #ff9800;   /* Orange for edges being considered */
+            --default-edge-color: #757575;  /* Default edge color */
+        }
+        
+        /* Node states */
+        .node-visited {
+            fill: var(--visited-color) !important;
+            stroke: white !important;
+            stroke-width: 4px !important;
+        }
+        
+        .node-frontier {
+            fill: var(--frontier-color) !important;
+            stroke: white !important;
+            stroke-width: 4px !important;
+        }
+        
+        .node-ignored {
+            fill: var(--ignored-color) !important;
+            stroke: white !important;
+            stroke-width: 3px !important;
+        }
+        
+        .node-unvisited {
+            fill: var(--unvisited-color) !important;
+            stroke: white !important;
+            stroke-width: 3px !important;
+        }
+        
+        .node-current {
+            fill: var(--considering-color) !important;
+            stroke: #fff !important;
+            stroke-width: 5px !important;
+            filter: drop-shadow(0 0 10px var(--considering-color));
+        }
+        
+        /* Edge states */
+        .edge-mst {
+            stroke: var(--mst-edge-color) !important;
+            stroke-width: 6px !important;
+            stroke-opacity: 1 !important;
+        }
+        
+        .edge-considering {
+            stroke: var(--considering-color) !important;
+            stroke-width: 5px !important;
+            stroke-opacity: 1 !important;
+            animation: edgePulse 1s ease-in-out infinite;
+        }
+        
+        .edge-ignored {
+            stroke: var(--ignored-color) !important;
+            stroke-width: 3px !important;
+            stroke-dasharray: 5,5 !important;
+            stroke-opacity: 0.7 !important;
+        }
+        
+        .edge-default {
+            stroke: var(--default-edge-color) !important;
+            stroke-width: 3px !important;
+            stroke-opacity: 0.7 !important;
+        }
+        
+        .shortest-path {
+            stroke: #2196f3 !important;
+            stroke-width: 6px !important;
+            stroke-opacity: 1 !important;
+            animation: pathFlow 2s ease-in-out infinite;
+        }
+        
+        /* Edge label styling for better visibility */
+        .edge-label {
+            font-weight: bold;
+            pointer-events: none;
+            text-shadow: 0px 0px 2px white, 0px 0px 3px white;
+            font-size: 16px !important;
+        }
+        
+        .edge-label-bg {
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        /* Algorithm-specific enhancements */
+        .dijkstra-path {
+            stroke: #ff5722 !important;
+            stroke-width: 6px !important;
+            stroke-dasharray: none !important;
+            stroke-opacity: 1 !important;
+        }
+        
+        .shortest-path {
+            stroke: #2196f3 !important;
+            stroke-width: 6px !important;
+            stroke-opacity: 1 !important;
+            animation: pathFlow 2s ease-in-out infinite;
+        }
+        
+        /* Ensure weighted algorithms have enough space */
+        #graph-container svg {
+            overflow: visible;
+        }
+        
+        /* Animations */
+        @keyframes nodeHighlight {
+            0% { stroke-width: 3px; fill-opacity: 1; }
+            50% { stroke-width: 6px; fill-opacity: 0.8; }
+            100% { stroke-width: 3px; fill-opacity: 1; }
+        }
+        
+        @keyframes edgePulse {
+            0% { stroke-width: 4px; stroke-opacity: 0.7; }
+            50% { stroke-width: 7px; stroke-opacity: 1; }
+            100% { stroke-width: 4px; stroke-opacity: 0.7; }
+        }
+        
+        @keyframes pathFlow {
+            0% { stroke-dasharray: 0, 20; }
+            100% { stroke-dasharray: 20, 0; }
+        }
+        
+        .node-highlight {
+            animation: nodeHighlight 1.2s ease-in-out;
+        }
+        
+        /* Status display enhancements */
+        .status-display {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .status-item {
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 4px;
+            background: #f5f5f5;
+        }
+        
+        .status-current {
+            background: #fff3e0;
+            border-left: 4px solid var(--considering-color);
+        }
+        
+        /* Matrix display for Floyd-Warshall */
+        .matrix-display {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        
+        .matrix-table {
+            border-collapse: collapse;
+            margin: 0 auto;
+        }
+        
+        .matrix-cell {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: center;
+            min-width: 40px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        .matrix-header {
+            background: #f5f5f5;
+            font-weight: bold;
+        }
+        
+        .matrix-updated {
+            background: #e8f5e8 !important;
+            color: var(--visited-color);
+            font-weight: bold;
+            animation: cellUpdate 0.5s ease-in-out;
+        }
+        
+        .matrix-current {
+            background: #fff3e0 !important;
+            color: var(--considering-color);
+            font-weight: bold;
+        }
+        
+        @keyframes cellUpdate {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Demo button styling */
+        .demo-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        
+        .demo-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-image 0.3s ease, box-shadow 0.3s ease,
+                        transform 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .demo-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+        
+        .demo-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        /* Enhanced status display */
+        .status-display {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .status-display h4 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-display h4::before {
+            content: "📊";
+            font-size: 20px;
+        }
+        
+        .status-current {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            border-left: 4px solid var(--considering-color);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+            box-shadow: 0 2px 6px rgba(255, 152, 0, 0.1);
+        }
+        
+        /* Success flash animation for generated graphs */
+        .success-flash {
+            animation: successPulse 1s ease-in-out;
+        }
+        
+        @keyframes successPulse {
+            0% { background-color: #f8f9fa; }
+            50% { background-color: #d4edda; }
+            100% { background-color: #f8f9fa; }
+        }
+        
+        /* Demo buttons styling */
+        .demo-buttons {
+            border-top: 1px solid #e1e4f6;
+            padding-top: 15px;
+        }
+        
+        .demo-btn {
+            background: linear-gradient(145deg, #f8f9ff, #e8eaf6);
+            border: 1px solid #c5cae9;
+            color: #5c6bc0;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-image 0.3s ease, box-shadow 0.3s ease,
+                        transform 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .demo-btn:hover {
+            background: linear-gradient(145deg, #e8eaf6, #c5cae9);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(92, 107, 192, 0.2);
+        }
+        
+        .demo-btn i {
+            font-size: 0.8rem;
+        }
+        /* Reduced motion: stop the movement, keep the state colours. The
+           node/edge/cell colours encode algorithm state, so only the
+           `animation` and `transform` declarations are neutralised here. */
+        @media (prefers-reduced-motion: reduce) {
+            .demo-btn:hover {
+                transform: none;
+            }
+
+            .node-highlight,      /* nodeHighlight */
+            .matrix-updated,      /* cellUpdate   - keeps green background */
+            .success-flash,       /* successPulse */
+            .edge-considering {   /* edgePulse    - keeps orange stroke */
+                animation: none;
+            }
+
+            /* pathFlow runs forever and marches stroke-dasharray; without it
+               the path stays a solid highlighted line. */
+            .shortest-path,
+            .dijkstra-path {
+                animation: none;
+                stroke-dasharray: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header with Navigation -->
+    <header>
+        <nav>
+            <a href="{{ url_for('index') }}" class="logo">Algorithm Visualizer</a>
+            <div class="nav-links">
+                <a href="{{ url_for('index') }}" class="nav-link">Home</a>
+                <a href="{{ url_for('sorting_page') }}" class="nav-link">Sorting</a>
+                <a href="{{ url_for('graph_page') }}" class="nav-link active">Graph</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>{{ self.title() }}</h1>
+        
+        <!-- Algorithm Selection Box -->
+        <div class="algorithm-selection">
+            <h3>Choose Algorithm</h3>
+            <div class="algorithm-buttons">
+                <a href="{{ url_for('graph_page') }}?algo=bfs" class="algorithm-btn {% if algorithm == 'bfs' %}active{% endif %}">BFS</a>
+                <a href="{{ url_for('graph_page') }}?algo=dfs" class="algorithm-btn {% if algorithm == 'dfs' %}active{% endif %}">DFS</a>
+                <a href="{{ url_for('graph_page') }}?algo=dijkstra" class="algorithm-btn {% if algorithm == 'dijkstra' %}active{% endif %}">Dijkstra</a>
+                <a href="{{ url_for('graph_page') }}?algo=prim" class="algorithm-btn {% if algorithm == 'prim' %}active{% endif %}">Prim</a>
+            </div>
+        </div>
+        
+        <div class="visualizer-container">
+            <!-- Controls Panel -->
+            <div class="controls-panel">
+                <div class="form-section">
+                    <h3>Input Method</h3>
+                    <div style="margin: 15px 0;">
+                        <label style="display: inline-flex; align-items: center; margin-right: 15px;">
+                            <input type="radio" name="graph_input_method" value="manual" id="manualRadio" checked style="margin-right: 8px;"> 
+                            Manual
+                        </label>
+                        <label style="display: inline-flex; align-items: center;">
+                            <input type="radio" name="graph_input_method" value="random" id="randomRadio" style="margin-right: 8px;"> 
+                            Random
+                        </label>
+                    </div>
+
+                    <div id="manual-graph-input">
+                        <h3>Graph Input</h3>
+                        <div id="input-format-guide" class="input-format-guide">
+                            <div class="format-header">
+                                <span id="current-format-title">Input Format Guide</span>
+                                <span class="format-toggle" onclick="toggleFormatGuide()" title="Show input format guide" aria-label="Show input format guide"><i class="fas fa-info-circle" aria-hidden="true"></i></span>
+                            </div>
+                            <div class="format-content" id="format-content">
+                                <div id="unweighted-format-guide">
+                                    <p><strong>For BFS/DFS (Unweighted):</strong><br>
+                                    First line: [number of nodes] [number of edges]<br>
+                                    Next lines: [source] [target] for each edge<br>
+                                    Last line: [start node]</p>
+                                    <pre>Example:
+5 5
+A B
+A C
+B D
+C E
+D E
+A</pre>
+                                </div>
+                                <div id="weighted-format-guide" style="display: none;">
+                                    <p><strong>For Dijkstra/Prim:</strong><br>
+                                    First line: [number of nodes] [number of edges]<br>
+                                    Next lines: [source] [target] [weight] for each edge<br>
+                                    Last line: [start node]</p>
+                                    <pre>Example:
+5 7
+A B 4
+A C 2
+B C 5
+B D 10
+C D 3
+C E 7
+D E 6
+A</pre>
+                                    <div class="demo-buttons" style="margin-top: 10px;">
+                                        <button type="button" onclick="loadPrimDemo()" class="demo-btn">Load Prim Demo</button>
+                                        <button type="button" onclick="loadDijkstraDemo()" class="demo-btn">Load Dijkstra Demo</button>
+                                    </div>
+                                </div>
+                                <div id="kruskal-format-guide" style="display: none;">
+                                    <p><strong>For Kruskal:</strong><br>
+                                    First line: [number of nodes] [number of edges]<br>
+                                    Next lines: [source] [target] [weight] for each edge<br>
+                                    (No start node needed)</p>
+                                    <pre>Example:
+5 7
+A B 4
+A C 2
+B C 5
+B D 10
+C D 3
+C E 7
+D E 6</pre>
+                                    <div class="demo-buttons" style="margin-top: 10px;">
+                                        <button type="button" onclick="loadKruskalDemo()" class="demo-btn">Load MST Demo</button>
+                                        <button type="button" onclick="loadComplexKruskalDemo()" class="demo-btn">Load Complex Graph</button>
+                                    </div>
+                                </div>
+                                <div id="floydwarshall-format-guide" style="display: none;">
+                                    <p><strong>For Floyd-Warshall:</strong><br>
+                                    First line: [number of nodes] [number of edges]<br>
+                                    Next lines: [source] [target] [weight] for each edge<br>
+                                    Negative weights allowed</p>
+                                    <pre>Example:
+4 6
+A B 3
+A C 8
+A D -4
+B D 7
+C B 4
+D C 6</pre>
+                                    <div class="demo-buttons" style="margin-top: 10px;">
+                                        <button type="button" onclick="loadFloydWarshallDemo()" class="demo-btn">Load All-Pairs Demo</button>
+                                        <button type="button" onclick="loadNegativeWeightDemo()" class="demo-btn">Load Negative Weights</button>
+                                    </div>
+                                </div>
+                                <div id="bellmanford-format-guide" style="display: none;">
+                                    <p><strong>For Bellman-Ford:</strong><br>
+                                    First line: [number of nodes] [number of edges]<br>
+                                    Next lines: [source] [target] [weight] for each edge<br>
+                                    Last line: [start node] &mdash; negative weights allowed</p>
+                                    <pre>Example:
+5 6
+A B 6
+A C 7
+B C 8
+B D 5
+C E 9
+D E -3
+A</pre>
+                                    <div class="demo-buttons" style="margin-top: 10px;">
+                                        <button type="button" onclick="loadBellmanFordDemo()" class="demo-btn">Load Relaxation Demo</button>
+                                        <button type="button" onclick="loadBellmanFordNegativeDemo()" class="demo-btn">Load Negative Weights</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <textarea id="graph-input" rows="10" placeholder="Enter graph according to the format guide above"
+                                  aria-describedby="graph-input-error"></textarea>
+                        <div id="graph-input-error" class="field-error" role="alert" style="display: none;"></div>
+                    </div>
+                    
+                    <div id="random-graph-input" style="display:none;">
+                        <div class="form-group">
+                            <label for="num-nodes">Number of Nodes:</label>
+                            <input type="number" id="num-nodes" min="2" max="10" value="5">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="num-edges">Number of Edges:</label>
+                            <input type="number" id="num-edges" min="1" max="20" value="6">
+                        </div>
+                        
+                        <button type="button" class="primary" onclick="generateRandomGraph()">
+                            <i class="fas fa-random" aria-hidden="true"></i> Generate Random Graph
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="input-section">
+                    <label for="start-node">Start Node:</label>
+                    <input type="text" id="start-node" placeholder="e.g. A">
+                </div>
+                
+                <button type="button" class="primary" onclick="visualize()">
+                    <i class="fas fa-play" aria-hidden="true"></i> Visualize Algorithm
+                </button>
+                
+                <!-- Demo Buttons -->
+                <div class="demo-buttons" style="margin-top: 15px;">
+                    <h4 style="margin: 0 0 10px 0; color: #5c6bc0;">Quick Demos:</h4>
+                    <button type="button" class="demo-btn" onclick="loadMSTDemo()" title="Load a demo graph for MST algorithms">
+                        <i class="fas fa-project-diagram" aria-hidden="true"></i> Load MST Demo
+                    </button>
+                    <button type="button" class="demo-btn" onclick="loadShortestPathDemo()" title="Load a demo graph for shortest path algorithms">
+                        <i class="fas fa-route" aria-hidden="true"></i> Load Path Demo
+                    </button>
+                </div>
+                
+                <div id="graph-error" class="field-error" role="alert" style="display: none;"></div>
+                
+                <div class="animation-controls" style="margin-top: 20px;">
+                    <div id="step-display" class="step-counter" role="status" aria-live="polite">Step 0</div>
+                    
+                    <!-- Control Buttons - Graph Algorithm Controls -->
+                    <div class="control-buttons" style="display: flex; gap: 15px; margin-top: 15px; justify-content: center; align-items: center;">
+                        <button type="button" class="control-btn play-btn" id="play-button" onclick="playSteps()" title="Play Animation" aria-label="Play animation">
+                            <i class="fas fa-play" aria-hidden="true"></i>
+                        </button>
+                        <button type="button" class="control-btn pause-btn" id="pause-button" onclick="pauseSteps()" title="Pause Animation" aria-label="Pause animation">
+                            <i class="fas fa-pause" aria-hidden="true"></i>
+                        </button>
+                        <button type="button" class="control-btn reset-btn" id="reset-button" onclick="resetSteps()" title="Reset Animation" aria-label="Reset animation">
+                            <i class="fas fa-redo" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                {% block algorithm_specific_controls %}{% endblock %}
+            </div>
+
+            <!-- Visualization Area -->
+            <div class="visualization-area">
+                <div id="graph-container" class="graph-container">
+                </div>
+                
+                <!-- Status Display -->
+                <div class="status-display" id="algorithm-status" style="display: none;">
+                    <h4>Algorithm Status</h4>
+                    <div id="status-content"></div>
+                </div>
+                
+                <!-- Secondary table panel. Floyd-Warshall puts its distance matrix
+                     here, Kruskal its weight-sorted edge queue and Bellman-Ford its
+                     per-iteration distance table, so the heading is set from JS. -->
+                <div class="matrix-display" id="matrix-display" style="display: none;">
+                    <h4 id="matrix-title">Distance Matrix</h4>
+                    <div id="matrix-content"></div>
+                </div>
+                
+                <div id="result-panel" style="margin-top: 20px; display: none;">
+                    <h3>Result</h3>
+                    <div id="result-content"></div>
+                </div>
+                
+                <div id="fw-matrix" style="margin-top: 20px; overflow-x: auto;"></div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 25px; font-size: 0.9rem; color: #666; background-color: #f8f9ff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <h3 style="color: #5c6bc0; font-size: 1.1rem; margin-top: 0;">Instructions</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 15px;">
+                <div style="flex: 1; min-width: 250px;">
+                    <p><strong>1.</strong> Select algorithm from the top selection</p>
+                    <p><strong>2.</strong> Enter a graph in JSON format or generate a random graph</p>
+                    <p><strong>3.</strong> Click "Visualize Algorithm" to see the execution</p>
+                    <p><strong>4.</strong> Use the controls to play, pause, or reset the animation</p>
+                </div>
+                <div style="flex: 1; min-width: 250px;">
+                    <p><i class="fas fa-info-circle" style="color: #5c6bc0;" aria-hidden="true"></i> <strong>Tip:</strong> Drag nodes to rearrange the graph</p>
+                    <p><span style="color: #4caf50; font-weight: bold;">■</span> Green = Visited Node</p>
+                    <p><span style="color: #ff9800; font-weight: bold;">■</span> Orange = Queued/Processing Node</p>
+                    <p><span style="color: #f44336; font-weight: bold;">■</span> Red = Path/MST Edge</p>
+                </div>
+            </div>
+        </div>
+
+        {% block extra_content %}{% endblock %}
+    </div>
+
+    <script>
+        let graph = {};
+        let steps = [];
+        let currentStep = 0;
+        let speed = 400;
+        let isPaused = true;
+        let animationTimeout = null;
+        let svg, width, height;
+        let nodes = [];
+        let links = [];
+        let simulation;
+        let isWeightedAlgorithm = false;
+
+        // CSS handles prefers-reduced-motion everywhere it can reach, but the graph
+        // animation is driven by d3, so it has to be checked here too. Read the media
+        // query at call time, not once at load, so changing the OS setting mid-session
+        // takes effect without a reload.
+        const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        // Every d3 transition duration goes through this. Under reduced motion the
+        // duration collapses to 0 so the state change lands instantly instead of
+        // tweening - the colours still change, they just don't animate.
+        const dur = (ms) => prefersReducedMotion() ? 0 : ms;
+
+        // Positions the links, nodes and labels from the current node coordinates.
+        // Assigned by updateGraph(); the drag handlers use it to repaint when the
+        // force simulation is not running (reduced motion).
+        let renderPositions = null;
+
+        // Initialize arrays to track all timeouts and intervals for cleanup
+        window.graphAnimationTimeouts = [];
+        window.graphAnimationIntervals = [];
+        
+        // Helper function to create tracked timeouts
+        function createTrackedTimeout(callback, delay) {
+            const timeoutId = setTimeout(() => {
+                // Remove from tracking array when executed
+                const index = window.graphAnimationTimeouts.indexOf(timeoutId);
+                if (index > -1) {
+                    window.graphAnimationTimeouts.splice(index, 1);
+                }
+                callback();
+            }, delay);
+            window.graphAnimationTimeouts.push(timeoutId);
+            return timeoutId;
+        }
+        
+        // Helper function to create tracked intervals
+        function createTrackedInterval(callback, delay) {
+            const intervalId = setInterval(callback, delay);
+            window.graphAnimationIntervals.push(intervalId);
+            return intervalId;
+        }
+        
+        // Comprehensive canvas cleanup function
+        function clearCanvas() {
+            // Stop all animations and timeouts
+            clearTimeout(animationTimeout);
+            if (window.graphAnimationTimeouts) {
+                window.graphAnimationTimeouts.forEach(timeout => clearTimeout(timeout));
+                window.graphAnimationTimeouts = [];
+            }
+            if (window.graphAnimationIntervals) {
+                window.graphAnimationIntervals.forEach(interval => clearInterval(interval));
+                window.graphAnimationIntervals = [];
+            }
+            
+            // Stop D3 simulation if it exists
+            if (simulation) {
+                simulation.stop();
+                simulation = null;
+            }
+            
+            // Stop all D3 transitions
+            d3.selectAll('*').interrupt();
+            
+            // Clear only the SVG content, preserve the container
+            const container = d3.select('#graph-container');
+            if (!container.empty()) {
+                // Remove only the SVG, not other container content
+                container.select('svg').remove();
+            }
+            
+            // Reset variables
+            svg = null;
+            nodes = [];
+            links = [];
+            currentStep = 0;
+            isPaused = true;
+            
+            // Clear any residual CSS classes
+            document.querySelectorAll('.matrix-updated, .step-updated, .node-pulse, .edge-pulse, .temp, .highlight, .animating').forEach(el => {
+                el.classList.remove('matrix-updated', 'step-updated', 'node-pulse', 'edge-pulse', 'temp', 'highlight', 'animating');
+            });
+        }
+
+        // Toggle manual/random input
+        const manualRadio = document.getElementById('manualRadio');
+        const randomRadio = document.getElementById('randomRadio');
+        const manualInputDiv = document.getElementById('manual-graph-input');
+        const randomInputDiv = document.getElementById('random-graph-input');
+        
+        manualRadio.addEventListener('change', toggleGraphInputMethod);
+        randomRadio.addEventListener('change', toggleGraphInputMethod);
+        
+        function toggleGraphInputMethod() {
+            if (manualRadio.checked) {
+                manualInputDiv.style.display = 'block';
+                randomInputDiv.style.display = 'none';
+                updateFormatGuide(); // Update the format guide based on the algorithm
+            } else {
+                manualInputDiv.style.display = 'none';
+                randomInputDiv.style.display = 'block';
+            }
+        }
+        
+        function toggleFormatGuide() {
+            const content = document.getElementById('format-content');
+            const currentDisplay = content.style.display;
+            content.style.display = currentDisplay === 'none' ? 'block' : 'none';
+        }
+        
+        function updateFormatGuide() {
+            const algo = getCurrentAlgorithm();
+            
+            ['unweighted-format-guide', 'weighted-format-guide', 'kruskal-format-guide',
+             'floydwarshall-format-guide', 'bellmanford-format-guide'].forEach(id => {
+                document.getElementById(id).style.display = 'none';
+            });
+
+            const guideFor = {
+                bfs: 'unweighted-format-guide',
+                dfs: 'unweighted-format-guide',
+                dijkstra: 'weighted-format-guide',
+                prim: 'weighted-format-guide',
+                kruskal: 'kruskal-format-guide',
+                floyd_warshall: 'floydwarshall-format-guide',
+                bellman_ford: 'bellmanford-format-guide'
+            }[algo];
+
+            if (guideFor) {
+                document.getElementById(guideFor).style.display = 'block';
+            }
+        }
+
+        function getCurrentAlgorithm() {
+            return "{{ algorithm|default('bfs') }}".toLowerCase();
+        }
+
+        // Check if the current algorithm is weighted. Drives the edge labels and the
+        // larger node radius, so every algorithm that reads edge weights belongs here.
+        function isWeighted(algo) {
+            algo = algo || getCurrentAlgorithm();
+            return ["dijkstra", "prim", "kruskal", "floyd_warshall", "bellman_ford"].includes(algo);
+        }
+
+        // Kruskal and Floyd-Warshall take {nodes, edges} rather than an adjacency map,
+        // and the node order is what their steps index the matrix by.
+        function usesEdgeListApi(algo) {
+            return ["kruskal", "floyd_warshall"].includes(algo);
+        }
+
+        // Which algorithms want the start node line / field at all.
+        function needsStartNode(algo) {
+            return ["bfs", "dfs", "dijkstra", "prim", "bellman_ford"].includes(algo);
+        }
+
+        // Initialize on document load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update UI based on algorithm type
+            isWeightedAlgorithm = isWeighted();
+            
+            // Update the format guide based on the selected algorithm
+            updateFormatGuide();
+            
+            // Initial animation control state
+            document.getElementById('pause-button').style.opacity = '0.5';
+            
+            // Initialize the graph visualization
+            initializeGraphVisualization();
+        });
+        
+        // Function to parse the simplified graph input format
+        function parseSimplifiedFormat(input, algorithm) {
+            const lines = input.trim().split('\n').filter(line => line.trim() !== '');
+            if (lines.length < 2) {
+                throw new Error('Input must have at least two lines');
+            }
+            
+            // Parse first line: <numNodes> <numEdges>
+            const [numNodes, numEdges] = lines[0].trim().split(/\s+/).map(Number);
+            if (isNaN(numNodes) || isNaN(numEdges) || numNodes < 1 || numEdges < 0) {
+                throw new Error('First line must contain valid numbers for nodes and edges');
+            }
+            
+            // Different parsing logic based on algorithm
+            if (algorithm === 'bfs' || algorithm === 'dfs') {
+                // Unweighted graph format
+                if (lines.length < numEdges + 1) {
+                    throw new Error(`Expected at least ${numEdges + 1} lines`);
+                }
+                
+                // Create adjacency list
+                const graph = {};
+                
+                // Process edges
+                for (let i = 1; i <= numEdges; i++) {
+                    const parts = lines[i].trim().split(/\s+/);
+                    if (parts.length !== 2) {
+                        throw new Error(`Line ${i + 1} must contain source and target nodes only`);
+                    }
+                    const [source, target] = parts;
+                    
+                    // Initialize nodes if they don't exist
+                    if (!graph[source]) graph[source] = [];
+                    if (!graph[target]) graph[target] = [];
+                    
+                    // Add bidirectional edges
+                    graph[source].push(target);
+                    graph[target].push(source);
+                }
+                
+                // The last line is the start node
+                const startNode = lines[numEdges + 1].trim();
+                if (!graph[startNode]) {
+                    throw new Error(`Start node '${startNode}' does not exist in the graph`);
+                }
+                
+                return { graph, startNode };
+                
+            } else if (isWeighted(algorithm)) {
+                // Weighted format, shared by Dijkstra, Prim, Kruskal, Floyd-Warshall
+                // and Bellman-Ford. They differ only in whether a start node line
+                // follows the edges, so the line is read when present and the
+                // caller decides whether it is required.
+                if (lines.length < numEdges + 1) {
+                    throw new Error(`Expected at least ${numEdges + 1} lines`);
+                }
+
+                // Create weighted adjacency list
+                const graph = {};
+                // One entry per undirected edge, in input order: this is what the
+                // Kruskal and Floyd-Warshall endpoints take as `edges`.
+                const edgeList = [];
+
+                // Process edges
+                for (let i = 1; i <= numEdges; i++) {
+                    const parts = lines[i].trim().split(/\s+/);
+                    if (parts.length !== 3) {
+                        throw new Error(`Line ${i + 1} must contain source, target, and weight`);
+                    }
+                    const [source, target, weightStr] = parts;
+                    const weight = parseFloat(weightStr);
+
+                    if (isNaN(weight)) {
+                        throw new Error(`Weight must be a number at line ${i + 1}`);
+                    }
+
+                    // Initialize nodes if they don't exist
+                    if (!graph[source]) graph[source] = {};
+                    if (!graph[target]) graph[target] = {};
+
+                    // Add bidirectional edges with weights
+                    graph[source][target] = weight;
+                    graph[target][source] = weight;
+                    edgeList.push([source, target, weight]);
+                }
+
+                // Sorted so the Floyd-Warshall matrix rows and columns come out in a
+                // predictable order rather than following the order edges happen to
+                // be listed in.
+                const nodeOrder = Object.keys(graph).sort();
+
+                // A start node line is optional: Kruskal and Floyd-Warshall have none,
+                // and the demo loaders for the others also set the start-node field.
+                const startNode = lines.length > numEdges + 1 ? lines[numEdges + 1].trim() : '';
+                if (startNode && !graph[startNode]) {
+                    throw new Error(`Start node '${startNode}' does not exist in the graph`);
+                }
+
+                return { graph, startNode, nodeOrder, edgeList };
+            }
+
+            throw new Error('Unknown algorithm type');
+        }
+
+        // Derives {nodeOrder, edgeList} from whatever shape the user pasted: a
+        // weighted adjacency map, or the {nodes, edges} object the Kruskal and
+        // Floyd-Warshall endpoints themselves accept.
+        function describeGraph(graph) {
+            if (Array.isArray(graph.nodes) && Array.isArray(graph.edges)) {
+                return {
+                    nodeOrder: graph.nodes.slice(),
+                    edgeList: graph.edges.map(e => [e[0], e[1], e[2]])
+                };
+            }
+
+            const edgeList = [];
+            const seen = new Set();
+            Object.entries(graph).forEach(([source, targets]) => {
+                if (!targets || typeof targets !== 'object' || Array.isArray(targets)) return;
+                Object.entries(targets).forEach(([target, weight]) => {
+                    // Adjacency maps hold each undirected edge twice; keep one.
+                    const key = source < target ? `${source}|${target}` : `${target}|${source}`;
+                    if (seen.has(key)) return;
+                    seen.add(key);
+                    edgeList.push([source, target, weight]);
+                });
+            });
+
+            const nodeOrder = Object.keys(graph).sort();
+            return { nodeOrder, edgeList };
+        }
+
+        // Enhanced functions for animation controls with smooth transitions
+        function playSteps() {
+            document.getElementById('play-button').style.opacity = '0.5';
+            document.getElementById('pause-button').style.opacity = '1';
+            isPaused = false;
+            
+            // Add a pulse animation to the play button
+            d3.select('#play-button')
+                .transition()
+                .duration(dur(200))
+                .style('transform', 'scale(1.1)')
+                .transition()
+                .duration(dur(200))
+                .style('transform', 'scale(1)');
+            
+            if (currentStep >= steps.length - 1) {
+                // Reset if at the end with smooth transition
+                resetSteps(true);
+            }
+            
+            applyNextStep();
+        }
+        
+        function pauseSteps() {
+            document.getElementById('play-button').style.opacity = '1';
+            document.getElementById('pause-button').style.opacity = '0.5';
+            isPaused = true;
+            
+            // Add a pulse animation to the pause button
+            d3.select('#pause-button')
+                .transition()
+                .duration(dur(200))
+                .style('transform', 'scale(1.1)')
+                .transition()
+                .duration(dur(200))
+                .style('transform', 'scale(1)');
+            
+            if (animationTimeout) {
+                clearTimeout(animationTimeout);
+            }
+        }
+        
+        // Initialize graph visualization with fixed speed
+        function initializeGraphVisualization() {
+            // Set fixed speed (no user control)
+            speed = 400; // Moderate speed for good visibility
+        }
+        
+        function resetSteps(skipAnimation = false) {
+            pauseSteps();
+            
+            // clearCanvas() empties nodes/links along with the SVG, but the re-render
+            // at the end of this function needs that data to rebuild the graph. Hold
+            // the arrays across the teardown and hand them back, otherwise updateGraph()
+            // binds an empty array, no circles are created, and every step applied
+            // afterwards finds no node to style.
+            const graphNodes = nodes;
+            const graphLinks = links;
+            
+            // Use comprehensive canvas cleanup
+            clearCanvas();
+            
+            nodes = graphNodes;
+            links = graphLinks;
+            // Drop the per-run state the steps set, so the replay starts clean.
+            nodes.forEach(n => { delete n.style; delete n.color; });
+            links.forEach(l => { delete l.isInMST; delete l.kruskalState; l.color = '#999'; });
+            
+            // Add a pulse animation to the reset button unless skipping
+            if (!skipAnimation) {
+                d3.select('#reset-button')
+                    .transition()
+                    .duration(dur(200))
+                    .style('transform', 'scale(1.1)')
+                    .transition()
+                    .duration(dur(200))
+                    .style('transform', 'scale(1)');
+            }
+            
+            // Reset step counter display
+            document.getElementById('step-display').textContent = `Step ${currentStep}`;
+            
+            // Hide result panel
+            const resultPanel = document.getElementById('result-panel');
+            if (resultPanel && resultPanel.style.display !== 'none') {
+                if (skipAnimation) {
+                    resultPanel.style.display = 'none';
+                } else {
+                    d3.select('#result-panel')
+                        .transition()
+                        .duration(dur(300))
+                        .style('opacity', 0)
+                        .on('end', function() {
+                            resultPanel.style.display = 'none';
+                        });
+                }
+            }
+            
+            // Reset Floyd-Warshall matrix if present
+            const fwMatrix = document.getElementById('fw-matrix');
+            if (fwMatrix) {
+                fwMatrix.innerHTML = '';
+            }
+
+            // Empty the shared table panel too, so a replay does not start showing the
+            // Kruskal verdicts or the distances the previous run finished on.
+            const matrixDisplay = document.getElementById('matrix-display');
+            if (matrixDisplay) {
+                document.getElementById('matrix-content').innerHTML = '';
+                matrixDisplay.style.display = 'none';
+            }
+            fwNodeOrder = null;
+            
+            // Force a re-render if we have graph data. Test the node list rather than
+            // the module-level `graph`: visualize() parses into a local of the same
+            // name, so the module-level one stays empty and this never ran.
+            if (nodes.length > 0) {
+                createTrackedTimeout(() => {
+                    initializeGraph();
+                    updateGraph();
+                    if (steps.length > 0) {
+                        applyStep(0);
+                    }
+                }, skipAnimation ? 0 : 100);
+            }
+        }
+        
+        function applyNextStep() {
+            if (isPaused || currentStep >= steps.length - 1) return;
+            
+            currentStep++;
+            applyStep(currentStep);
+            
+            // Update step counter with animation
+            const stepDisplay = document.getElementById('step-display');
+            stepDisplay.textContent = `Step ${currentStep+1}`;
+            stepDisplay.classList.add('updated');
+            setTimeout(() => stepDisplay.classList.remove('updated'), 300);
+            
+            // Calculate delay based on fixed speed setting
+            // For weighted algorithms use longer delays for better clarity
+            const algorithmType = getCurrentAlgorithm();
+            let delayFactor;
+            
+            // Custom delay factors based on algorithm type
+            if (algorithmType === 'dijkstra') {
+                delayFactor = 4.0; // Dijkstra needs more time per step
+            } else if (algorithmType === 'prim') {
+                delayFactor = 4.5; // MST algorithms
+            } else if (algorithmType === 'floyd_warshall') {
+                // Floyd-Warshall emits roughly 2n^3 steps - two per (i, j, k) triple -
+                // so at the shared pace a 5-node graph would take minutes to play.
+                delayFactor = 0.6;
+            } else if (algorithmType === 'bellman_ford') {
+                delayFactor = 1.2; // Two steps per edge per pass; still a lot of them.
+            } else {
+                delayFactor = 2.5; // BFS/DFS can be faster
+            }
+            
+            const normalizedSpeed = Math.pow(speed / 1000, 0.7);
+            const delay = delayFactor * (1000 / (normalizedSpeed + 1));
+            
+            // Schedule next step with calculated delay
+            animationTimeout = createTrackedTimeout(applyNextStep, delay);
+        }
+        
+        // Generate a random graph with improved visuals and structure
+        function generateRandomGraph() {
+            console.log('generateRandomGraph() called');
+            const numNodes = parseInt(document.getElementById('num-nodes').value);
+            const requestedEdges = parseInt(document.getElementById('num-edges').value);
+            const algorithm = getCurrentAlgorithm();
+            const isWeightedAlgo = isWeighted(algorithm);
+            
+            console.log('Num nodes:', numNodes, 'Num edges:', requestedEdges, 'Algorithm:', algorithm);
+            
+            // Validate inputs
+            const maxPossibleEdges = numNodes * (numNodes - 1) / 2;
+            const numEdges = Math.min(requestedEdges, maxPossibleEdges);
+            
+            // Generate node IDs (A, B, C, etc.)
+            const nodeIds = Array.from({length: numNodes}, (_, i) => String.fromCharCode(65 + i));
+            
+            // Show animation for graph generation
+            document.getElementById('graph-input').value = "Generating random graph...";
+            setTimeout(() => {
+                // Generate edges for a connected graph
+                const edges = [];
+                const allEdges = [];
+                
+                // First generate all possible edges
+                for (let i = 0; i < nodeIds.length; i++) {
+                    for (let j = i + 1; j < nodeIds.length; j++) {
+                        const weight = Math.floor(Math.pow(Math.random(), 1.5) * 15) + 1;
+                        allEdges.push({
+                            source: nodeIds[i],
+                            target: nodeIds[j],
+                            weight: weight
+                        });
+                    }
+                }
+                
+                // First ensure connectivity by creating a spanning tree
+                const connectedNodes = new Set([nodeIds[0]]);
+                const remainingNodes = new Set(nodeIds.slice(1));
+                
+                // Create a spanning tree
+                while (remainingNodes.size > 0) {
+                    // Find an edge connecting a node in connectedNodes to one in remainingNodes
+                    const candidates = allEdges.filter(edge => 
+                        (connectedNodes.has(edge.source) && remainingNodes.has(edge.target)) ||
+                        (connectedNodes.has(edge.target) && remainingNodes.has(edge.source))
+                    );
+                    
+                    if (candidates.length > 0) {
+                        const randomIndex = Math.floor(Math.random() * candidates.length);
+                        const selected = candidates[randomIndex];
+                        
+                        // Add the edge
+                        edges.push(selected);
+                        
+                        // Move the newly connected node to the connected set
+                        if (remainingNodes.has(selected.source)) {
+                            connectedNodes.add(selected.source);
+                            remainingNodes.delete(selected.source);
+                        } else {
+                            connectedNodes.add(selected.target);
+                            remainingNodes.delete(selected.target);
+                        }
+                        
+                        // Remove this edge from consideration
+                        allEdges.splice(allEdges.indexOf(selected), 1);
+                    }
+                }
+                
+                // Add additional random edges up to the requested number
+                shuffleArray(allEdges);
+                const additionalEdges = allEdges.slice(0, numEdges - (numNodes - 1));
+                edges.push(...additionalEdges);
+                
+                // Choose a random start node
+                const startNode = nodeIds[Math.floor(Math.random() * nodeIds.length)];
+                
+                // Generate output in the simplified format based on algorithm
+                let output;
+                
+                output = `${numNodes} ${edges.length}\n`;
+                for (const edge of edges) {
+                    output += isWeightedAlgo
+                        ? `${edge.source} ${edge.target} ${edge.weight}\n`
+                        : `${edge.source} ${edge.target}\n`;
+                }
+                // Kruskal and Floyd-Warshall read no start node, so the line is left
+                // off for them rather than written and ignored.
+                if (needsStartNode(algorithm)) {
+                    output += startNode;
+                }
+
+                document.getElementById('graph-input').value = output;
+                document.getElementById('start-node').value = startNode;
+                
+                // Show a success message briefly
+                const inputArea = document.getElementById('graph-input');
+                inputArea.classList.add('success-flash');
+                setTimeout(() => {
+                    inputArea.classList.remove('success-flash');
+                }, 1000);
+                
+                // Auto-visualize the graph after generation
+                setTimeout(() => {
+                    console.log('About to call visualize() from generateRandomGraph');
+                    console.log('Graph input:', document.getElementById('graph-input').value);
+                    console.log('Start node:', document.getElementById('start-node').value);
+                    visualize();
+                }, 500);
+                
+            }, 300); // Short delay for visual feedback
+        }
+        
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function initializeGraph() {
+            const container = document.getElementById('graph-container');
+            width = container.clientWidth;
+            height = isWeightedAlgorithm ? 600 : 400;
+
+            // Only clear SVG if it already exists, don't call full clearCanvas here
+            if (svg && !svg.empty()) {
+                svg.remove();
+            }
+
+            svg = d3.select('#graph-container')
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height)
+                .attr('viewBox', `0 0 ${width} ${height}`)
+                .attr('preserveAspectRatio', 'xMidYMid meet')
+                .attr('class', 'graph-svg');
+
+            // Add a background with subtle patterns for better visual reference
+            svg.append('rect')
+                .attr('width', '100%')
+                .attr('height', '100%')
+                .attr('fill', '#f8f9ff');
+
+            // Add grid pattern
+            const defs = svg.append('defs');
+            
+            // Define gradient for links
+            const linkGradient = defs.append('linearGradient')
+                .attr('id', 'link-gradient')
+                .attr('gradientUnits', 'userSpaceOnUse');
+                
+            linkGradient.append('stop')
+                .attr('offset', '0%')
+                .attr('stop-color', '#7986cb');
+                
+            linkGradient.append('stop')
+                .attr('offset', '100%')
+                .attr('stop-color', '#9fa8da');
+
+            // Add shadow filter for nodes
+            const filter = defs.append('filter')
+                .attr('id', 'shadow')
+                .attr('x', '-50%')
+                .attr('y', '-50%')
+                .attr('width', '200%')
+                .attr('height', '200%');
+                
+            filter.append('feDropShadow')
+                .attr('dx', 2)
+                .attr('dy', 2)
+                .attr('stdDeviation', 3)
+                .attr('flood-color', 'rgba(0,0,0,0.3)');
+
+            // Add enhanced force simulation
+            simulation = d3.forceSimulation()
+                .force('link', d3.forceLink().id(d => d.id).distance(d => isWeightedAlgorithm ? 220 : 150).strength(0.6))
+                .force('charge', d3.forceManyBody().strength(isWeightedAlgorithm ? -800 : -450))
+                .force('center', d3.forceCenter(width / 2, height / 2))
+                .force('collide', d3.forceCollide(isWeightedAlgorithm ? 70 : 45))
+                .force('x', d3.forceX(width / 2).strength(0.04))
+                .force('y', d3.forceY(height / 2).strength(0.04));
+        }
+
+        function updateGraph() {
+            // Ensure we have a valid SVG before proceeding
+            if (!svg || svg.empty()) {
+                console.error('SVG not initialized. Cannot update graph.');
+                return;
+            }
+            
+            // Clear only the graph content, preserving the background and definitions
+            svg.selectAll('.grid-lines, .decoration-dots, .links, .nodes, .edge-label-bg-group, .edge-label-group, .node-labels').remove();
+            
+            // Re-add background if it doesn't exist
+            if (svg.select('rect').empty()) {
+                svg.append('rect')
+                    .attr('width', '100%')
+                    .attr('height', '100%')
+                    .attr('fill', '#f8f9ff');
+            }
+
+            // Add grid lines
+            svg.append('g')
+                .attr('class', 'grid-lines')
+                .selectAll('line')
+                .data([...Array(20).keys()])
+                .enter()
+                .append('line')
+                .attr('x1', d => d * (width / 20))
+                .attr('y1', 0)
+                .attr('x2', d => d * (width / 20))
+                .attr('y2', height)
+                .attr('stroke', '#e8eaf6')
+                .attr('stroke-width', 1);
+                
+            svg.append('g')
+                .attr('class', 'grid-lines')
+                .selectAll('line')
+                .data([...Array(20).keys()])
+                .enter()
+                .append('line')
+                .attr('x1', 0)
+                .attr('y1', d => d * (height / 20))
+                .attr('x2', width)
+                .attr('y2', d => d * (height / 20))
+                .attr('stroke', '#e8eaf6')
+                .attr('stroke-width', 1);
+
+            // Add decoration elements - subtle background dots (only once)
+            svg.append('g')
+                .attr('class', 'decoration-dots')
+                .selectAll('circle')
+                .data([...Array(30).keys()])
+                .enter()
+                .append('circle')
+                .attr('cx', d => Math.random() * width)
+                .attr('cy', d => Math.random() * height)
+                .attr('r', d => Math.random() * 3 + 1)
+                .attr('fill', '#c5cae9')
+                .attr('opacity', 0.2)
+                .attr('class', 'decoration');
+
+            // Create container for links with better styling
+            const linkGroup = svg.append('g').attr('class', 'links');
+            
+            // Create links with better styling and transitions
+            const link = linkGroup.selectAll('line')
+                .data(links)
+                .enter()
+                .append('line')
+                .attr('class', 'link')
+                .attr('stroke', d => d.color || 'url(#link-gradient)')
+                .attr('stroke-opacity', isWeightedAlgorithm ? 0.8 : 0.7)
+                .attr('stroke-width', d => `${isWeightedAlgorithm ? Math.max(3, Math.sqrt(d.value) * 2) : Math.max(2, Math.sqrt(d.value) * 1.5)}px`)
+                .attr('stroke-linecap', 'round');
+
+            // Add edge weight labels only for weighted algorithms with improved styling
+            if (isWeightedAlgorithm) {
+                // Properly deduplicate links to prevent double edge labels for undirected graphs
+                const uniqueLinks = [];
+                const seenEdges = new Set();
+                
+                links.forEach(link => {
+                    // Get node IDs, handling both string IDs and object references
+                    const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
+                    const targetId = typeof link.target === 'object' ? link.target.id : link.target;
+                    
+                    // Create a normalized edge key (always smaller ID first)
+                    const edgeKey = sourceId < targetId ? `${sourceId}-${targetId}` : `${targetId}-${sourceId}`;
+                    
+                    if (!seenEdges.has(edgeKey)) {
+                        seenEdges.add(edgeKey);
+                        uniqueLinks.push(link);
+                    }
+                });
+                
+                console.log('Total links:', links.length, 'Unique links for labels:', uniqueLinks.length);
+                console.log('Unique links:', uniqueLinks.map(l => ({
+                    source: typeof l.source === 'object' ? l.source.id : l.source,
+                    target: typeof l.target === 'object' ? l.target.id : l.target,
+                    value: l.value
+                })));
+                
+                // Store uniqueLinks for use in tick function
+                window.currentUniqueLinks = uniqueLinks;
+                
+                // Add white background circles for edge labels (using deduplicated links)
+                const edgeLabelBg = svg.append('g')
+                    .attr('class', 'edge-label-bg-group')
+                    .selectAll('circle')
+                    .data(uniqueLinks)
+                    .enter()
+                    .append('circle')
+                    .attr('r', 18)
+                    .attr('fill', 'white')
+                    .attr('stroke', '#e0e0e0')
+                    .attr('stroke-width', 2)
+                    .attr('opacity', 0.95)
+                    .attr('class', 'edge-label-bg');
+                
+                const edgeLabels = svg.append('g')
+                    .attr('class', 'edge-label-group')
+                    .selectAll('text')
+                    .data(uniqueLinks)
+                    .enter()
+                    .append('text')
+                    .attr('class', 'edge-label')
+                    .attr('font-size', '16px')
+                    .attr('font-weight', 'bold')
+                    .attr('text-anchor', 'middle')
+                    .attr('dominant-baseline', 'central')
+                    .attr('fill', '#333')
+                    .attr('pointer-events', 'none')
+                    .text(d => d.value);
+            }
+
+            // Add enhanced shadow filter for 3D effect (only if not exists)
+            if (svg.select('#shadow').empty()) {
+                const defs = svg.select('defs').empty() ? svg.append('defs') : svg.select('defs');
+                const filter = defs.append('filter')
+                    .attr('id', 'shadow')
+                    .attr('x', '-50%')
+                    .attr('y', '-50%')
+                    .attr('width', '200%')
+                    .attr('height', '200%');
+                    
+                filter.append('feDropShadow')
+                    .attr('dx', '0')
+                    .attr('dy', '2')
+                    .attr('stdDeviation', '3')
+                    .attr('flood-color', 'rgba(0,0,0,0.25)')
+                    .attr('flood-opacity', '0.5');
+                    
+                // Add glow filter for highlighted nodes
+                const glowFilter = defs.append('filter')
+                    .attr('id', 'glow')
+                    .attr('x', '-50%')
+                    .attr('y', '-50%')
+                    .attr('width', '200%')
+                    .attr('height', '200%');
+                    
+                glowFilter.append('feGaussianBlur')
+                    .attr('stdDeviation', '3')
+                    .attr('result', 'coloredBlur');
+                    
+                const glowMerge = glowFilter.append('feMerge');
+                glowMerge.append('feMergeNode').attr('in', 'coloredBlur');
+                glowMerge.append('feMergeNode').attr('in', 'SourceGraphic');
+            }
+
+            // Create nodes with enhanced styling and hover effects
+            const nodeGroup = svg.append('g').attr('class', 'nodes');
+            const node = nodeGroup.selectAll('circle')
+                .data(nodes)
+                .enter()
+                .append('circle')
+                .attr('r', isWeightedAlgorithm ? 35 : 24)
+                .attr('fill', d => d.color || '#5c6bc0')
+                .attr('stroke', '#fff')
+                .attr('stroke-width', '3px')
+                .attr('filter', 'url(#shadow)')
+                .attr('cursor', 'grab')
+                .call(d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended))
+                .on('mouseover', function(event, d) {
+                    // Highlight node on hover
+                    d3.select(this)
+                        .transition()
+                        .duration(dur(200))
+                        .attr('stroke-width', '4px')
+                        .attr('r', isWeightedAlgorithm ? 40 : 28)
+                        .attr('filter', 'url(#glow)');
+                        
+                    // Highlight connected edges and nodes
+                    link.each(function(l) {
+                        if (l.source.id === d.id || l.target.id === d.id) {
+                            d3.select(this)
+                                .transition()
+                                .duration(dur(200))
+                                .attr('stroke-width', `${Math.max(4, Math.sqrt(l.value) * 2)}px`)
+                                .attr('stroke-opacity', 0.9);
+                        }
+                    });
+                })
+                .on('mouseout', function(event, d) {
+                    d3.select(this)
+                        .transition()
+                        .duration(dur(300))
+                        .attr('stroke-width', '3px')
+                        .attr('r', isWeightedAlgorithm ? 35 : 24)
+                        .attr('filter', 'url(#shadow)');
+                        
+                    // Restore edge styles
+                    link.each(function(l) {
+                        if (l.source.id === d.id || l.target.id === d.id) {
+                            d3.select(this)
+                                .transition()
+                                .duration(dur(300))
+                                .attr('stroke-width', `${Math.max(2, Math.sqrt(l.value) * 1.5)}px`)
+                                .attr('stroke-opacity', 0.7);
+                        }
+                    });
+                });
+
+            // Add labels with better visibility and positioning
+            const labelGroup = svg.append('g').attr('class', 'node-labels');
+            const label = labelGroup.selectAll('text')
+                .data(nodes)
+                .enter()
+                .append('text')
+                .text(d => d.id)
+                .attr('text-anchor', 'middle')
+                .attr('dominant-baseline', 'central')
+                .attr('font-size', '16px')
+                .attr('font-weight', 'bold')
+                .attr('fill', 'white')
+                .attr('pointer-events', 'none')
+                .attr('text-shadow', '0 1px 2px rgba(0,0,0,0.3)');
+                
+            // Start the simulation
+            simulation
+                .nodes(nodes)
+                .force('link').links(links);
+
+            // Boundary constraints for node positions.
+            // Use larger margins for weighted algorithms to keep nodes visible
+            const marginX = isWeightedAlgorithm ? 50 : 30;
+            const marginY = isWeightedAlgorithm ? 50 : 30;
+
+            // Position everything from the current node coordinates. Used as the
+            // simulation's tick handler, and called directly when the simulation is
+            // not running (reduced motion, dragging).
+            renderPositions = () => {
+                // Apply smooth transitions for links with cubic bezier for natural movement
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+                
+                // Update edge label and background positions if they exist
+                if (isWeightedAlgorithm) {
+                    // Update edge labels to move with the connected nodes
+                    d3.selectAll('.edge-label')
+                        .attr('x', d => {
+                            // Calculate the midpoint between the two connected nodes
+                            return (d.source.x + d.target.x) / 2;
+                        })
+                        .attr('y', d => {
+                            // Calculate the midpoint between the two connected nodes
+                            return (d.source.y + d.target.y) / 2 + 5; // Slight offset for better visibility
+                        });
+                        
+                    // Update edge label backgrounds to match label positions
+                    d3.selectAll('.edge-label-bg')
+                        .attr('cx', d => {
+                            return (d.source.x + d.target.x) / 2;
+                        })
+                        .attr('cy', d => {
+                            return (d.source.y + d.target.y) / 2 + 5;
+                        });
+                }
+                
+                // Apply smooth transitions for nodes with boundary constraints
+                node
+                    .attr('cx', d => d.x = Math.max(marginX, Math.min(width - marginX, d.x)))
+                    .attr('cy', d => d.y = Math.max(marginY, Math.min(height - marginY, d.y)));
+                
+                // Apply smooth transitions for labels to match node positions
+                label
+                    .attr('x', d => d.x)
+                    .attr('y', d => d.y);
+            };
+
+            simulation.on('tick', renderPositions);
+
+            if (prefersReducedMotion()) {
+                // Settle the layout synchronously and paint it once, so the graph
+                // appears in its final arrangement instead of drifting into place.
+                // simulation.tick() does not dispatch 'tick' events, so the boundary
+                // clamp that the tick handler normally applies is done here, keeping
+                // the resulting layout the same as the animated one.
+                simulation.alpha(1);
+                for (let i = 0; i < 300; i++) {
+                    simulation.tick();
+                    nodes.forEach(d => {
+                        d.x = Math.max(marginX, Math.min(width - marginX, d.x));
+                        d.y = Math.max(marginY, Math.min(height - marginY, d.y));
+                    });
+                }
+                simulation.stop();
+                renderPositions();
+            } else {
+                simulation.alpha(1).restart();
+            }
+        }
+
+        function dragstarted(event, d) {
+            // Under reduced motion the simulation stays stopped, so the rest of the
+            // graph does not drift while the dragged node is moved.
+            if (!event.active && !prefersReducedMotion()) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+            d3.select(this).attr('stroke-width', '4px').attr('cursor', 'grabbing');
+        }
+
+        function dragged(event, d) {
+            // Update the position based on the mouse movement
+            d.fx = Math.max(25, Math.min(width - 25, event.x));
+            d.fy = Math.max(25, Math.min(height - 25, event.y));
+
+            // With the simulation stopped there are no ticks to repaint from, so the
+            // dragged node is followed directly.
+            if (prefersReducedMotion()) {
+                d.x = d.fx;
+                d.y = d.fy;
+                if (renderPositions) renderPositions();
+            }
+        }
+
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            // Free the node position when done dragging for natural movement
+            d.fx = null;
+            d.fy = null;
+            d3.select(this).attr('stroke-width', '2px').attr('cursor', 'grab');
+        }
+
+        // Errors that concern the graph textarea are shown next to it and take
+        // focus; #graph-error stays for errors that belong to no single field.
+        function setGraphError(id, message) {
+            const box = document.getElementById(id);
+            box.innerText = message || '';
+            box.style.display = message ? 'block' : 'none';
+        }
+
+        function clearGraphErrors() {
+            setGraphError('graph-error', '');
+            setGraphError('graph-input-error', '');
+            document.getElementById('graph-input').removeAttribute('aria-invalid');
+        }
+
+        function showGraphInputError(message) {
+            const input = document.getElementById('graph-input');
+            // In "random graph" mode the textarea is hidden, so an inline
+            // message has nothing to sit next to - fall back to the panel.
+            if (input.offsetParent === null) {
+                setGraphError('graph-error', message);
+                return;
+            }
+            setGraphError('graph-input-error', message);
+            input.setAttribute('aria-invalid', 'true');
+            input.focus();
+        }
+
+        function visualize() {
+            console.log('visualize() called');
+            clearGraphErrors();
+            try {
+                const graphInput = document.getElementById('graph-input').value;
+                let startNode = document.getElementById('start-node').value;
+                let graph;
+                // What parseSimplifiedFormat returned, when the simplified format was
+                // used. Kruskal and Floyd-Warshall reuse its node and edge lists.
+                let parsed = {};
+                const algorithm = getCurrentAlgorithm();
+                
+                // Update the weighted algorithm flag
+                isWeightedAlgorithm = isWeighted();
+                
+                console.log('Graph input:', graphInput);
+                console.log('Start node:', startNode);
+                console.log('Algorithm:', algorithm);
+                console.log('Is weighted:', isWeightedAlgorithm);
+                
+                // Check for empty input
+                if (!graphInput.trim()) {
+                    showGraphInputError('Please enter a graph or generate a random one.');
+                    return;
+                }
+                
+                // Check if input seems to be in the simplified format or JSON format
+                if (graphInput.trim().startsWith('{')) {
+                    // JSON format
+                    try {
+                        graph = JSON.parse(graphInput);
+                    } catch (e) {
+                        showGraphInputError('Invalid JSON format. Please check your input.');
+                        return;
+                    }
+                } else {
+                    // Simplified format - parse it
+                    try {
+                        parsed = parseSimplifiedFormat(graphInput, algorithm);
+                        graph = parsed.graph;
+
+                        console.log('Parsed graph:', graph);
+
+                        // If start node isn't manually set, use the one from the input
+                        if (!startNode && parsed.startNode) {
+                            startNode = parsed.startNode;
+                            document.getElementById('start-node').value = startNode;
+                        }
+                    } catch (e) {
+                        showGraphInputError('Invalid format: ' + e.message);
+                        return;
+                    }
+                }
+
+                nodes = [];
+                links = [];
+                // Kruskal and Floyd-Warshall post an explicit node list and edge list,
+                // and their steps refer back to that same ordering, so hold on to it.
+                let nodeOrder = null;
+                let edgeList = null;
+                if (usesEdgeListApi(algorithm)) {
+                    ({ nodeOrder, edgeList } = parsed.nodeOrder ? parsed : describeGraph(graph));
+                    if (!nodeOrder.length) {
+                        showGraphInputError('No nodes found in the graph.');
+                        return;
+                    }
+                    nodes = nodeOrder.map(id => ({ id }));
+                    links = edgeList.map(([source, target, value]) => ({ source, target, value, color: '#999' }));
+                } else {
+                    // Adjacency list (BFS/DFS) or weighted adjacency (Dijkstra/Floyd-Warshall)
+                    nodes = Object.keys(graph).map(id => ({ id }));
+                    Object.entries(graph).forEach(([source, targets]) => {
+                        if (typeof targets === 'object' && !Array.isArray(targets)) {
+                            // Weighted adjacency (Dijkstra/Floyd-Warshall)
+                            Object.keys(targets).forEach(target => {
+                                links.push({ source, target, value: targets[target], color: '#999' });
+                            });
+                        } else if (Array.isArray(targets)) {
+                            // Unweighted adjacency (BFS/DFS)
+                            targets.forEach(target => {
+                                links.push({ source, target, value: 1, color: '#999' });
+                            });
+                        }
+                    });
+                }
+                if (needsStartNode(algorithm) && !startNode) {
+                    setGraphError('graph-error', 'Please enter a start node.');
+                    return;
+                }
+
+                // Make API call to get steps
+                let apiUrl = '/run_' + algorithm.replace('-', '_');
+                // /run_kruskal and /run_floyd_warshall take {nodes, edges}; every
+                // other endpoint takes {graph, start}.
+                let body = usesEdgeListApi(algorithm)
+                    ? { nodes: nodeOrder, edges: edgeList }
+                    : { graph: graph, start: startNode };
+                fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(body)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.error) {
+                        setGraphError('graph-error', data.error);
+                        return;
+                    }
+                    if (Array.isArray(data)) {
+                        steps = data;
+                    } else {
+                        // /run_bellman_ford answers with an object: the step array plus
+                        // the summary the endpoint computed after the last pass. The
+                        // steps themselves end on `iteration_complete`, so turn that
+                        // summary into a closing step and the playback stays uniform.
+                        steps = (data.steps || []).slice();
+                        steps.push(['final', data.distances, data.has_negative_cycle, data.iterations]);
+                        // The first step is a plain edge check that carries no
+                        // distances, so remember the starting row to show until the
+                        // first relaxation produces one.
+                        bfInitialDistances = {};
+                        nodes.forEach(n => {
+                            bfInitialDistances[n.id] = n.id === startNode ? 0 : '∞';
+                        });
+                    }
+                    currentStep = 0;
+                    // Initialize and render the graph
+                    initializeGraph();
+                    updateGraph();
+                    applyStep(0);
+                })
+                .catch(error => {
+                    console.error('Algorithm request failed:', error);
+                    setGraphError('graph-error', 'Error running algorithm. Please check your input format.');
+                });
+            } catch (error) {
+                setGraphError('graph-error', 'Unexpected error: ' + error);
+            }
+        }
+
+        function applyStep(stepIndex) {
+            if (stepIndex < 0 || stepIndex >= steps.length) return;
+            const step = steps[stepIndex];
+            const [action, ...params] = step;
+            const currentAlgo = getCurrentAlgorithm();
+            
+            console.log(`Applying step ${stepIndex}: ${action}`, params);
+            
+            // Update status display
+            updateStatusDisplay(step, currentAlgo);
+            
+            // Apply algorithm-specific visualization
+            switch (currentAlgo) {
+                case 'kruskal':
+                    applyKruskalStep(action, params, stepIndex);
+                    break;
+                case 'prim':
+                    applyPrimStep(action, params, stepIndex);
+                    break;
+                case 'dijkstra':
+                    applyDijkstraStep(action, params, stepIndex);
+                    break;
+                case 'floyd_warshall':
+                    applyFloydWarshallStep(action, params, stepIndex);
+                    break;
+                case 'bellman_ford':
+                    applyBellmanFordStep(action, params, stepIndex);
+                    break;
+                case 'bfs':
+                case 'dfs':
+                    applyTraversalStep(action, params, currentAlgo);
+                    break;
+            }
+            
+            // Don't call updateGraph() here as it resets colors!
+            // Let the individual step functions handle the color updates
+        }
+        
+        function updateStatusDisplay(step, algorithm) {
+            const statusDisplay = document.getElementById('algorithm-status');
+            const statusContent = document.getElementById('status-content');
+            statusDisplay.style.display = 'block';
+            
+            const [action, ...params] = step;
+            let statusText = '';
+            
+            switch (algorithm) {
+                case 'kruskal':
+                    statusText = getKruskalStatus(action, params);
+                    break;
+                case 'prim':
+                    statusText = getPrimStatus(action, params);
+                    break;
+                case 'dijkstra':
+                    statusText = getDijkstraStatus(action, params);
+                    break;
+                case 'floyd_warshall':
+                    statusText = getFloydWarshallStatus(action, params);
+                    break;
+                case 'bellman_ford':
+                    statusText = getBellmanFordStatus(action, params);
+                    break;
+                case 'bfs':
+                case 'dfs':
+                    statusText = getTraversalStatus(action, params, algorithm);
+                    break;
+            }
+            
+            statusContent.innerHTML = `<div class="status-current">${statusText}</div>`;
+        }
+        
+        function applyKruskalStep(action, params, stepIndex) {
+            console.log(`Kruskal step: ${action}`, params);
+            
+            switch (action) {
+                case 'sort_edges':
+                    // Opening state: nothing chosen yet, every edge back to default.
+                    renderKruskalEdgeQueue(params[0]);
+                    links.forEach(l => { delete l.kruskalState; delete l.isInMST; });
+                    resetAllNodesAndEdges();
+                    break;
+                    
+                case 'consider_edge': {
+                    const [u, v, weight] = params;
+                    console.log(`Considering edge ${u}-${v} with weight ${weight}`);
+                    markKruskalQueueRow(u, v, weight, 'considering');
+                    // Only one edge is under consideration at a time; earlier
+                    // verdicts stay on the edges that earned them.
+                    links.forEach(l => { if (l.kruskalState === 'considering') delete l.kruskalState; });
+                    setKruskalEdgeState(u, v, 'considering');
+                    paintKruskalEdges();
+                    break;
+                }
+                    
+                case 'add_edge': {
+                    const [source, target, edgeWeight] = params;
+                    console.log(`Adding edge ${source}-${target} to MST`);
+                    markKruskalQueueRow(source, target, edgeWeight, 'accepted');
+                    setKruskalEdgeState(source, target, 'mst');
+                    paintKruskalEdges();
+                    
+                    // Both endpoints are now in the spanning forest.
+                    [source, target].forEach(id => {
+                        const node = nodes.find(n => n.id === id);
+                        if (node) applyNodeStyle(node, 'visited');
+                    });
+                    break;
+                }
+                    
+                case 'reject_edge': {
+                    const [rejU, rejV, rejWeight] = params;
+                    console.log(`Rejecting edge ${rejU}-${rejV} (creates cycle)`);
+                    markKruskalQueueRow(rejU, rejV, rejWeight, 'rejected');
+                    setKruskalEdgeState(rejU, rejV, 'rejected');
+                    paintKruskalEdges();
+                    break;
+                }
+                    
+                case 'mst_complete':
+                    // The spanning tree is closed. /run_kruskal sends this as a bare
+                    // marker with no payload - the totals arrive with `final` - so
+                    // this only pulses the tree it has already drawn.
+                    console.log('Spanning tree complete');
+                    d3.selectAll('.link')
+                        .filter(d => d.isInMST === true)
+                        .transition()
+                        .duration(dur(600))
+                        .attr('stroke-width', '7px')
+                        .transition()
+                        .duration(dur(600))
+                        .attr('stroke-width', '6px');
+                    break;
+                    
+                case 'final':
+                    // ['final', mst_edges, total_weight]
+                    displayResults('final', params, 'kruskal');
+                    break;
+                    
+                default:
+                    console.log(`Unknown Kruskal action: ${action}`);
+            }
+        }
+        
+        // Records Kruskal's verdict on the link datum rather than in the class
+        // attribute, so the repaint below can always rebuild the full picture.
+        function setKruskalEdgeState(u, v, state) {
+            links.forEach(l => {
+                const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
+                const targetId = typeof l.target === 'object' ? l.target.id : l.target;
+                if ((sourceId === u && targetId === v) || (sourceId === v && targetId === u)) {
+                    l.kruskalState = state;
+                    l.isInMST = state === 'mst';
+                }
+            });
+        }
+        
+        // Repaints every edge from the verdict recorded on it, through the same
+        // highlightEdge() the other algorithms use. That helper adds and removes
+        // classes instead of overwriting the class attribute, which matters here:
+        // the `link` class is what every one of these selections is found by, and
+        // replacing it outright leaves the later steps selecting nothing.
+        function paintKruskalEdges() {
+            const styleFor = { mst: 'mst', considering: 'considering', rejected: 'ignored' };
+            links.forEach(l => {
+                const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
+                const targetId = typeof l.target === 'object' ? l.target.id : l.target;
+                highlightEdge(sourceId, targetId, styleFor[l.kruskalState] || 'default');
+            });
+        }
+        
+        // Kruskal's own panel: the weight-sorted edge queue it walks through. Rows are
+        // keyed `kr-row-<u>-<v>` so nothing here can collide with the matrix cell ids
+        // Floyd-Warshall writes into the same container.
+        function renderKruskalEdgeQueue(sortedEdges) {
+            const panel = document.getElementById('matrix-display');
+            const title = document.getElementById('matrix-title');
+            const content = document.getElementById('matrix-content');
+            if (!panel || !content || !Array.isArray(sortedEdges)) return;
+
+            title.textContent = 'Edge Queue (sorted by weight)';
+            let html = '<table class="matrix-table" style="margin:0 auto;">';
+            html += '<tr><th class="matrix-cell matrix-header">#</th>' +
+                    '<th class="matrix-cell matrix-header">Edge</th>' +
+                    '<th class="matrix-cell matrix-header">Weight</th>' +
+                    '<th class="matrix-cell matrix-header">Verdict</th></tr>';
+            sortedEdges.forEach(([u, v, w], i) => {
+                html += `<tr id="${kruskalRowId(u, v)}">
+                            <td class="matrix-cell">${i + 1}</td>
+                            <td class="matrix-cell">${u} — ${v}</td>
+                            <td class="matrix-cell">${w}</td>
+                            <td class="matrix-cell kr-verdict">—</td>
+                         </tr>`;
+            });
+            html += '</table>';
+            content.innerHTML = html;
+            panel.style.display = 'block';
+        }
+
+        function kruskalRowId(u, v) {
+            // Undirected, and the step may name the endpoints either way round.
+            const [a, b] = u < v ? [u, v] : [v, u];
+            return `kr-row-${a}-${b}`;
+        }
+
+        function markKruskalQueueRow(u, v, weight, state) {
+            const row = document.getElementById(kruskalRowId(u, v));
+            if (!row) return;
+            const verdict = row.querySelector('.kr-verdict');
+
+            if (state === 'considering') {
+                row.style.background = '#fff3e0';
+                if (verdict) verdict.textContent = 'checking…';
+                return;
+            }
+            if (state === 'accepted') {
+                row.style.background = '#e8f5e9';
+                if (verdict) {
+                    verdict.textContent = 'in MST';
+                    verdict.style.color = 'var(--visited-color)';
+                    verdict.style.fontWeight = 'bold';
+                }
+                return;
+            }
+            row.style.background = '#ffebee';
+            if (verdict) {
+                verdict.textContent = 'cycle';
+                verdict.style.color = 'var(--ignored-color)';
+            }
+        }
+        
+        function applyPrimStep(action, params, stepIndex) {
+            switch (action) {
+                case 'start':
+                    // Reset all nodes to unvisited (gray) and mark starting node as visited (green)
+                    resetAllNodesAndEdges();
+                    const startNode = nodes.find(n => n.id === params[0]);
+                    if (startNode) {
+                        applyNodeStyle(startNode, 'visited');
+                        // Add visual emphasis to starting node
+                        d3.selectAll('circle')
+                            .filter(d => d.id === params[0])
+                            .transition()
+                            .duration(dur(500))
+                            .attr('r', isWeightedAlgorithm ? 40 : 30)
+                            .transition()
+                            .duration(dur(500))
+                            .attr('r', isWeightedAlgorithm ? 35 : 24);
+                    }
+                    updateStatusDisplay(['start', params[0]], 'prim');
+                    break;
+                    
+                case 'add_frontier':
+                    // Add nodes to frontier (priority queue) - color them orange
+                    params.forEach(nodeId => {
+                        const node = nodes.find(n => n.id === nodeId);
+                        if (node && node.style !== 'visited') { // Don't override visited nodes
+                            applyNodeStyle(node, 'frontier');
+                        }
+                    });
+                    updateStatusDisplay(['add_frontier', params], 'prim');
+                    break;
+                    
+                case 'consider_edge':
+                    // Highlight edge being considered in orange with pulse animation
+                    const [u, v, weight] = params;
+                    resetEdgeStyles(); // Clear previous edge highlighting
+                    highlightEdge(u, v, 'considering');
+                    updateStatusDisplay(['consider_edge', u, v, weight], 'prim');
+                    break;
+                    
+                case 'add_edge':
+                    // Add edge to MST and mark target node as visited
+                    const [source, target, edgeWeight] = params;
+                    const targetNode = nodes.find(n => n.id === target);
+                    
+                    if (targetNode) {
+                        applyNodeStyle(targetNode, 'visited');
+                        // Add celebration animation for newly added node
+                        d3.selectAll('circle')
+                            .filter(d => d.id === target)
+                            .transition()
+                            .duration(dur(300))
+                            .attr('r', isWeightedAlgorithm ? 40 : 30)
+                            .transition()
+                            .duration(dur(300))
+                            .attr('r', isWeightedAlgorithm ? 35 : 24);
+                    }
+                    
+                    highlightEdge(source, target, 'mst');
+                    updateStatusDisplay(['add_edge', source, target, edgeWeight], 'prim');
+                    
+                    // Update frontier: add neighbors of newly visited node
+                    setTimeout(() => {
+                        if (graph && graph[target]) {
+                            Object.keys(graph[target]).forEach(neighbor => {
+                                const neighborNode = nodes.find(n => n.id === neighbor);
+                                if (neighborNode && neighborNode.style !== 'visited') {
+                                    applyNodeStyle(neighborNode, 'frontier');
+                                }
+                            });
+                        }
+                    }, 500);
+                    break;
+                    
+                case 'ignore_edge':
+                    // Highlight edge that connects to already visited node (ignored)
+                    const [ignoreU, ignoreV, ignoreWeight] = params;
+                    highlightEdge(ignoreU, ignoreV, 'ignored');
+                    updateStatusDisplay(['ignore_edge', ignoreU, ignoreV, ignoreWeight], 'prim');
+                    break;
+                    
+                case 'final':
+                    // Show final MST with celebration animation
+                    const [mstEdges, totalWeight] = params;
+                    
+                    // First ensure all MST nodes are properly colored
+                    const mstNodes = new Set();
+                    mstEdges.forEach(([u, v, w]) => {
+                        mstNodes.add(u);
+                        mstNodes.add(v);
+                    });
+                    
+                    // Color all MST nodes as visited
+                    mstNodes.forEach(nodeId => {
+                        const node = nodes.find(n => n.id === nodeId);
+                        if (node) applyNodeStyle(node, 'visited');
+                    });
+                    
+                    // Highlight all MST edges with staggered animation
+                    mstEdges.forEach(([u, v, w], index) => {
+                        setTimeout(() => {
+                            highlightEdge(u, v, 'mst');
+                        }, index * 150);
+                    });
+                    
+                    updateStatusDisplay(['final', mstEdges, totalWeight], 'prim');
+                    
+                    // Show final results
+                    setTimeout(() => {
+                        displayResults('final', [mstEdges, totalWeight], 'prim');
+                    }, mstEdges.length * 150 + 500);
+                    break;
+            }
+        }
+        
+        function applyDijkstraStep(action, params, stepIndex) {
+            switch (action) {
+                case 'start':
+                    // Mark starting node as visited
+                    const startNode = nodes.find(n => n.id === params[0]);
+                    if (startNode) applyNodeStyle(startNode, 'visited');
+                    break;
+                    
+                case 'update':
+                    // Update distance to a node
+                    const [nodeId, distance, fromNode] = params;
+                    const node = nodes.find(n => n.id === nodeId);
+                    
+                    if (node) {
+                        applyNodeStyle(node, 'frontier');
+                        // Add distance label
+                        node.distance = distance;
+                    }
+                    
+                    if (fromNode) {
+                        highlightEdge(fromNode, nodeId, 'considering');
+                    }
+                    break;
+                    
+                case 'visit':
+                    // Mark node as visited
+                    const visitNode = nodes.find(n => n.id === params[0]);
+                    if (visitNode) {
+                        applyNodeStyle(visitNode, 'visited');
+                        // Mark shortest path edge
+                        if (params.length > 2) {
+                            const prevNode = params[2];
+                            highlightEdge(prevNode, params[0], 'shortest-path');
+                        }
+                    }
+                    break;
+                    
+                case 'final':
+                    // Show all shortest paths
+                    const [distances, paths] = params;
+                    Object.entries(paths).forEach(([nodeId, path]) => {
+                        if (path && path.length > 1) {
+                            for (let i = 0; i < path.length - 1; i++) {
+                                highlightEdge(path[i], path[i + 1], 'shortest-path');
+                            }
+                        }
+                    });
+                    break;
+            }
+        }
+        
+        // Handles the step vocabulary /run_floyd_warshall actually emits:
+        // init, start_iteration, consider_path, no_path_via_k, update_distance,
+        // no_update, iteration_complete, final. Unreachable distances arrive as the
+        // string "\u221e" because JSON has no infinity literal, so nothing here does
+        // arithmetic on a matrix value - the values are only displayed.
+        function applyFloydWarshallStep(action, params, stepIndex) {
+            switch (action) {
+                case 'init': {
+                    const [initialDist, nodeOrder] = params;
+                    fwNodeOrder = nodeOrder;
+                    renderDistanceMatrix(initialDist, nodeOrder);
+                    resetAllNodesAndEdges();
+                    break;
+                }
+                
+                case 'start_iteration': {
+                    // params: [k index, k node]. k is the only node allowed as an
+                    // intermediate for the whole of this pass.
+                    const kNodeId = params[1];
+                    resetNodeStyles();
+                    resetEdgeStyles();
+                    const kNode = nodes.find(n => n.id === kNodeId);
+                    if (kNode) {
+                        applyNodeStyle(kNode, 'current');
+                        d3.selectAll('circle')
+                            .filter(d => d.id === kNodeId)
+                            .transition()
+                            .duration(dur(400))
+                            .attr('r', isWeightedAlgorithm ? 42 : 30)
+                            .transition()
+                            .duration(dur(400))
+                            .attr('r', isWeightedAlgorithm ? 35 : 24);
+                    }
+                    break;
+                }
+                
+                case 'consider_path': {
+                    // params: [i, j, k, current, dist(i,k), dist(k,j), viaK]
+                    const [ci, cj, ck] = params;
+                    highlightFloydWarshallTriple(ci, cj, ck);
+                    break;
+                }
+                
+                case 'no_path_via_k':
+                    // i cannot reach k, or k cannot reach j: nothing to compare.
+                    break;
+                
+                case 'update_distance': {
+                    // params: [i, j, k, viaK, i index, j index] - the two indices are
+                    // the matrix coordinates, so the cell can be written directly.
+                    const [ui, uj, uk, newDist, rowIndex, colIndex] = params;
+                    updateMatrixCell(rowIndex, colIndex, newDist, true);
+                    highlightFloydWarshallTriple(ui, uj, uk, 'updated');
+                    break;
+                }
+                
+                case 'no_update':
+                    // params: [i, j, k, current] - the existing distance still wins.
+                    break;
+                
+                case 'iteration_complete': {
+                    // params: [k index, k node, matrix snapshot, update count]
+                    const [, doneNode, snapshot] = params;
+                    const order = currentNodeOrder();
+                    if (order.length) {
+                        renderDistanceMatrix(snapshot, order);
+                        renderFWMatrix(snapshot, order, null);
+                    }
+                    const settled = nodes.find(n => n.id === doneNode);
+                    if (settled) applyNodeStyle(settled, 'visited');
+                    break;
+                }
+                
+                case 'final': {
+                    const [finalDist, finalNodes, allPaths] = params;
+                    fwNodeOrder = finalNodes;
+                    renderDistanceMatrix(finalDist, finalNodes);
+                    renderFWMatrix(finalDist, finalNodes, null);
+                    
+                    resetAllNodesAndEdges();
+                    nodes.forEach(node => applyNodeStyle(node, 'visited'));
+                    
+                    // Trace the shortest route for each pair, one edge at a time.
+                    let edgeIndex = 0;
+                    Object.values(allPaths || {}).forEach(pathInfo => {
+                        const path = pathInfo.path || pathInfo;
+                        if (!Array.isArray(path) || path.length < 2) return;
+                        for (let i = 0; i < path.length - 1; i++) {
+                            const from = path[i], to = path[i + 1];
+                            createTrackedTimeout(() => highlightEdge(from, to, 'shortest-path'), edgeIndex * 60);
+                            edgeIndex++;
+                        }
+                    });
+                    
+                    createTrackedTimeout(() => {
+                        displayResults('final', [finalDist, finalNodes, allPaths], 'floyd_warshall');
+                    }, edgeIndex * 60 + 300);
+                    break;
+                }
+            }
+        }
+        
+        // The node order the matrix rows and columns are indexed by. `init` and every
+        // `iteration_complete` carry it, but `iteration_complete` does not repeat it,
+        // so it is remembered from the last step that did.
+        let fwNodeOrder = null;
+
+        // Bellman-Ford's starting row: 0 at the source, infinity everywhere else.
+        let bfInitialDistances = null;
+        
+        function currentNodeOrder() {
+            if (Array.isArray(fwNodeOrder) && fwNodeOrder.length) return fwNodeOrder;
+            return nodes.map(n => n.id);
+        }
+        
+        // Lights up i -> k -> j, the pair being tested and the detour being tested
+        // against it.
+        function highlightFloydWarshallTriple(i, j, k, state) {
+            resetEdgeStyles();
+            const style = state === 'updated' ? 'shortest-path' : 'considering';
+            [[i, k], [k, j]].forEach(([from, to], order) => {
+                if (from === to) return;
+                createTrackedTimeout(() => highlightEdge(from, to, style), order * 80);
+            });
+            
+            [i, j].forEach(id => {
+                const node = nodes.find(n => n.id === id);
+                if (node && node.id !== k) applyNodeStyle(node, 'frontier');
+            });
+        }
+        
+        // Handles the step vocabulary /run_bellman_ford emits - check_edge, relax,
+        // no_relax, iteration_complete - plus the `final` step visualize() appends
+        // from the summary fields that come back alongside the steps. Distances arrive
+        // as numbers or the string "\u221E", so they are only ever displayed.
+        function applyBellmanFordStep(action, params, stepIndex) {
+            switch (action) {
+                case 'check_edge': {
+                    const [u, v] = params;
+                    // Nothing has been relaxed yet on a fresh run or after a reset.
+                    if (!document.getElementById('matrix-content').innerHTML) {
+                        renderBellmanFordDistances(bfInitialDistances, 0, null);
+                    }
+                    resetEdgeStyles();
+                    highlightEdge(u, v, 'considering');
+                    [u, v].forEach(id => {
+                        const node = nodes.find(n => n.id === id);
+                        if (node && node.style !== 'visited') applyNodeStyle(node, 'frontier');
+                    });
+                    break;
+                }
+                
+                case 'relax': {
+                    // params: [u, v, weight, distances, iteration]
+                    const [ru, rv, , distances, iteration] = params;
+                    highlightEdge(ru, rv, 'shortest-path');
+                    const improved = nodes.find(n => n.id === rv);
+                    if (improved) applyNodeStyle(improved, 'visited');
+                    renderBellmanFordDistances(distances, iteration, rv);
+                    break;
+                }
+                
+                case 'no_relax': {
+                    const [nu, nv] = params;
+                    highlightEdge(nu, nv, 'ignored');
+                    break;
+                }
+                
+                case 'iteration_complete': {
+                    // params: [iteration, distances]
+                    const [iteration, distances] = params;
+                    resetEdgeStyles();
+                    renderBellmanFordDistances(distances, iteration, null);
+                    break;
+                }
+                
+                case 'final': {
+                    // params: [distances, hasNegativeCycle, iterations] - appended by
+                    // visualize() from the endpoint's summary fields.
+                    const [distances, hasNegativeCycle, iterations] = params;
+                    resetEdgeStyles();
+                    renderBellmanFordDistances(distances, iterations, null);
+                    
+                    // Anything still at infinity was never reached from the start node.
+                    nodes.forEach(node => {
+                        const d = distances ? distances[node.id] : undefined;
+                        applyNodeStyle(node, isUnreachable(d) ? 'ignored' : 'visited');
+                    });
+                    
+                    displayResults('final', params, 'bellman_ford');
+                    break;
+                }
+            }
+        }
+        
+        // The endpoints send unreachable distances as the string "\u221E" rather than a
+        // number, because JSON has no infinity literal.
+        function isUnreachable(value) {
+            return value === '\u221E' || value === Infinity || value === null || value === undefined;
+        }
+        
+        // Bellman-Ford's own panel: the distance to every node as it stands after the
+        // current relaxation. Cells are keyed `bf-dist-<node>`, so they cannot collide
+        // with the `cell-i-j` ids Floyd-Warshall writes into the same container.
+        function renderBellmanFordDistances(distances, iteration, justChanged) {
+            const panel = document.getElementById('matrix-display');
+            const title = document.getElementById('matrix-title');
+            const content = document.getElementById('matrix-content');
+            if (!panel || !content || !distances) return;
+            
+            title.textContent = iteration ? `Distances after pass ${iteration}` : 'Distances';
+            const order = Object.keys(distances).sort();
+            
+            let html = '<table class="matrix-table" style="margin:0 auto;">';
+            html += '<tr><th class="matrix-cell matrix-header">Node</th>' +
+                    order.map(n => `<th class="matrix-cell matrix-header">${n}</th>`).join('') + '</tr>';
+            html += '<tr><th class="matrix-cell matrix-header">Distance</th>';
+            order.forEach(node => {
+                const value = isUnreachable(distances[node]) ? '\u221E' : distances[node];
+                const changed = node === justChanged ? ' matrix-updated' : '';
+                html += `<td class="matrix-cell${changed}" id="bf-dist-${node}">${value}</td>`;
+            });
+            html += '</tr></table>';
+            content.innerHTML = html;
+            panel.style.display = 'block';
+        }
+        
+        function applyTraversalStep(action, params, algorithm) {
+            switch (action) {
+                case 'start':
+                    const startNode = nodes.find(n => n.id === params[0]);
+                    if (startNode) applyNodeStyle(startNode, 'visited');
+                    break;
+                    
+                case 'queue':
+                case 'stack':
+                    const queuedNode = nodes.find(n => n.id === params[0]);
+                    if (queuedNode) applyNodeStyle(queuedNode, 'frontier');
+                    break;
+                    
+                case 'visit':
+                    const visitNode = nodes.find(n => n.id === params[0]);
+                    if (visitNode) applyNodeStyle(visitNode, 'visited');
+                    break;
+                    
+                case 'final':
+                    // Show final traversal path
+                    const traversalPath = params[0];
+                    traversalPath.forEach((nodeId, index) => {
+                        const node = nodes.find(n => n.id === nodeId);
+                        if (node) applyNodeStyle(node, 'visited');
+                        
+                        if (index > 0) {
+                            highlightEdge(traversalPath[index - 1], nodeId, 'visited');
+                        }
+                    });
+                    break;
+            }
+        }
+        
+        function applyNodeStyle(node, style) {
+            console.log(`Applying style '${style}' to node '${node.id}'`);
+            // Remove existing style classes and apply new one
+            d3.selectAll('circle')
+                .filter(d => d.id === node.id)
+                .classed('node-visited node-frontier node-ignored node-unvisited node-current', false)
+                .classed(`node-${style}`, true)
+                .transition()
+                .duration(dur(300))
+                .attr('fill', function() {
+                    switch(style) {
+                        case 'visited': return 'var(--visited-color)';
+                        case 'frontier': return 'var(--frontier-color)';
+                        case 'ignored': return 'var(--ignored-color)';
+                        case 'current': return 'var(--considering-color)';
+                        default: return 'var(--unvisited-color)';
+                    }
+                })
+                .attr('stroke-width', style === 'current' ? '5px' : '3px');
+                
+            // Update node object for consistency
+            node.style = style;
+        }
+        
+        function highlightEdge(sourceId, targetId, style) {
+            console.log(`Highlighting edge '${sourceId}-${targetId}' with style '${style}'`);
+            
+            const edgeSelection = d3.selectAll('.link')
+                .filter(d => {
+                    const sId = typeof d.source === 'object' ? d.source.id : d.source;
+                    const tId = typeof d.target === 'object' ? d.target.id : d.target;
+                    return (sId === sourceId && tId === targetId) || (sId === targetId && tId === sourceId);
+                });
+            
+            if (edgeSelection.empty()) {
+                console.warn(`No edge found between ${sourceId} and ${targetId}`);
+                return;
+            }
+            
+            edgeSelection
+                .classed('edge-mst edge-considering edge-ignored edge-default shortest-path', false)
+                .classed(style === 'shortest-path' ? 'shortest-path' : `edge-${style}`, true)
+                .transition()
+                .duration(dur(300))
+                .attr('stroke', function() {
+                    switch(style) {
+                        case 'mst': return 'var(--mst-edge-color)';
+                        case 'considering': return 'var(--considering-color)';
+                        case 'ignored': return 'var(--ignored-color)';
+                        case 'shortest-path': return '#2196f3';
+                        default: return 'var(--default-edge-color)';
+                    }
+                })
+                .attr('stroke-width', function() {
+                    switch(style) {
+                        case 'mst': return '6px';
+                        case 'considering': return '5px';
+                        case 'shortest-path': return '6px';
+                        default: return '3px';
+                    }
+                })
+                .attr('stroke-dasharray', style === 'ignored' ? '5,5' : null)
+                .attr('stroke-opacity', style === 'ignored' ? 0.7 : 1);
+        }
+        
+        function resetAllNodesAndEdges() {
+            console.log('Resetting all nodes and edges');
+            // Reset all nodes to unvisited (gray)
+            nodes.forEach(node => {
+                applyNodeStyle(node, 'unvisited');
+            });
+            
+            // Reset all edges to default style
+            resetEdgeStyles();
+        }
+        
+        function resetNodeStyles() {
+            console.log('Resetting all nodes to unvisited');
+            // Reset all nodes to unvisited without affecting edges
+            nodes.forEach(node => {
+                applyNodeStyle(node, 'unvisited');
+            });
+        }
+        
+        function resetEdgeStyles() {
+            console.log('Resetting all edges to default');
+            // Reset all edges to default style
+            d3.selectAll('.link')
+                .classed('edge-mst edge-considering edge-ignored edge-default shortest-path', false)
+                .classed('edge-default', true)
+                .transition()
+                .duration(dur(300))
+                .attr('stroke', 'var(--default-edge-color)')
+                .attr('stroke-width', '3px')
+                .attr('stroke-dasharray', null)
+                .attr('stroke-opacity', 0.7);
+        }
+        
+        function renderDistanceMatrix(dist, nodeOrder) {
+            const matrixContent = document.getElementById('matrix-content');
+            document.getElementById('matrix-title').textContent = 'Distance Matrix';
+            document.getElementById('matrix-display').style.display = 'block';
+            let html = '<table class="matrix-table">';
+            
+            // Header row
+            html += '<tr><th class="matrix-cell matrix-header"></th>';
+            nodeOrder.forEach(node => {
+                html += `<th class="matrix-cell matrix-header">${node}</th>`;
+            });
+            html += '</tr>';
+            
+            // Data rows
+            nodeOrder.forEach((rowNode, i) => {
+                html += `<tr><th class="matrix-cell matrix-header">${rowNode}</th>`;
+                nodeOrder.forEach((colNode, j) => {
+                    const value = isUnreachable(dist[i][j]) ? '∞' : dist[i][j];
+                    html += `<td class="matrix-cell" id="cell-${i}-${j}">${value}</td>`;
+                });
+                html += '</tr>';
+            });
+            
+            html += '</table>';
+            matrixContent.innerHTML = html;
+        }
+        
+        function updateMatrixCell(i, j, newValue, highlight = false) {
+            const cell = document.getElementById(`cell-${i}-${j}`);
+            if (cell) {
+                cell.textContent = isUnreachable(newValue) ? '∞' : newValue;
+                if (highlight) {
+                    cell.classList.add('matrix-updated');
+                    setTimeout(() => cell.classList.remove('matrix-updated'), 1000);
+                }
+            }
+        }
+        
+        // Enhanced status text generators for each algorithm
+        function getKruskalStatus(action, params) {
+            switch (action) {
+                case 'sort_edges':
+                    const sortedEdges = params[0];
+                    return `🔄 <strong>Step 1:</strong> Sorted all edges by weight in ascending order<br>
+                           <small>Edges: ${sortedEdges.map(e => `${e[0]}—${e[1]} (${e[2]})`).join(', ')}</small>`;
+                case 'consider_edge':
+                    return `🔍 <strong>Considering edge:</strong> ${params[0]}—${params[1]} with weight <span style="font-weight:bold; color:#ff9800;">${params[2]}</span><br>
+                           <small>Checking if this edge creates a cycle using Union-Find...</small>`;
+                case 'add_edge':
+                    return `✅ <strong>Added to MST:</strong> ${params[0]}—${params[1]} (weight: <span style="font-weight:bold; color:#4caf50;">${params[2]}</span>)<br>
+                           <small>This edge connects different components without creating a cycle.</small>`;
+                case 'reject_edge':
+                    return `❌ <strong>Rejected edge:</strong> ${params[0]}—${params[1]} (weight: ${params[2]})<br>
+                           <small style="color:#f44336;">This edge would create a cycle in the MST.</small>`;
+                case 'final':
+                    const totalEdges = params[0].length;
+                    return `🎉 <strong>Kruskal's MST Complete!</strong><br>
+                           <small>Found ${totalEdges} edges with total weight: <span style="font-weight:bold; color:#4caf50;">${params[1]}</span></small>`;
+                default:
+                    return `🔄 Processing Kruskal's algorithm...`;
+            }
+        }
+        
+        function getPrimStatus(action, params) {
+            switch (action) {
+                case 'start':
+                    return `🚀 <strong>Starting Prim's algorithm</strong> from node <span style="font-weight:bold; color:#4caf50;">${params[0]}</span><br>
+                           <small>This node is now part of the growing MST.</small>`;
+                case 'add_frontier':
+                    return `🔄 <strong>Updated frontier:</strong> ${params.join(', ')}<br>
+                           <small style="color:#ff9800;">These nodes are now candidates to be added to the MST.</small>`;
+                case 'consider_edge':
+                    return `🔍 <strong>Considering edge:</strong> ${params[0]}—${params[1]} with weight <span style="font-weight:bold; color:#ff9800;">${params[2]}</span><br>
+                           <small>This is the minimum weight edge connecting MST to a new node.</small>`;
+                case 'add_edge':
+                    return `✅ <strong>Added to MST:</strong> ${params[0]}—${params[1]} (weight: <span style="font-weight:bold; color:#4caf50;">${params[2]}</span>)<br>
+                           <small>Node ${params[1]} is now connected to the MST.</small>`;
+                case 'ignore_edge':
+                    return `⚠️ <strong>Ignored edge:</strong> ${params[0]}—${params[1]} (weight: ${params[2]})<br>
+                           <small style="color:#f44336;">This edge connects to an already visited node.</small>`;
+                case 'final':
+                    const totalEdges = params[0].length;
+                    return `🎉 <strong>Prim's MST Complete!</strong><br>
+                           <small>Found ${totalEdges} edges with total weight: <span style="font-weight:bold; color:#4caf50;">${params[1]}</span></small>`;
+                default:
+                    return `🔄 Processing Prim's algorithm...`;
+            }
+        }
+        
+        function getDijkstraStatus(action, params) {
+            switch (action) {
+                case 'start':
+                    return `🚀 <strong>Starting Dijkstra's algorithm</strong> from node <span style="font-weight:bold; color:#4caf50;">${params[0]}</span><br>
+                           <small>Distance to start node is 0.</small>`;
+                case 'update':
+                    const via = params[2] ? ` (via ${params[2]})` : '';
+                    return `📈 <strong>Updated distance</strong> to <span style="font-weight:bold; color:#ff9800;">${params[0]}</span>: ${params[1]}${via}<br>
+                           <small>Found a shorter path to this node.</small>`;
+                case 'visit':
+                    return `✅ <strong>Visited node:</strong> <span style="font-weight:bold; color:#4caf50;">${params[0]}</span> with final distance <span style="font-weight:bold;">${params[1]}</span><br>
+                           <small>This is the shortest possible distance to this node.</small>`;
+                case 'final':
+                    return `🎉 <strong>Dijkstra's algorithm complete!</strong><br>
+                           <small>All shortest paths from the start node have been found.</small>`;
+                default:
+                    return `🔄 Processing Dijkstra's algorithm...`;
+            }
+        }
+        
+        function getFloydWarshallStatus(action, params) {
+            switch (action) {
+                case 'init':
+                    return `\u{1F680} <strong>Initialized distance matrix</strong><br>
+                           <small>Direct edge weights where an edge exists, \u221E everywhere else.</small>`;
+                case 'start_iteration':
+                    return `\u{1F504} <strong>Pass ${params[0] + 1} \u2014 intermediate node <span style="color:#ff9800;">${params[1]}</span></strong><br>
+                           <small>Every pair is now retested allowing ${params[1]} as a waypoint.</small>`;
+                case 'consider_path': {
+                    const [i, j, k, current, toK, fromK, viaK] = params;
+                    return `\u{1F50D} <strong>${i} \u2192 ${j}</strong>: compare current <strong>${current}</strong>
+                           against <strong>${viaK}</strong> via ${k}<br>
+                           <small>${i} \u2192 ${k} = ${toK}, ${k} \u2192 ${j} = ${fromK}</small>`;
+                }
+                case 'no_path_via_k':
+                    return `\u26AA <strong>${params[0]} \u2192 ${params[1]}</strong>: no route through ${params[2]}<br>
+                           <small>One of the two legs is still \u221E, so there is nothing to compare.</small>`;
+                case 'update_distance':
+                    return `\u2705 <strong>Shorter path found:</strong> ${params[0]} \u2192 ${params[1]} = <span style="font-weight:bold; color:#4caf50;">${params[3]}</span><br>
+                           <small>Routing through ${params[2]} beats the previous distance.</small>`;
+                case 'no_update':
+                    return `\u26AA <strong>No update:</strong> ${params[0]} \u2192 ${params[1]} stays at ${params[3]}<br>
+                           <small>Going via ${params[2]} is no shorter.</small>`;
+                case 'iteration_complete':
+                    return `\u{1F4CB} <strong>Pass ${params[0] + 1} complete</strong> (intermediate ${params[1]})<br>
+                           <small>${params[3]} ${params[3] === 1 ? 'distance was' : 'distances were'} improved in this pass.</small>`;
+                case 'final':
+                    return `\u{1F389} <strong>Floyd-Warshall complete!</strong><br>
+                           <small>All-pairs shortest paths have been computed.</small>`;
+                default:
+                    return `\u{1F504} Processing Floyd-Warshall algorithm...`;
+            }
+        }
+        
+        function getBellmanFordStatus(action, params) {
+            switch (action) {
+                case 'check_edge':
+                    return `\u{1F50D} <strong>Checking edge:</strong> ${params[0]} \u2192 ${params[1]} (weight ${params[2]})<br>
+                           <small>Can the distance to ${params[1]} be improved by going through ${params[0]}?</small>`;
+                case 'relax':
+                    return `\u2705 <strong>Relaxed:</strong> ${params[0]} \u2192 ${params[1]} with weight ${params[2]}<br>
+                           <small>New distance to ${params[1]} is <span style="font-weight:bold; color:#4caf50;">${params[3][params[1]]}</span> (pass ${params[4]}).</small>`;
+                case 'no_relax':
+                    return `\u26AA <strong>No relaxation:</strong> ${params[0]} \u2192 ${params[1]} (weight ${params[2]})<br>
+                           <small>The existing distance to ${params[1]} is already at least as short.</small>`;
+                case 'iteration_complete':
+                    return `\u{1F4CB} <strong>Pass ${params[0]} complete</strong><br>
+                           <small>Every edge has been examined once more.</small>`;
+                case 'final':
+                    return params[1]
+                        ? `\u26A0\uFE0F <strong>Negative cycle detected!</strong><br>
+                           <small style="color:#f44336;">A distance still improves after ${params[2]} passes, so no shortest path exists.</small>`
+                        : `\u{1F389} <strong>Bellman-Ford complete!</strong><br>
+                           <small>Shortest paths settled after ${params[2]} ${params[2] === 1 ? 'pass' : 'passes'}; no negative cycle.</small>`;
+                default:
+                    return `\u{1F504} Processing Bellman-Ford algorithm...`;
+            }
+        }
+        
+        function getTraversalStatus(action, params, algorithm) {
+            const algoName = algorithm.toUpperCase();
+            const structure = algorithm === 'bfs' ? 'queue' : 'stack';
+            
+            switch (action) {
+                case 'start':
+                    return `🚀 <strong>Starting ${algoName}</strong> from node <span style="font-weight:bold; color:#4caf50;">${params[0]}</span><br>
+                           <small>Added to ${structure} and marked as visited.</small>`;
+                case 'queue':
+                    return `📥 <strong>Added to queue:</strong> <span style="font-weight:bold; color:#ff9800;">${params[0]}</span><br>
+                           <small>Node will be processed in FIFO order (breadth-first).</small>`;
+                case 'stack':
+                    return `📤 <strong>Added to stack:</strong> <span style="font-weight:bold; color:#ff9800;">${params[0]}</span><br>
+                           <small>Node will be processed in LIFO order (depth-first).</small>`;
+                case 'visit':
+                    return `✅ <strong>Visited node:</strong> <span style="font-weight:bold; color:#4caf50;">${params[0]}</span><br>
+                           <small>Exploring neighbors and adding unvisited ones to ${structure}.</small>`;
+                case 'final':
+                    return `🎉 <strong>${algoName} traversal complete!</strong><br>
+                           <small>Visited path: <span style="font-weight:bold;">${params[0].join(' → ')}</span></small>`;
+                default:
+                    return `🔄 Processing ${algoName}...`;
+            }
+        }
+        
+        // Function to display results in the result panel
+        function displayResults(action, params, algorithm) {
+            const resultPanel = document.getElementById('result-panel');
+            const resultContent = document.getElementById('result-content');
+            let content = '';
+            
+            if (algorithm === 'bfs') {
+                // BFS: [traversal_path]
+                const traversalPath = params[0];
+                content += '<h4>BFS Traversal Path:</h4>';
+                content += '<div style="background: #f3f9ff; padding: 10px; border-radius: 5px; margin: 10px 0;">' + traversalPath.join(' → ') + '</div>';
+                content += '<p><strong>Visited Nodes:</strong> ' + traversalPath.length + '</p>';
+            } else if (algorithm === 'dfs') {
+                // DFS: [traversal_path]
+                const traversalPath = params[0];
+                content += '<h4>DFS Traversal Path:</h4>';
+                content += '<div style="background: #f3f9ff; padding: 10px; border-radius: 5px; margin: 10px 0;">' + traversalPath.join(' → ') + '</div>';
+                content += '<p><strong>Visited Nodes:</strong> ' + traversalPath.length + '</p>';
+            } else if (algorithm === 'dijkstra') {
+                // Dijkstra: [distances, paths]
+                const [distances, paths] = params;
+                content += '<h4>Shortest Paths from Start Node:</h4>';
+                content += '<table style="width:100%; border-collapse:collapse; margin-top:10px;">';
+                content += '<tr style="background:#f5f5f5;"><th style="padding:8px; text-align:left; border:1px solid #ddd;">Destination</th><th style="padding:8px; text-align:center; border:1px solid #ddd;">Distance</th><th style="padding:8px; text-align:left; border:1px solid #ddd;">Path</th></tr>';
+                
+                // Get start node
+                const startNode = Object.values(paths)[0]?.[0] || "";
+                
+                for (const [node, distance] of Object.entries(distances)) {
+                    if (node !== startNode) {
+                        const path = paths[node];
+                        if (path && path.length > 0) {
+                            content += `<tr>
+                                <td style="padding:8px; border:1px solid #ddd;"><strong>${node}</strong></td>
+                                <td style="padding:8px; border:1px solid #ddd; text-align:center; font-weight:bold;">${distance}</td>
+                                <td style="padding:8px; border:1px solid #ddd; color:#f44336;">${path.join(' → ')}</td>
+                            </tr>`;
+                        } else {
+                            content += `<tr>
+                                <td style="padding:8px; border:1px solid #ddd;"><strong>${node}</strong></td>
+                                <td style="padding:8px; border:1px solid #ddd; text-align:center;">${distance === Infinity ? '∞' : distance}</td>
+                                <td style="padding:8px; border:1px solid #ddd; color:#999;">No path</td>
+                            </tr>`;
+                        }
+                    }
+                }
+                content += '</table>';
+            } else if (algorithm === 'kruskal') {
+                // Kruskal: [result_edges, total_weight]
+                const [resultEdges, totalWeight] = params;
+                content += '<h4>Minimum Spanning Tree:</h4>';
+                content += '<table style="width:100%; border-collapse:collapse; margin-top:10px;">';
+                content += '<tr style="background:#f5f5f5;"><th style="padding:8px; text-align:left; border:1px solid #ddd;">Edge</th><th style="padding:8px; text-align:center; border:1px solid #ddd;">Weight</th></tr>';
+                
+                for (const [u, v, w] of resultEdges) {
+                    content += `<tr>
+                        <td style="padding:8px; border:1px solid #ddd;"><strong>${u} — ${v}</strong></td>
+                        <td style="padding:8px; border:1px solid #ddd; text-align:center;">${w}</td>
+                    </tr>`;
+                }
+                content += '</table>';
+                content += `<div style="margin-top:15px; padding:10px; background:#e8f5e9; border-radius:5px;"><strong>Total MST Weight:</strong> ${totalWeight}</div>`;
+                
+                // Add visualization enhancement for MST
+                for (const [u, v, w] of resultEdges) {
+                    d3.selectAll('.link')
+                        .filter(d => (d.source.id === u && d.target.id === v) || 
+                                    (d.source.id === v && d.target.id === u))
+                        .classed('mst-edge', true);
+                }
+                
+            } else if (algorithm === 'prim') {
+                // Prim: [mst_edges, total_weight]
+                const [mstEdges, totalWeight] = params;
+                content += '<h4>Minimum Spanning Tree:</h4>';
+                content += '<table style="width:100%; border-collapse:collapse; margin-top:10px;">';
+                content += '<tr style="background:#f5f5f5;"><th style="padding:8px; text-align:left; border:1px solid #ddd;">Edge</th><th style="padding:8px; text-align:center; border:1px solid #ddd;">Weight</th></tr>';
+                
+                for (const [u, v, w] of mstEdges) {
+                    content += `<tr>
+                        <td style="padding:8px; border:1px solid #ddd;"><strong>${u} — ${v}</strong></td>
+                        <td style="padding:8px; border:1px solid #ddd; text-align:center;">${w}</td>
+                    </tr>`;
+                }
+                content += '</table>';
+                content += `<div style="margin-top:15px; padding:10px; background:#e8f5e9; border-radius:5px;"><strong>Total MST Weight:</strong> ${totalWeight}</div>`;
+                
+                // Add visualization enhancement for MST
+                for (const [u, v, w] of mstEdges) {
+                    d3.selectAll('.link')
+                        .filter(d => (d.source.id === u && d.target.id === v) || 
+                                    (d.source.id === v && d.target.id === u))
+                        .classed('mst-edge', true);
+                }
+                
+            } else if (algorithm === 'floyd_warshall') {
+                // Floyd-Warshall: [dist, nodes, all_paths]
+                const [dist, nodes, allPaths] = params;
+                content += '<h4>All Shortest Paths:</h4>';
+                content += '<table style="width:100%; border-collapse:collapse; margin-top:10px;">';
+                content += '<tr style="background:#f5f5f5;"><th style="padding:8px; text-align:left; border:1px solid #ddd;">Path</th><th style="padding:8px; text-align:center; border:1px solid #ddd;">Distance</th><th style="padding:8px; text-align:left; border:1px solid #ddd;">Route</th></tr>';
+                
+                // /run_floyd_warshall keys this map by "A → B" and gives each entry as
+                // {path, distance}; the key is already the label to print.
+                for (const [label, value] of Object.entries(allPaths || {})) {
+                    const path = value.path || [];
+                    const distance = value.distance;
+                    content += `<tr>
+                        <td style="padding:8px; border:1px solid #ddd;"><strong>${label}</strong></td>
+                        <td style="padding:8px; border:1px solid #ddd; text-align:center;">${distance}</td>
+                        <td style="padding:8px; border:1px solid #ddd; color:#3f51b5;">${path.join(' → ')}</td>
+                    </tr>`;
+                }
+                content += '</table>';
+            } else if (algorithm === 'bellman_ford') {
+                // Bellman-Ford: [distances, has_negative_cycle, iterations]
+                const [distances, hasNegativeCycle, iterations] = params;
+
+                if (hasNegativeCycle) {
+                    content += `<div style="padding:12px; background:#ffebee; border-left:4px solid #f44336; border-radius:5px; margin-bottom:12px;">
+                        <strong>Negative cycle detected.</strong> A distance still improves after
+                        ${iterations} ${iterations === 1 ? 'pass' : 'passes'}, so the shortest
+                        distances below are not final.
+                    </div>`;
+                }
+
+                content += '<h4>Shortest Distances from Start Node:</h4>';
+                content += '<table style="width:100%; border-collapse:collapse; margin-top:10px;">';
+                content += '<tr style="background:#f5f5f5;"><th style="padding:8px; text-align:left; border:1px solid #ddd;">Node</th><th style="padding:8px; text-align:center; border:1px solid #ddd;">Distance</th></tr>';
+
+                for (const node of Object.keys(distances || {}).sort()) {
+                    const unreachable = isUnreachable(distances[node]);
+                    content += `<tr>
+                        <td style="padding:8px; border:1px solid #ddd;"><strong>${node}</strong></td>
+                        <td style="padding:8px; border:1px solid #ddd; text-align:center; ${unreachable ? 'color:#999;' : 'font-weight:bold;'}">${unreachable ? '∞ (unreachable)' : distances[node]}</td>
+                    </tr>`;
+                }
+                content += '</table>';
+
+                if (!hasNegativeCycle) {
+                    content += `<div style="margin-top:15px; padding:10px; background:#e8f5e9; border-radius:5px;"><strong>Settled after:</strong> ${iterations} ${iterations === 1 ? 'pass' : 'passes'} over every edge</div>`;
+                }
+            }
+            
+            resultContent.innerHTML = content;
+            resultPanel.style.display = 'block';
+            
+            // Add smooth fade-in animation for the result panel
+            d3.select('#result-panel')
+                .style('opacity', 0)
+                .transition()
+                .duration(dur(500))
+                .style('opacity', 1);
+        }
+
+        function renderFWMatrix(dist, nodeOrder, highlight) {
+            let html = '<div style="margin-top:20px; overflow-x:auto;">';
+            html += '<h4 style="margin-bottom:10px;">Floyd-Warshall Distance Matrix</h4>';
+            html += '<table border="1" cellpadding="8" style="border-collapse:collapse; text-align:center; margin:0 auto; border:2px solid #ccc;">';
+            html += '<tr style="background:#f3f3f3;"><th style="background:#e3f2fd; font-weight:bold;"></th>' + 
+                  nodeOrder.map(n => `<th style="min-width:40px; background:#e3f2fd; font-weight:bold;">${n}</th>`).join('') + '</tr>';
+            
+            for (let i = 0; i < nodeOrder.length; i++) {
+                html += `<tr><th style="background:#e3f2fd; font-weight:bold;">${nodeOrder[i]}</th>`;
+                
+                for (let j = 0; j < nodeOrder.length; j++) {
+                    let val = isUnreachable(dist[i][j]) ? '&infin;' : dist[i][j];
+                    let style = '';
+
+                    if (i === j) {
+                        // Diagonal elements
+                        style = 'background:#f5f5f5; color:#999;';
+                    } else if (highlight && nodeOrder[i] === highlight[0] && nodeOrder[j] === highlight[1]) {
+                        // Highlighted cell (current update)
+                        style = 'background:#ffe082; font-weight:bold; color:#e65100;';
+                    } else if (isUnreachable(dist[i][j])) {
+                        // Unreachable nodes
+                        style = 'color:#d32f2f; font-style:italic;';
+                    } else if (dist[i][j] < 0) {
+                        // Negative weights
+                        style = 'color:#2e7d32; font-weight:bold;';
+                    }
+                    
+                    html += `<td style="${style}">${val}</td>`;
+                }
+                html += '</tr>';
+            }
+            html += '</table>';
+            html += '<div style="margin-top:10px; font-size:13px; color:#666; text-align:center;">The highlighted cell shows the most recent update.</div>';
+            html += '</div>';
+            
+            document.getElementById('fw-matrix').innerHTML = html;
+        }
+
+        function nextStep() {
+            if (currentStep < steps.length - 1) {
+                currentStep++;
+                applyStep(currentStep);
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                applyStep(currentStep);
+            }
+        }
+
+        function autoPlay() {
+            isPaused = false;
+            document.getElementById('pauseBtn').innerText = 'Pause';
+            playNext();
+        }
+
+        function playNext() {
+            if (isPaused) return;
+            
+            if (currentStep < steps.length - 1) {
+                nextStep();
+                setTimeout(playNext, speed);
+            }
+        }
+
+        function pauseResume() {
+            isPaused = !isPaused;
+            document.getElementById('pauseBtn').innerText = isPaused ? 'Resume' : 'Pause';
+            if (!isPaused) playNext();
+        }
+
+        function reset() {
+            currentStep = 0;
+            nodes.forEach(n => n.color = '#1f77b4');
+            links.forEach(l => l.color = '#999');
+            updateGraph();
+            applyStep(0);
+            // Clear Floyd-Warshall matrix
+            document.getElementById('fw-matrix').innerHTML = '';
+            // Hide result panel
+            document.getElementById('result-panel').style.display = 'none';
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            initializeGraph();
+        };
+        
+        // Demo loading functions
+        function loadKruskalDemo() {
+            const demoGraph = `5 7
+A B 4
+A C 2
+B C 5
+B D 10
+C D 3
+C E 7
+D E 6`;
+            document.getElementById('graph-input').value = demoGraph;
+            setTimeout(() => visualize(), 300);
+        }
+        
+        function loadComplexKruskalDemo() {
+            const complexGraph = `6 9
+A B 1
+A C 4
+B C 2
+B D 5
+C D 1
+C E 3
+D E 6
+D F 2
+E F 3`;
+            document.getElementById('graph-input').value = complexGraph;
+            setTimeout(() => visualize(), 300);
+        }
+        
+        function loadPrimDemo() {
+            const primGraph = `5 7
+A B 4
+A C 2
+B C 5
+B D 10
+C D 3
+C E 7
+D E 6
+A`;
+            document.getElementById('graph-input').value = primGraph;
+            document.getElementById('start-node').value = 'A';
+            setTimeout(() => visualize(), 300);
+        }
+        
+        function loadDijkstraDemo() {
+            const dijkstraGraph = `6 8
+A B 2
+A C 4
+B C 1
+B D 7
+C E 3
+D E 2
+D F 1
+E F 5
+A`;
+            document.getElementById('graph-input').value = dijkstraGraph;
+            document.getElementById('start-node').value = 'A';
+            setTimeout(() => visualize(), 300);
+        }
+        
+        function loadFloydWarshallDemo() {
+            const fwGraph = `4 6
+A B 3
+A C 8
+A D 5
+B D 7
+C B 4
+D C 2`;
+            document.getElementById('graph-input').value = fwGraph;
+            setTimeout(() => visualize(), 300);
+        }
+        
+        function loadBellmanFordDemo() {
+            const bfGraph = `5 6
+A B 6
+A C 7
+B C 8
+B D 5
+C E 9
+D E 2
+A`;
+            document.getElementById('graph-input').value = bfGraph;
+            document.getElementById('start-node').value = 'A';
+            setTimeout(() => visualize(), 300);
+        }
+
+        function loadBellmanFordNegativeDemo() {
+            // Negative weights are fine for Bellman-Ford; the graph is treated as
+            // undirected here, so a negative edge is itself a negative cycle and the
+            // endpoint reports one.
+            const bfNegativeGraph = `4 4
+A B 4
+B C -2
+C D 3
+A D 5
+A`;
+            document.getElementById('graph-input').value = bfNegativeGraph;
+            document.getElementById('start-node').value = 'A';
+            setTimeout(() => visualize(), 300);
+        }
+
+        function loadNegativeWeightDemo() {
+            const negativeGraph = `4 6
+A B 3
+A C 8
+A D -4
+B D 7
+C B 4
+D C 6`;
+            document.getElementById('graph-input').value = negativeGraph;
+            setTimeout(() => visualize(), 300);
+        }
+        
+        // The two Quick Demo buttons sit on every graph page, so they render their
+        // edge list in whatever format the current algorithm parses: weights only for
+        // the weighted algorithms, and a trailing start node only where one is read.
+        function formatDemoInput(edges, startNode) {
+            const algo = getCurrentAlgorithm();
+            const nodeCount = new Set(edges.flatMap(([u, v]) => [u, v])).size;
+            let input = `${nodeCount} ${edges.length}\n`;
+            for (const [u, v, w] of edges) {
+                input += isWeighted(algo) ? `${u} ${v} ${w}\n` : `${u} ${v}\n`;
+            }
+            return needsStartNode(algo) ? input + startNode : input.trimEnd();
+        }
+        
+        function runDemo(edges, startNode, flashColour) {
+            document.getElementById('graph-input').value = formatDemoInput(edges, startNode);
+            document.getElementById('start-node').value = startNode;
+            
+            // Show a brief message
+            const inputArea = document.getElementById('graph-input');
+            inputArea.style.background = flashColour;
+            setTimeout(() => {
+                inputArea.style.background = '';
+                // Auto-visualize after loading
+                visualize();
+            }, 800);
+        }
+        
+        function loadMSTDemo() {
+            // A small 4-node graph, good for showing a minimum spanning tree
+            runDemo([
+                ['A', 'B', 1],
+                ['A', 'C', 3],
+                ['B', 'C', 2],
+                ['B', 'D', 4],
+                ['C', 'D', 5]
+            ], 'A', '#e8f5e8');
+        }
+        
+        function loadShortestPathDemo() {
+            // A graph suitable for the shortest path algorithms
+            runDemo([
+                ['A', 'B', 4],
+                ['A', 'C', 2],
+                ['B', 'C', 1],
+                ['B', 'D', 5],
+                ['C', 'D', 8],
+                ['C', 'E', 10],
+                ['D', 'E', 2]
+            ], 'A', '#e3f2fd');
+        }
+    </script>
+</body>
+</html>

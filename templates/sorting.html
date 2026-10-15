@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorting Algorithms Visualizer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <!-- Header with Navigation -->
+    <header>
+        <nav>
+            <a href="{{ url_for('index') }}" class="logo">Algorithm Visualizer</a>
+            <div class="nav-links">
+                <a href="{{ url_for('index') }}" class="nav-link">Home</a>
+                <a href="{{ url_for('sorting_page') }}" class="nav-link active">Sorting</a>
+                <a href="{{ url_for('graph_page') }}" class="nav-link">Graph</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>Sorting Algorithm Visualizer</h1>
+        
+        <!-- Algorithm Selection Box -->
+        <div class="algorithm-selection">
+            <h3>Choose Algorithm</h3>
+            <div class="algorithm-buttons">
+                {% for algo in sorting_algorithms %}
+                <a href="{{ url_for('sorting_page') }}?algorithm={{ algo }}" class="algorithm-btn {% if selected_algo == algo %}active{% endif %}">{{ algo }}</a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="visualizer-container">
+            <!-- Controls Panel -->
+            <div class="controls-panel">
+                <form method="post" action="{{ url_for('sorting_page') }}">
+                    <input type="hidden" name="algorithm" value="{{ selected_algo }}">
+                    
+                    <h3>Input Options</h3>
+                    <div style="margin: 15px 0;">
+                        <label style="display: inline-flex; align-items: center;">
+                            <input type="radio" name="input_method" value="random" {% if input_method == 'random' %}checked{% endif %} onchange="toggleInput()" style="margin-right: 8px;"> 
+                            Random Array
+                        </label>
+                        <label style="display: inline-flex; align-items: center; margin-left: 20px;">
+                            <input type="radio" name="input_method" value="manual" {% if input_method == 'manual' %}checked{% endif %} onchange="toggleInput()" style="margin-right: 8px;"> 
+                            Manual Input
+                        </label>
+                    </div>
+                    
+                    <div id="random-input" {% if input_method != 'random' %}style="display:none;"{% endif %}>
+                        <label for="array-size">Array Size:</label>
+                        <input type="number" id="array-size" name="size" min="5" max="100" value="{{ size }}"
+                               {% if error and input_method == 'random' %}aria-invalid="true" aria-describedby="array-size-error" autofocus{% endif %}>
+                        {% if error and input_method == 'random' %}
+                        <div id="array-size-error" class="field-error" role="alert">{{ error }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div id="manual-input" {% if input_method != 'manual' %}style="display:none;"{% endif %}>
+                        <label for="manual-values">Enter comma-separated numbers:</label>
+                        <input type="text" id="manual-values" name="manual_input" placeholder="e.g. 5,3,8,1,10" value="{{ manual_input }}"
+                               {% if error and input_method == 'manual' %}aria-invalid="true" aria-describedby="manual-values-error" autofocus{% endif %}>
+                        {% if error and input_method == 'manual' %}
+                        <div id="manual-values-error" class="field-error" role="alert">{{ error }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <button type="submit" class="primary">Generate Visualization</button>
+                </form>
+
+                {% if info %}
+                <div class="algorithm-info">
+                    <h3>{{ selected_algo }}</h3>
+                    <p>{{ info.description }}</p>
+                    <div class="algorithm-stats">
+                        <div class="stat-item">
+                            <div class="stat-title">Time Complexity</div>
+                            <div>Best: {{ info.time_complexity.Best }}</div>
+                            <div>Average/Worst: {{ info.time_complexity['Average/Worst'] }}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-title">Space Complexity</div>
+                            <div>{{ info.space_complexity }}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-title">Stability</div>
+                            <div>{{ info.stable }}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-title">Performance</div>
+                            <div>Comparisons: {{ info.comparisons }}</div>
+                            <div>Swaps: {{ info.swaps }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Visualization Area -->
+            <div class="visualization-area">
+                {% if error and input_method not in ['random', 'manual'] %}
+                <div class="field-error" role="alert">
+                    {{ error }}
+                </div>
+                {% elif data and steps %}
+                <div id="array-container" class="bar-container">
+                    {% for value in data %}
+                    <div class="bar" style="height: {{ value * 3 }}px; width: calc(100% / {{ data|length }} - 4px);">
+                        {% if data|length <= 30 %}
+                        <div class="bar-value">{{ value }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>            <div class="animation-controls">
+                    <button id="play-btn" class="control-btn play-btn" onclick="playAnimation()" title="Play Animation" aria-label="Play animation">
+                        <i class="fas fa-play" aria-hidden="true"></i>
+                    </button>
+                    <button id="pause-btn" class="control-btn pause-btn" onclick="pauseAnimation()" title="Pause Animation" aria-label="Pause animation">
+                        <i class="fas fa-pause" aria-hidden="true"></i>
+                    </button>
+                    <button id="reset-btn" class="control-btn reset-btn" onclick="resetAnimation()" title="Reset Animation" aria-label="Reset animation">
+                        <i class="fas fa-undo" aria-hidden="true"></i>
+                    </button>
+                      <div class="speed-control">
+                        <span class="speed-label">Slow</span>
+                        <input type="range" min="1" max="200" value="40" class="speed-slider" id="speed-slider" title="Adjust Animation Speed" aria-label="Animation speed">
+                        <span class="speed-label">⚡Max</span>
+                        <div class="speed-tooltip" id="speed-tooltip" style="display: none;"></div>
+                    </div>
+                    
+                    <div id="step-display" class="step-counter" role="status" aria-live="polite">Step 0 / {{ steps|length }}</div>
+                </div>
+                  <div id="completion-message" style="text-align: center; margin-top: 20px; color: #4caf50; font-weight: bold; display: none; transition: opacity 0.5s ease, transform 0.5s ease; opacity: 0; transform: translateY(10px);">
+                    <i class="fas fa-check-circle" style="margin-right: 8px;" aria-hidden="true"></i> {{ selected_algo }} completed!
+                </div>
+                {% else %}
+                <div style="text-align: center; padding: 100px 0;">
+                    <i class="fas fa-sort-amount-down" style="font-size: 48px; color: #e0e0e0; margin-bottom: 15px;" aria-hidden="true"></i>
+                    <p>Select an algorithm and input method, then click "Generate Visualization" to begin.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle between random and manual input
+        function toggleInput() {
+            const radioRandom = document.querySelector('input[name="input_method"][value="random"]');
+            const randomInput = document.getElementById('random-input');
+            const manualInput = document.getElementById('manual-input');
+            
+            if (radioRandom.checked) {
+                randomInput.style.display = 'block';
+                manualInput.style.display = 'none';
+            } else {
+                randomInput.style.display = 'none';
+                manualInput.style.display = 'block';
+            }
+        }
+          // Animation variables
+        let steps = [];
+        let currentStep = 0;        let animationInterval = null;
+        let animationSpeed = 40;
+        let animationRunning = false;
+        const ANIMATION_DELAY_FACTOR = 10; // Higher value means slower animations
+        
+        // Initialize animation if data is available
+        {% if steps %}
+        steps = {{ steps|tojson }};
+          function updateBars(step, animate = true) {
+            const barContainer = document.getElementById('array-container');
+            const bars = barContainer.querySelectorAll('.bar');
+            const data = step.array;
+            const compared = step.compared || [];
+            
+            for (let i = 0; i < data.length; i++) {
+                const bar = bars[i];
+                
+                // Dynamic transition timing based on animation speed
+                if (animate) {
+                    let transitionDuration = 0.4;
+                    if (animationSpeed > 120) {
+                        // Faster transitions for high speeds (0.1s to 0.2s)
+                        transitionDuration = Math.max(0.1, 0.4 - ((animationSpeed - 120) / 200));
+                    } else if (animationSpeed > 80) {
+                        // Medium speeds (0.2s to 0.4s)
+                        transitionDuration = 0.4 - ((animationSpeed - 80) / 200);
+                    }
+                    
+                    bar.style.transition = `height ${transitionDuration}s cubic-bezier(0.25, 0.1, 0.25, 1), 
+                                           background-color ${transitionDuration * 0.75}s ease`;
+                } else {
+                    bar.style.transition = 'none';
+                }
+                
+                // Update height with proper scaling
+                const height = Math.max(data[i] * 3, 5); // Ensure minimum visible height
+                bar.style.height = `${height}px`;
+                
+                // Set different classes based on comparison state
+                if (compared.includes(i)) {
+                    bar.classList.add('compared');
+                    bar.classList.remove('sorted');
+                } else {
+                    bar.classList.remove('compared');
+                    // If we're at the last step, mark all as sorted
+                    if (currentStep === steps.length - 1) {
+                        bar.classList.add('sorted');
+                    }
+                }
+                
+                // Update value label if present
+                const valueLabel = bar.querySelector('.bar-value');
+                if (valueLabel) {
+                    valueLabel.textContent = data[i];
+                }
+            }
+            
+            // Update step counter with animation
+            const stepDisplay = document.getElementById('step-display');
+            stepDisplay.textContent = `Step ${currentStep+1} / ${steps.length}`;
+            stepDisplay.classList.add('updated');
+            setTimeout(() => stepDisplay.classList.remove('updated'), 300);
+            
+            // Show completion message on last step with a fade-in effect
+            const completionMessage = document.getElementById('completion-message');
+            if (completionMessage) {
+                if (currentStep === steps.length - 1) {
+                    completionMessage.style.display = 'block';
+                    completionMessage.style.opacity = '0';
+                    setTimeout(() => {
+                        completionMessage.style.opacity = '1';
+                        completionMessage.style.transform = 'translateY(0)';
+                    }, 50);
+                } else {
+                    completionMessage.style.display = 'none';
+                    completionMessage.style.opacity = '0';
+                    completionMessage.style.transform = 'translateY(10px)';
+                }
+            }
+        }
+          function playAnimation() {
+            animationRunning = true;
+            document.getElementById('play-btn').style.opacity = '0.5';
+            document.getElementById('pause-btn').style.opacity = '1';
+            
+            if (currentStep >= steps.length - 1) {
+                resetAnimation();
+            }
+            
+            if (animationInterval) {
+                clearInterval(animationInterval);
+            }
+            
+            // Enhanced speed calculation with exponential scaling for higher speeds
+            let delay;
+            if (animationSpeed <= 100) {
+                // Linear scaling for speeds 1-100 (1200ms to 200ms)
+                delay = 1200 - (animationSpeed * 10);
+            } else {
+                // Exponential scaling for speeds 100-200 (200ms to 10ms)
+                const extraSpeed = animationSpeed - 100;
+                const exponentialFactor = Math.pow(extraSpeed / 100, 1.5);
+                delay = 200 - (exponentialFactor * 190);
+            }
+            
+            // Ensure minimum delay of 10ms for very fast speeds
+            delay = Math.max(delay, 10);
+            
+            animationInterval = setInterval(() => {
+                if (currentStep >= steps.length - 1) {
+                    clearInterval(animationInterval);
+                    animationRunning = false;
+                    document.getElementById('play-btn').style.opacity = '1';
+                    return;
+                }
+                
+                currentStep++;
+                updateBars(steps[currentStep], true);
+            }, delay);
+        }
+        
+        function pauseAnimation() {
+            animationRunning = false;
+            document.getElementById('play-btn').style.opacity = '1';
+            document.getElementById('pause-btn').style.opacity = '0.5';
+            
+            if (animationInterval) {
+                clearInterval(animationInterval);
+                animationInterval = null;
+            }
+        }
+        
+        function resetAnimation() {
+            pauseAnimation();
+            currentStep = 0;
+            
+            // First update without animation for instant reset
+            updateBars(steps[0], false);
+            
+            // Then re-enable animations after a brief delay
+            setTimeout(() => {
+                const bars = document.querySelectorAll('.bar');
+                bars.forEach(bar => {
+                    bar.style.transition = `height 0.4s cubic-bezier(0.25, 0.1, 0.25, 1), 
+                                           background-color 0.3s ease`;
+                });
+            }, 50);
+        }
+          // Enhanced speed slider with tooltip and improved handling
+        const speedSlider = document.getElementById('speed-slider');
+        const speedTooltip = document.getElementById('speed-tooltip');
+        
+        function getSpeedLabel(value) {
+            if (value <= 20) return 'Very Slow';
+            if (value <= 40) return 'Slow';
+            if (value <= 80) return 'Default';
+            if (value <= 120) return 'Fast';
+            if (value <= 160) return 'Very Fast';
+            return '⚡Lightning';
+        }
+        
+        function updateSpeedTooltip(value, show = true) {
+            if (speedTooltip) {
+                speedTooltip.textContent = getSpeedLabel(value);
+                speedTooltip.style.display = show ? 'block' : 'none';
+                
+                // Position tooltip above slider thumb
+                const sliderRect = speedSlider.getBoundingClientRect();
+                const percentage = (value - speedSlider.min) / (speedSlider.max - speedSlider.min);
+                const thumbPosition = sliderRect.left + (percentage * sliderRect.width);
+                speedTooltip.style.left = `${thumbPosition}px`;
+                speedTooltip.style.top = `${sliderRect.top - 35}px`;
+            }
+        }
+        
+        // Update speed with enhanced tooltip functionality
+        speedSlider.addEventListener('input', function() {
+            const value = parseInt(this.value);
+            animationSpeed = value;
+            updateSpeedTooltip(value, true);
+            
+            if (animationRunning) {
+                pauseAnimation();
+                playAnimation();
+            }
+        });
+        
+        speedSlider.addEventListener('mouseenter', function() {
+            updateSpeedTooltip(parseInt(this.value), true);
+        });
+        
+        speedSlider.addEventListener('mouseleave', function() {
+            updateSpeedTooltip(parseInt(this.value), false);
+        });
+        
+        // Initialize animation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set initial state
+            updateBars(steps[0], false);
+            document.getElementById('pause-btn').style.opacity = '0.5';
+            
+            // Enable animations after initial rendering
+            setTimeout(() => {
+                const bars = document.querySelectorAll('.bar');
+                bars.forEach(bar => {
+                    bar.style.transition = `height 0.4s cubic-bezier(0.25, 0.1, 0.25, 1), 
+                                           background-color 0.3s ease`;
+                });
+            }, 100);
+        });
+        {% endif %}
+    </script>
+</body>
+</html>

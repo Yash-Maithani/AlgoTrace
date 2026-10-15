@@ -1,0 +1,29 @@
+{% extends "graph_base.html" %}
+
+{% block title %}Bellman-Ford Algorithm{% endblock %}
+
+{% block extra_content %}
+<div class="algorithm-info">
+    <h3>Bellman-Ford Algorithm</h3>
+    <p>The Bellman-Ford algorithm finds the shortest paths from a single source vertex to all other vertices in a weighted graph. Unlike Dijkstra's algorithm, it can handle negative edge weights and detect negative cycles.</p>
+    <p><strong>Time Complexity:</strong> O(VE) where V is the number of vertices and E is the number of edges</p>
+    <p><strong>Space Complexity:</strong> O(V)</p>
+    <p><strong>Use Cases:</strong></p>
+    <ul>
+        <li>Shortest path with negative weights</li>
+        <li>Negative cycle detection</li>
+        <li>Currency arbitrage detection</li>
+        <li>Network routing protocols</li>
+    </ul>
+    <p><strong>Note:</strong> edges are read as undirected, so a single negative edge is
+    itself a negative cycle and will be reported as one. Example input:</p>
+    <pre>5 6
+A B 6
+A C 7
+B C 8
+B D 5
+C E 9
+D E 2
+A</pre>
+</div>
+{% endblock %}

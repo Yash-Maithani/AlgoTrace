@@ -1,0 +1,321 @@
+{% extends "graph_base.html" %}
+
+{% block title %}Prim's Algorithm{% endblock %}
+
+{% block extra_content %}
+<div class="algorithm-info">
+    <h3>Prim's Algorithm</h3>
+    <p>Prim's algorithm is used to find the minimum spanning tree of a connected, undirected graph. It starts with a single vertex and grows the MST by adding the cheapest edge that connects a vertex in the tree to a vertex outside the tree.</p>
+    <p><strong>Time Complexity:</strong> O(ElogV) where V is the number of vertices and E is the number of edges</p>
+    <p><strong>Space Complexity:</strong> O(V)</p>
+    <p><strong>Use Cases:</strong></p>
+    <ul>
+        <li>Network design</li>
+        <li>Circuit design</li>
+        <li>Clustering algorithms</li>
+        <li>Image segmentation</li>
+    </ul>
+    <p><strong>Note:</strong> For Prim's algorithm, the graph input should include edge weights. Example format:</p>
+    <pre>
+{
+   "5 6
+    A D 11
+    A C 7
+    B D 11
+    B E 7
+    A E 9
+    C E 7
+    A"
+}
+    </pre>
+</div>
+{% endblock %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Prim's Algorithm</title>
+    <style>
+        #graphCanvas {
+            width: 800px;
+            height: 500px;
+            border: 1px solid #333;
+        }
+        #controls {
+            margin-top: 10px;
+        }
+        .info-panel {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .results-panel {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #e1f5fe;
+            border: 2px solid #03a9f4;
+            border-radius: 8px;
+            display: none;
+        }
+        .results-panel h3 {
+            color: #0277bd;
+            margin-top: 0;
+        }
+        .result-item {
+            margin: 8px 0;
+            font-size: 16px;
+        }
+        .mst-summary {
+            background: #f3e5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .final-mst {
+            font-weight: bold;
+            color: #4a148c;
+        }
+    </style>
+</head>
+<body>
+    <h2>Prim's Algorithm Visualizer</h2>
+    <canvas id="graphCanvas" width="800" height="500"></canvas>
+    <div id="controls">
+        <label>Start Node: <input type="text" id="startNode" value="A" /></label>
+        <button onclick="runPrim()">Run Prim's Algorithm</button>
+    </div>
+    <div class="info-panel">
+        <div id="mst-info">
+            <strong>MST Edges:</strong> <span id="mst-edges"></span><br>
+            <strong>Total Weight:</strong> <span id="total-weight">0</span>
+        </div>
+    </div>
+    
+    <div id="resultsPanel" class="results-panel">
+        <h3>🎯 Prim's MST Results</h3>
+        <div class="result-item">
+            <strong>Start Node:</strong> <span id="startNodeResult"></span>
+        </div>
+        <div class="result-item">
+            <strong>Final Minimum Spanning Tree:</strong>
+            <div class="mst-summary" id="finalMST"></div>
+        </div>
+        <div class="result-item">
+            <strong>Total MST Weight:</strong> <span id="totalMSTWeight" class="final-mst"></span>
+        </div>
+        <div class="result-item">
+            <strong>MST Edges (in order added):</strong>
+            <div id="mstEdgesOrder"></div>
+        </div>
+        <div class="result-item">
+            <strong>Algorithm Summary:</strong>
+            <div id="primSummary"></div>
+        </div>
+        <div class="result-item">
+            <strong>Final Answer:</strong>
+            <div id="finalAnswer"></div>
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('graphCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Sample weighted graph
+        const graph = {
+            'A': {'B': 4, 'C': 2},
+            'B': {'A': 4, 'C': 1, 'D': 5},
+            'C': {'A': 2, 'B': 1, 'D': 8, 'E': 10},
+            'D': {'B': 5, 'C': 8, 'E': 2},
+            'E': {'C': 10, 'D': 2}
+        };
+        
+        const nodePositions = {
+            'A': {x: 200, y: 150},
+            'B': {x: 400, y: 150},
+            'C': {x: 300, y: 250},
+            'D': {x: 500, y: 250},
+            'E': {x: 400, y: 350}
+        };
+        
+        let mstEdges = [];
+        let visitedNodes = new Set();
+        
+        function drawGraph(highlightedEdges = []) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Track drawn edges to prevent duplicates
+            const drawnEdges = new Set();
+            
+            // Draw all edges
+            for (const [u, neighbors] of Object.entries(graph)) {
+                for (const [v, weight] of Object.entries(neighbors)) {
+                    // Create unique edge key (alphabetically sorted to handle bidirection)
+                    const edgeKey = [u, v].sort().join('-');
+                    
+                    // Skip if edge already drawn
+                    if (drawnEdges.has(edgeKey)) continue;
+                    drawnEdges.add(edgeKey);
+                    
+                    const pos1 = nodePositions[u];
+                    const pos2 = nodePositions[v];
+                    
+                    // Check if this is an MST edge
+                    const isMST = highlightedEdges.some(edge => 
+                        (edge[0] === u && edge[1] === v) || (edge[0] === v && edge[1] === u)
+                    );
+                    
+                    // Draw edge line
+                    ctx.beginPath();
+                    ctx.moveTo(pos1.x, pos1.y);
+                    ctx.lineTo(pos2.x, pos2.y);
+                    ctx.strokeStyle = isMST ? '#e53935' : '#aaa';
+                    ctx.lineWidth = isMST ? 4 : 2;
+                    ctx.stroke();
+                    
+                    // Draw weight label with background
+                    const midX = (pos1.x + pos2.x) / 2;
+                    const midY = (pos1.y + pos2.y) / 2;
+                    
+                    // Weight background for better visibility
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                    ctx.fillRect(midX - 8, midY - 10, 16, 16);
+                    
+                    // Weight text
+                    ctx.fillStyle = isMST ? '#e53935' : '#333';
+                    ctx.font = isMST ? 'bold 12px Arial' : '11px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(weight.toString(), midX, midY - 2);
+                }
+            }
+            
+            // Draw nodes
+            for (const [node, pos] of Object.entries(nodePositions)) {
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, 25, 0, 2 * Math.PI);
+                // Green if in MST, blue otherwise
+                ctx.fillStyle = visitedNodes.has(node) ? '#4caf50' : '#2196f3';
+                ctx.fill();
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(node, pos.x, pos.y);
+            }
+        }
+        
+        function updateMSTInfo() {
+            const edgeList = mstEdges.map(edge => `${edge[0]}-${edge[1]}: ${edge[2]}`).join(', ');
+            const totalWeight = mstEdges.reduce((sum, edge) => sum + edge[2], 0);
+            
+            document.getElementById('mst-edges').textContent = edgeList || 'None';
+            document.getElementById('total-weight').textContent = totalWeight;
+        }
+        
+        function showResults(startNode, finalMSTEdges, totalWeight) {
+            document.getElementById('startNodeResult').textContent = startNode;
+            
+            // Show final MST
+            let mstHtml = '';
+            finalMSTEdges.forEach(edge => {
+                mstHtml += `<div style="margin: 3px 0;">
+                    <strong>${edge[0]} ↔ ${edge[1]}</strong> (weight: ${edge[2]})
+                </div>`;
+            });
+            document.getElementById('finalMST').innerHTML = mstHtml;
+            
+            // Show total weight
+            document.getElementById('totalMSTWeight').textContent = totalWeight + ' units';
+            
+            // Show edges in order added
+            let orderHtml = '';
+            finalMSTEdges.forEach((edge, index) => {
+                orderHtml += `<div style="margin: 3px 0; color: #4a148c;">
+                    ${index + 1}. ${edge[0]} ↔ ${edge[1]} (weight: ${edge[2]})
+                </div>`;
+            });
+            document.getElementById('mstEdgesOrder').innerHTML = orderHtml;
+            
+            // Algorithm summary
+            document.getElementById('primSummary').innerHTML = `
+                <div style="margin: 5px 0;">
+                    <strong>Total edges in MST:</strong> ${finalMSTEdges.length}
+                </div>
+                <div style="margin: 5px 0;">
+                    <strong>Total nodes connected:</strong> ${new Set(finalMSTEdges.flatMap(e => [e[0], e[1]])).size}
+                </div>
+                <div style="margin: 5px 0;">
+                    <strong>Algorithm completed successfully!</strong> ✅
+                </div>
+            `;
+            
+            // Final answer panel
+            let answerHtml = '<ul style="margin:0; padding-left:20px;">';
+            finalMSTEdges.forEach(edge => {
+                answerHtml += `<li><span style='color:#e53935;font-weight:bold;'>${edge[0]} ↔ ${edge[1]}:</span> weight ${edge[2]}</li>`;
+            });
+            answerHtml += `<li><span style='color:#4a148c;font-weight:bold;'>Total MST Weight:</span> ${totalWeight} units</li>`;
+            answerHtml += '</ul>';
+            document.getElementById('finalAnswer').innerHTML = answerHtml;
+            
+            document.getElementById('resultsPanel').style.display = 'block';
+        }
+        
+        async function runPrim() {
+            const start = document.getElementById('startNode').value.toUpperCase();
+            if (!graph[start]) {
+                alert('Invalid start node');
+                return;
+            }
+            
+            mstEdges = [];
+            visitedNodes = new Set();
+            
+            try {
+                const response = await fetch('/run_prim', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({graph: graph, start: start})
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                
+                const steps = await response.json();
+                
+                for (const step of steps) {
+                    if (step[0] === 'add_edge') {
+                        const [_, u, v, weight, visited, edges] = step;
+                        mstEdges = edges.map(edge => [edge[0], edge[1], edge[2]]);
+                        visitedNodes = new Set(visited);
+                        
+                        drawGraph(mstEdges);
+                        updateMSTInfo();
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
+                }
+                
+                // Final state
+                drawGraph(mstEdges);
+                updateMSTInfo();
+                
+                showResults(start, mstEdges, mstEdges.reduce((sum, edge) => sum + edge[2], 0));
+                
+            } catch (error) {
+                console.error('Error running Prim\'s algorithm:', error);
+                alert('Error running Prim\'s algorithm. Please check the console for details.');
+            }
+        }
+        
+        // Initial draw
+        drawGraph();
+        updateMSTInfo();
+    </script>
+</body>
+</html>
