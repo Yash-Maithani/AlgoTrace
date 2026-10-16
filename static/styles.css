@@ -970,51 +970,6 @@ a.logo:focus-visible,
 }
 
 /* ==========================================================================
-   LEGEND
-   Colour is never the only channel. Each row pairs a swatch with a label,
-   and the swatch shape differs for nodes, edges and bars.
-   ========================================================================== */
-
-.legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2) var(--space-4);
-    padding: var(--space-3);
-    margin-bottom: var(--space-4);
-    background-color: var(--sunken);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-}
-
-.legend-item {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    font-size: var(--text-sm);
-    color: var(--text);
-    white-space: nowrap;
-}
-
-.legend-swatch {
-    width: 14px;
-    height: 14px;
-    border-radius: 3px;
-    flex: 0 0 auto;
-    background-color: var(--swatch, var(--idle-graph));
-    border: 1px solid rgb(0 0 0 / 0.18);
-}
-
-.legend-swatch.is-node {
-    border-radius: 50%;
-}
-
-.legend-swatch.is-edge {
-    height: 4px;
-    width: 18px;
-    border-radius: 2px;
-}
-
-/* ==========================================================================
    SORTING BARS
    Five states, all derived on the client from the step data. The backend
    sends only {array, compared}, so nothing here needed a server change.
@@ -1030,6 +985,20 @@ a.logo:focus-visible,
     background-color: var(--sunken);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
+}
+
+/* Inside a workspace stage the bars fill it. The stage already draws the
+   sunken well and its border, so the container drops its own. */
+.stage > .bar-container {
+    width: 100%;
+    height: 100%;
+    margin-top: 0;
+    /* .bar-value hangs 24px below its bar, so the well reserves that much
+       rather than letting the labels push the stage into scrolling. */
+    padding: 0 0 26px;
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
 }
 
 .bar {

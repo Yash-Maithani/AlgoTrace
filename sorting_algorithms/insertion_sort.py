@@ -34,6 +34,17 @@ def insertion_sort(arr, draw_func, delay, stats=None):
             else:
                 break
         arr[j + 1] = key
+        # The gap closes here. Without this frame the array appeared to shift
+        # and the held key never visibly landed, which is the first gap
+        # recorded in static/js/lessons/README.md. It draws only; the write
+        # above is the same one that was always made, and it is not a swap.
+        draw_func(arr, [j + 1], step(
+            'overwrite', [j + 1], [arr[j + 1]], 'place',
+            {'i': i, 'j': j, 'key': key},
+            '%d drops into the gap at position %d, and the sorted run on the '
+            'left is now one longer.' % (key, j + 1),
+            'Every value to the left of the gap was already smaller, so the '
+            'key is in the right place the moment the sliding stops.'))
     draw_func(arr, ['green'] * len(arr), step(
         'done', [], [], None, {'n': len(arr)},
         'Every value has been walked back into a sorted run.',

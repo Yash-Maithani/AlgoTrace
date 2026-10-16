@@ -177,15 +177,12 @@ def sorting_page():
         
         return render_template(
             "sorting.html",
-            sorting_algorithms=sorting_algo_dict.keys(),
+            sorting_algorithms=list(sorting_algo_dict.keys()),
             selected_algo=selected_algo,
-            data=[],
-            steps=[],
-            input_method="random",
-            manual_input="",
-            size=30,
+            lesson_ids=SORT_LESSON_IDS,
+            pick_notes=SORT_PICK_NOTES,
+            initial_run=None,
             error="",
-            info=None
         )
 
 # ---------------------------------------------------------------------------
@@ -210,8 +207,10 @@ SEARCH_ALGORITHMS = {
 MAX_SEARCH_SIZE = 30
 
 
-def _parse_values(raw):
+def _parse_values(raw, limit=None):
     """Read the comma separated list the user typed. Returns (values, error)."""
+    if limit is None:
+        limit = MAX_SEARCH_SIZE
     if isinstance(raw, list):
         items = raw
     else:
@@ -222,9 +221,9 @@ def _parse_values(raw):
 
     if not items:
         return None, "Enter some numbers, separated by commas."
-    if len(items) > MAX_SEARCH_SIZE:
+    if len(items) > limit:
         return None, "That is %d values. Use %d or fewer so the cells stay readable." % (
-            len(items), MAX_SEARCH_SIZE)
+            len(items), limit)
 
     values = []
     for item in items:
@@ -235,6 +234,109 @@ def _parse_values(raw):
         except ValueError:
             return None, "%s is not a whole number. Use digits separated by commas." % item
     return values, None
+
+
+# Display name to lesson file id, so the picker and the Learn panel agree.
+SORT_LESSON_IDS = {
+    "Bubble Sort": "bubble_sort",
+    "Selection Sort": "selection_sort",
+    "Insertion Sort": "insertion_sort",
+    "Merge Sort": "merge_sort",
+    "Quick Sort": "quick_sort",
+    "Heap Sort": "heap_sort",
+}
+
+SORT_PICK_NOTES = {
+    "Bubble Sort": "Swap neighbours until nothing is out of order.",
+    "Selection Sort": "Find the smallest, place it, repeat.",
+    "Insertion Sort": "Slide each value back into a sorted prefix.",
+    "Merge Sort": "Split, sort the halves, merge them back.",
+    "Quick Sort": "Partition around a pivot, then recurse.",
+    "Heap Sort": "Build a heap, pull the largest off the top.",
+}
+
+
+def _sort_payload(name, values):
+    """One run, in the shape /run_sort answers with.
+
+    POST /sorting and /run_sort both go through here, so the page cannot be
+    served one thing and the endpoint another.
+    """
+    steps = []
+
+    def draw(array_state, compared_indices=None, meta=None):
+        step_data = {
+            "array": array_state[:],
+            "compared": compared_indices[:] if compared_indices else [],
+        }
+        if meta:
+            step_data.update(meta)
+        steps.append(step_data)
+
+    stats = {"swaps": 0, "comparisons": 0}
+    working = list(values)
+    sorting_algo_dict[name](working, draw, lambda: None, stats)
+    details = sorting_algo_details[name]
+
+    return {
+        "steps": steps,
+        "array": list(values),
+        "sorted": working,
+        "algorithm": name,
+        "result": {
+            "comparisons": stats["comparisons"],
+            "swaps": stats["swaps"],
+            "n": len(values),
+        },
+        "info": {
+            "stable": details["stable"],
+            "time_complexity": details["time_complexity"],
+            "space_complexity": details["space_complexity"],
+            "description": details["description"],
+        },
+    }
+
+
+# ---------------------------------------------------------------------------
+# Sorting over JSON.
+#
+# POST /sorting still renders the page with its steps embedded, which is how
+# the form has always worked. /run_sort answers the same run as JSON so the
+# workspace can start one without reloading. Both call the same six
+# functions, so neither can drift from the other.
+# ---------------------------------------------------------------------------
+
+SORT_ACTIONS = {"compare", "swap", "overwrite", "select", "place", "done"}
+
+MAX_SORT_SIZE = 100
+
+
+@app.route("/run_sort", methods=["POST"])
+def run_sort():
+    try:
+        data = request.json or {}
+        name = data.get("algorithm", "Bubble Sort")
+        if name not in sorting_algo_dict:
+            return jsonify({"error": "Unknown sorting algorithm %r." % name}), 400
+
+        if data.get("values") in (None, "", []):
+            try:
+                size = int(data.get("size", 30))
+            except (TypeError, ValueError):
+                return jsonify({"error": "Array size must be a whole number."}), 400
+            if not 5 <= size <= MAX_SORT_SIZE:
+                return jsonify({
+                    "error": "Array size must be between 5 and %d." % MAX_SORT_SIZE
+                }), 400
+            values = [random.randint(1, 100) for _ in range(size)]
+        else:
+            values, problem = _parse_values(data.get("values"), MAX_SORT_SIZE)
+            if problem:
+                return jsonify({"error": problem}), 400
+
+        return jsonify(_sort_payload(name, values))
+    except Exception as e:
+        return jsonify({"error": "An error occurred: %s" % e}), 500
 
 
 @app.route("/searching")
@@ -350,80 +452,45 @@ def graph_page():
     return render_template(f"{template_name}.html", algorithm=algo)
 
 def handle_sorting():
-    data = []
-    steps = []
-    selected_algo = request.form.get("algorithm", "Bubble Sort")
-    input_method = request.form.get("input_method", "random")
-    size = 30
-    manual_input = ""
-    error = ""
+    """The form POST. Still runs the sort here and still renders the page.
 
-    if input_method == "random":
+    The page is the workspace now, so the run travels as initial_run in the
+    shape /run_sort answers with, and the workspace loads it on arrival.
+    """
+    selected_algo = request.form.get("algorithm", "Bubble Sort")
+    if selected_algo not in sorting_algo_dict:
+        selected_algo = "Bubble Sort"
+    input_method = request.form.get("input_method", "random")
+    error = ""
+    values = []
+
+    if input_method == "manual":
+        values, error = _parse_values(request.form.get("manual_input", ""),
+                                      MAX_SORT_SIZE)
+        if error:
+            values = []
+    else:
         try:
             size = int(request.form.get("size", 30))
-            data = [random.randint(1, 100) for _ in range(size)]
         except ValueError:
             error = "Invalid array size. Please enter a valid number."
-    elif input_method == "manual":
-        manual_input = request.form.get("manual_input", "")
-        try:
-            data = [int(x.strip()) for x in manual_input.split(',') if x.strip() != '']
-            if not data:
-                raise ValueError
-        except ValueError:
-            error = "Invalid manual input. Please enter comma-separated integers only."
-            return render_template(
-                "sorting.html",
-                sorting_algorithms=sorting_algo_dict.keys(),
-                selected_algo=selected_algo,
-                data=[],
-                steps=[],
-                input_method=input_method,
-                manual_input=manual_input,
-                size=size,
-                error=error,
-                info=None
-            )
-
-    info = None
-    if not error:
-        def draw(array_state, compared_indices=None, meta=None):
-            # array and compared drive the bars; the teacher fields in meta
-            # drive the Learn panel. Contract: static/js/lessons/README.md
-            step_data = {
-                'array': array_state[:],
-                'compared': compared_indices[:] if compared_indices else [],
-            }
-            if meta:
-                step_data.update(meta)
-            steps.append(step_data)
-
-        sort_func = sorting_algo_dict[selected_algo]
-        stats = {'swaps': 0, 'comparisons': 0}
-        # Pass stats to the sorting function
-        sort_func(data, draw, lambda: None, stats)
-        algo_info = sorting_algo_details[selected_algo]
-        info = {
-            'swaps': stats['swaps'],
-            'comparisons': stats['comparisons'],
-            'stable': 'Yes' if algo_info['stable'] else 'No',
-            'time_complexity': algo_info['time_complexity'],
-            'space_complexity': algo_info['space_complexity'],
-            'description': algo_info['description']
-        }
+            size = None
+        if size is not None:
+            if not 5 <= size <= MAX_SORT_SIZE:
+                error = "Array size must be between 5 and %d." % MAX_SORT_SIZE
+            else:
+                values = [random.randint(1, 100) for _ in range(size)]
 
     return render_template(
         "sorting.html",
-        sorting_algorithms=sorting_algo_dict.keys(),
+        sorting_algorithms=list(sorting_algo_dict.keys()),
         selected_algo=selected_algo,
-        data=data,
-        steps=steps,
-        input_method=input_method,
-        manual_input=manual_input,
-        size=size,
+        lesson_ids=SORT_LESSON_IDS,
+        pick_notes=SORT_PICK_NOTES,
+        initial_run=None if error else _sort_payload(selected_algo, values),
         error=error,
-        info=info
     )
+
 
 def handle_graph():
     selected_algo = request.form.get("algorithm", "bfs").lower()

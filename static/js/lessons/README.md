@@ -109,16 +109,22 @@ gain a parallel `meta` list of the same length. `meta[k]` carries the same eight
 a sorting step, except that `indices` holds node or edge ids rather than array positions,
 and `values` holds the numbers on them, such as a distance or an edge weight.
 
-## 5. Known gaps for the UI phases
+## 5. Gaps closed in Phase 6
 
-- `insertion_sort` never draws the frame where the held key is written back into the gap,
-  so the array appears to shift without the key landing. Phase 6 should render that from
-  the following step rather than adding a draw call here, which would change the step
-  count this contract freezes.
-- `merge_sort` highlights `start + i` and `start + j` while comparing, but the right hand
-  value actually lives at `start + len(left) + j`, so the stage highlights the wrong cell
-  on the right. `indices`, `values` and `explain` all carry the true positions and values,
-  so only `compared` is wrong. Phase 6 owns the fix, since changing `compared` changes the
-  animation this contract freezes.
-- `heap_sort` passes colour names in `compared` on its extract step. `indices` carries the
-  real pair.
+These three were recorded here while Phase 4 froze the step arrays, because
+fixing any of them changed what the stage was sent. Phase 6 fixed all three.
+
+- `insertion_sort` now draws the frame where the held key lands in its gap.
+  This is the only one that changed a frame count: one extra frame per outer
+  loop pass. Comparisons, swaps and the sorted output are unchanged, and
+  `tests/baseline_sorting.json` records the new counts.
+- `merge_sort` now highlights `start + len(left) + j` for the right hand
+  value, which is where it actually sits, rather than `start + j`, which
+  pointed into the left half. `compared` and `indices` now agree.
+- `heap_sort` now sends `[0, i]` on its extract frame instead of a list of
+  colour names, one per bar. `compared` and `indices` now agree.
+
+One legacy marker is left on purpose: every sort still ends by passing
+`['green'] * n` as `compared` on its final frame. `action: "done"` is the
+reliable signal, and changing that frame would move every baseline for no
+gain. Read `action`, not `compared`, to find the end of a run.

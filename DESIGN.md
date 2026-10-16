@@ -461,9 +461,10 @@ keep every one of these, or update the JS in the same commit.
 `reset-button`, `result-content`, `result-panel`, `speed-slider`, `speed-tooltip`,
 `start-node`, `status-content`, `step-display`.
 
-Note the duplication: `play-btn` and `play-button` and `pauseBtn` and `pause-btn` are the
-sorting and graph pages using different names for the same control. Phase 6 or 7 should
-unify them, in a commit that changes both the markup and the JS together.
+Phase 6 unified the duplicated transport ids. Sorting moved to the workspace contract, so
+`play-btn` and `pause-btn` are gone from it; `play-button` in graph_base was renamed to
+`play-pause` to match; and `pauseBtn`, which no element ever carried, went with the dead
+functions that reached for it. All three pages now name the transport the same way.
 
 **Sorting bar state classes.** `bar`, `bar-value`, `comparing`, `swapping`, `pivot`,
 `sorted`, `is-visible`, `updated`.

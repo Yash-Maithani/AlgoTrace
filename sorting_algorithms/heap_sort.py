@@ -51,9 +51,10 @@ def heap_sort(arr, draw_func, delay, stats=None):
     for i in range(n-1, 0, -1):
         arr[i], arr[0] = arr[0], arr[i]
         stats['swaps'] += 1
-        # `compared` carries colour names on this frame rather than indices.
-        # `indices` reports the pair that actually moved.
-        draw_func(arr, ['red' if x == i or x == 0 else 'blue' for x in range(len(arr))], step(
+        # The pair that moved, as indices. This frame used to carry a list of
+        # colour names, one per bar, which every reader had to special case:
+        # the third gap recorded in the lessons README.
+        draw_func(arr, [0, i], step(
             'swap', [0, i], [arr[0], arr[i]], 'swap-root',
             {'i': i, 'heap_size': i, 'phase': 'extract'},
             'The largest value %d moves to position %d, which is its final '

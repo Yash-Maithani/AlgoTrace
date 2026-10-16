@@ -9,10 +9,11 @@ def merge_sort(arr, draw_func, delay, stats=None):
         i = j = 0
         while i < len(left) and j < len(right):
             stats['comparisons'] += 1
-            # `compared` keeps the highlight the stage has always drawn. The
-            # right hand value actually sits at start_index + len(left) + j,
-            # which is what `indices` reports.
-            draw_func(arr, [start_index + i, start_index + j], step(
+            # Both halves are still untouched at this point, so the right
+            # hand value really is at start_index + len(left) + j. The stage
+            # used to be sent start_index + j, which pointed into the left
+            # half: the second gap recorded in the lessons README.
+            draw_func(arr, [start_index + i, start_index + len(left) + j], step(
                 'compare',
                 [start_index + i, start_index + len(left) + j],
                 [left[i], right[j]],

@@ -1,6 +1,6 @@
 {
   "baseline_commit": "e0fe171",
-  "note": "Generated from the sorting_algorithms package as it stood at e0fe171. Teacher fields added in Phase 4 must not change any number in here.",
+  "note": "Generated from the sorting_algorithms package as it stood at e0fe171. Teacher fields added in Phase 4 must not change any number in here. Phase 6 fixed the three highlight gaps in the lessons README. Only insertion_sort moved: it now draws the frame where the held key lands in its gap, which adds one frame per outer loop pass. The merge_sort and heap_sort fixes changed what compared holds, not how many frames there are, so no number in this file moved for them. Sorted output, comparison counts and swap counts are unchanged for all six.",
   "cases": {
     "random_30": {
       "input": [
@@ -145,7 +145,8 @@
           ],
           "comparisons": 216,
           "swaps": 189,
-          "steps": 406
+          "steps": 435,
+          "steps_rebaselined": "phase6-insertion-key-landing"
         },
         "merge_sort": {
           "sorted": [
@@ -331,7 +332,8 @@
           ],
           "comparisons": 42,
           "swaps": 31,
-          "steps": 74
+          "steps": 85,
+          "steps_rebaselined": "phase6-insertion-key-landing"
         },
         "merge_sort": {
           "sorted": [
@@ -483,7 +485,8 @@
           ],
           "comparisons": 75,
           "swaps": 62,
-          "steps": 138
+          "steps": 154,
+          "steps_rebaselined": "phase6-insertion-key-landing"
         },
         "merge_sort": {
           "sorted": [
@@ -662,7 +665,8 @@
           ],
           "comparisons": 19,
           "swaps": 0,
-          "steps": 20
+          "steps": 39,
+          "steps_rebaselined": "phase6-insertion-key-landing"
         },
         "merge_sort": {
           "sorted": [
@@ -810,7 +814,8 @@
           ],
           "comparisons": 9,
           "swaps": 0,
-          "steps": 10
+          "steps": 19,
+          "steps_rebaselined": "phase6-insertion-key-landing"
         },
         "merge_sort": {
           "sorted": [
@@ -968,7 +973,8 @@
           ],
           "comparisons": 190,
           "swaps": 190,
-          "steps": 381
+          "steps": 400,
+          "steps_rebaselined": "phase6-insertion-key-landing"
         },
         "merge_sort": {
           "sorted": [
@@ -1116,7 +1122,8 @@
           ],
           "comparisons": 45,
           "swaps": 40,
-          "steps": 86
+          "steps": 95,
+          "steps_rebaselined": "phase6-insertion-key-landing"
         },
         "merge_sort": {
           "sorted": [
@@ -1246,7 +1253,8 @@
           ],
           "comparisons": 40,
           "swaps": 29,
-          "steps": 70
+          "steps": 82,
+          "steps_rebaselined": "phase6-insertion-key-landing"
         },
         "merge_sort": {
           "sorted": [
@@ -1357,7 +1365,8 @@
           ],
           "comparisons": 5,
           "swaps": 0,
-          "steps": 6
+          "steps": 11,
+          "steps_rebaselined": "phase6-insertion-key-landing"
         },
         "merge_sort": {
           "sorted": [
@@ -1455,7 +1464,8 @@
           ],
           "comparisons": 15,
           "swaps": 9,
-          "steps": 25
+          "steps": 32,
+          "steps_rebaselined": "phase6-insertion-key-landing"
         },
         "merge_sort": {
           "sorted": [
@@ -1631,7 +1641,8 @@
           ],
           "comparisons": 1,
           "swaps": 0,
-          "steps": 2
+          "steps": 3,
+          "steps_rebaselined": "phase6-insertion-key-landing"
         },
         "merge_sort": {
           "sorted": [
@@ -1693,7 +1704,8 @@
           ],
           "comparisons": 1,
           "swaps": 1,
-          "steps": 3
+          "steps": 4,
+          "steps_rebaselined": "phase6-insertion-key-landing"
         },
         "merge_sort": {
           "sorted": [
@@ -1759,7 +1771,8 @@
           ],
           "comparisons": 3,
           "swaps": 2,
-          "steps": 6
+          "steps": 8,
+          "steps_rebaselined": "phase6-insertion-key-landing"
         },
         "merge_sort": {
           "sorted": [
@@ -1828,7 +1841,8 @@
           ],
           "comparisons": 2,
           "swaps": 0,
-          "steps": 3
+          "steps": 5,
+          "steps_rebaselined": "phase6-insertion-key-landing"
         },
         "merge_sort": {
           "sorted": [
@@ -1909,7 +1923,8 @@
           ],
           "comparisons": 11,
           "swaps": 7,
-          "steps": 19
+          "steps": 24,
+          "steps_rebaselined": "phase6-insertion-key-landing"
         },
         "merge_sort": {
           "sorted": [

@@ -11,7 +11,8 @@
  *     readRequest(ui),          build the POST body, or return {field, message}
  *     renderStep(step, ctx),    draw one step on the stage
  *     renderResult(payload),    optional, the closing banner
- *     onError(payload, ui)      optional, return true if the page handled it
+ *     onError(payload, ui),     optional, return true if the page handled it
+ *     delayFor(sliderValue)     optional, milliseconds between frames
  *   })
  *
  * The template must provide these ids: run-button, play-pause, step-back,
@@ -201,8 +202,12 @@
         }
     };
 
+    /* How long to wait between frames, read from the speed slider. A page
+       whose slider has a different range, or a different feel, supplies its
+       own delayFor(value); the default suits a 1 to 10 slider. */
     Workspace.prototype.delay = function () {
         var value = this.speed ? Number(this.speed.value) : 5;
+        if (this.options.delayFor) return this.options.delayFor(value);
         // 1 is slowest, 10 is fastest.
         return 1100 - (value * 100);
     };

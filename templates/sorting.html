@@ -1,384 +1,311 @@
 {% extends "layout.html" %}
 
-{% block title %}Sorting Algorithms Visualizer{% endblock %}
+{% block title %}Sorting | Algorithm Visualizer{% endblock %}
 
 {% block content %}
+    <main class="workspace" id="main">
 
-    <main class="container" id="main">
-        <h1>Sorting Algorithm Visualizer</h1>
-
-        <!-- Algorithm Selection Box -->
-        <div class="algorithm-selection reveal">
-            <h2>Choose Algorithm</h2>
-            <div class="algorithm-buttons">
-                {% for algo in sorting_algorithms %}
-                <a href="{{ url_for('sorting_page') }}?algorithm={{ algo }}" class="algorithm-btn {% if selected_algo == algo %}active{% endif %}">{{ algo }}</a>
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="visualizer-container">
-            <!-- Controls Panel -->
-            <div class="controls-panel reveal">
-                <form method="post" action="{{ url_for('sorting_page') }}">
-                    <input type="hidden" name="algorithm" value="{{ selected_algo }}">
-
-                    <h2>Input Options</h2>
-                    <fieldset class="radio-row">
-                        <legend class="sr-only">Input method</legend>
-                        <label class="radio-option">
-                            <input type="radio" name="input_method" value="random" {% if input_method == 'random' %}checked{% endif %} onchange="toggleInput()">
-                            Random Array
-                        </label>
-                        <label class="radio-option">
-                            <input type="radio" name="input_method" value="manual" {% if input_method == 'manual' %}checked{% endif %} onchange="toggleInput()">
-                            Manual Input
-                        </label>
-                    </fieldset>
-
-                    <div id="random-input" {% if input_method != 'random' %}style="display:none;"{% endif %}>
-                        <label for="array-size">Array Size:</label>
-                        <input type="number" id="array-size" name="size" min="5" max="100" value="{{ size }}"
-                               inputmode="numeric" autocomplete="off"
-                               {% if error and input_method == 'random' %}aria-invalid="true" aria-describedby="array-size-error" autofocus{% endif %}>
-                        {% if error and input_method == 'random' %}
-                        <div id="array-size-error" class="field-error" role="alert">{{ error }}</div>
-                        {% endif %}
+        <!-- SETUP ------------------------------------------------------- -->
+        <section class="workspace-setup" aria-labelledby="setup-heading">
+            <div class="panel">
+                <h2 class="panel-title" id="setup-heading">Set up a run</h2>
+                <div class="setup-grid">
+                    <div>
+                        <ul class="algo-picker" id="algo-picker">
+                            {% for name in sorting_algorithms %}
+                            <li>
+                                <a href="#" data-algorithm="{{ name }}"
+                                   data-lesson="{{ lesson_ids[name] }}"
+                                   data-accent="{{ loop.index }}"
+                                   aria-current="{{ 'true' if name == selected_algo else 'false' }}">
+                                    <span class="pick-name">{{ name }}</span>
+                                    <span class="pick-note">{{ pick_notes[name] }}</span>
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
                     </div>
 
-                    <div id="manual-input" {% if input_method != 'manual' %}style="display:none;"{% endif %}>
-                        <label for="manual-values">Enter comma-separated numbers:</label>
-                        <input type="text" id="manual-values" name="manual_input" placeholder="e.g. 5,3,8,1,10" value="{{ manual_input }}"
-                               inputmode="numeric" autocomplete="off" spellcheck="false"
-                               {% if error and input_method == 'manual' %}aria-invalid="true" aria-describedby="manual-values-error" autofocus{% endif %}>
-                        {% if error and input_method == 'manual' %}
-                        <div id="manual-values-error" class="field-error" role="alert">{{ error }}</div>
-                        {% endif %}
-                    </div>
+                    <div>
+                        <div class="setup-field">
+                            <fieldset class="input-method">
+                                <legend>Input</legend>
+                                <label class="radio-option">
+                                    <input type="radio" name="input_method" value="random"
+                                           id="random-input" checked>
+                                    Random array
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="input_method" value="manual"
+                                           id="manual-input-choice">
+                                    Type the values
+                                </label>
+                            </fieldset>
+                        </div>
 
-                    <button type="submit" class="primary">Generate Visualization</button>
-                </form>
+                        <div class="setup-field" id="size-field">
+                            <label for="array-size">Array size</label>
+                            <input type="number" id="array-size" min="5" max="100" value="30">
+                            <p class="setup-hint">Between 5 and 100 bars.</p>
+                        </div>
 
-                {% if info %}
-                <div class="algorithm-info">
-                    <h2>{{ selected_algo }}</h2>
-                    <p>{{ info.description }}</p>
-                    <div class="algorithm-stats">
-                        <div class="stat-item">
-                            <div class="stat-title">Time Complexity</div>
-                            <div>Best: {{ info.time_complexity.Best }}</div>
-                            <div>Average/Worst: {{ info.time_complexity['Average/Worst'] }}</div>
+                        <div class="setup-field" id="values-field" hidden>
+                            <label for="manual-input">Values</label>
+                            <input type="text" id="manual-input" autocomplete="off"
+                                   spellcheck="false" value="42, 17, 93, 8, 61, 29, 75, 36">
+                            <p class="setup-hint">Whole numbers, separated by commas.</p>
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-title">Space Complexity</div>
-                            <div>{{ info.space_complexity }}</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-title">Stability</div>
-                            <div>{{ info.stable }}</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-title">Performance</div>
-                            <div>Comparisons: {{ info.comparisons }}</div>
-                            <div>Swaps: {{ info.swaps }}</div>
-                        </div>
+
+                        <div class="field-error" id="setup-error" role="alert">{{ error }}</div>
+
+                        <button type="button" class="btn btn-primary" id="run-button">
+                            Run the sort
+                        </button>
                     </div>
                 </div>
-                {% endif %}
+            </div>
+        </section>
+
+        <!-- STAGE, CONTROL BAR, LEGEND ---------------------------------- -->
+        <section class="workspace-stage-col" aria-labelledby="stage-heading">
+            <h2 class="sr-only" id="stage-heading">Visualization</h2>
+
+            <div class="stage" id="stage">
+                <p class="stage-empty" id="stage-empty">
+                    Choose an algorithm and an input, then run the sort.
+                </p>
+                <div class="bar-container" id="array-container" hidden></div>
             </div>
 
-            <!-- Visualization Area -->
-            <div class="visualization-area reveal">
-                {% if error and input_method not in ['random', 'manual'] %}
-                <div class="field-error" role="alert">
-                    {{ error }}
-                </div>
-                {% elif data and steps %}
-                <ul class="legend" aria-label="Bar colour key">
-                    <li class="legend-item"><span class="legend-swatch" style="--swatch: var(--idle-sort)"></span>Unsorted</li>
-                    <li class="legend-item"><span class="legend-swatch" style="--swatch: var(--active)"></span>Comparing</li>
-                    <li class="legend-item"><span class="legend-swatch" style="--swatch: var(--reject)"></span>Swapping</li>
-                    <li class="legend-item"><span class="legend-swatch" style="--swatch: var(--pivot)"></span>Pivot or current</li>
-                    <li class="legend-item"><span class="legend-swatch" style="--swatch: var(--done)"></span>Sorted</li>
-                </ul>
-
-                <div id="array-container" class="bar-container">
-                    {% for value in data %}
-                    <div class="bar" style="height: {{ value * 3 }}px;">
-                        {% if data|length <= 30 %}
-                        <div class="bar-value">{{ value }}</div>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-                </div>
-
-                <div class="animation-controls">
-                    <button id="play-btn" class="control-btn play-btn" onclick="playAnimation()" title="Play Animation" aria-label="Play animation">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
-                    </button>
-                    <button id="pause-btn" class="control-btn pause-btn" onclick="pauseAnimation()" title="Pause Animation" aria-label="Pause animation">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5h4v14H7zm6 0h4v14h-4z"></path></svg>
-                    </button>
-                    <button id="reset-btn" class="control-btn reset-btn" onclick="resetAnimation()" title="Reset Animation" aria-label="Reset animation">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
-                            <path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path>
+            <div class="control-bar" role="group" aria-label="Playback">
+                <div class="transport">
+                    <button type="button" class="transport-btn" id="step-back"
+                            aria-label="Step back" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="15 18 9 12 15 6"></polyline>
                         </svg>
                     </button>
-                    <div class="speed-control">
-                        <span class="speed-label">Slow</span>
-                        <input type="range" min="1" max="200" value="40" class="speed-slider" id="speed-slider" title="Adjust Animation Speed" aria-label="Animation speed">
-                        <span class="speed-label">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6z"></path></svg>
-                            Max
-                        </span>
-                        <div class="speed-tooltip" id="speed-tooltip" style="display: none;"></div>
-                    </div>
-
-                    <div id="step-display" class="step-counter" role="status" aria-live="polite">Step 0 / {{ steps|length }}</div>
+                    <button type="button" class="transport-btn is-primary" id="play-pause"
+                            data-playing="false" aria-label="Play" disabled>
+                        <svg class="icon-play" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <polygon points="7 5 19 12 7 19"></polygon>
+                        </svg>
+                        <svg class="icon-pause" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <rect x="7" y="5" width="4" height="14"></rect>
+                            <rect x="13" y="5" width="4" height="14"></rect>
+                        </svg>
+                    </button>
+                    <button type="button" class="transport-btn" id="step-forward"
+                            aria-label="Step forward" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
+                    <button type="button" class="transport-btn" id="reset"
+                            aria-label="Reset to the first step" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="1 4 1 10 7 10"></polyline>
+                            <path d="M3.5 15a9 9 0 1 0 2.1-9.4L1 10"></path>
+                        </svg>
+                    </button>
                 </div>
 
-                <div id="completion-message" class="completion-message">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M20 6 9 17l-5-5"></path>
-                    </svg>
-                    {{ selected_algo }} completed!
+                <div class="speed-field">
+                    <label for="speed">Speed</label>
+                    <input type="range" id="speed" class="speed-slider"
+                           min="1" max="200" value="40">
                 </div>
-                {% else %}
-                <div class="empty-state">
-                    <svg class="empty-icon" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
-                        <line x1="5" y1="19" x2="5" y2="12"></line>
-                        <line x1="12" y1="19" x2="12" y2="5"></line>
-                        <line x1="19" y1="19" x2="19" y2="9"></line>
-                    </svg>
-                    <p>Select an algorithm and input method, then click "Generate Visualization" to begin.</p>
+
+                <div class="step-counter" id="step-counter" role="status" aria-live="polite">
+                    Step 0 of 0
                 </div>
-                {% endif %}
             </div>
-        </div>
+
+            <div class="legend">
+                <span class="legend-item">
+                    <span class="legend-swatch" style="--swatch: var(--idle-sort)"></span>
+                    Not yet placed
+                </span>
+                <span class="legend-item">
+                    <span class="legend-swatch" style="--swatch: var(--active)"></span>
+                    Being compared
+                </span>
+                <span class="legend-item">
+                    <span class="legend-swatch" style="--swatch: var(--reject)"></span>
+                    Swapped or written
+                </span>
+                <span class="legend-item">
+                    <span class="legend-swatch" style="--swatch: var(--pivot)"></span>
+                    Marked or placed
+                </span>
+                <span class="legend-item">
+                    <span class="legend-swatch" style="--swatch: var(--done)"></span>
+                    Sorted
+                </span>
+            </div>
+
+            <div class="run-banner" id="run-banner" role="status" aria-live="polite"></div>
+        </section>
+
+        <!-- LEARN PANEL -------------------------------------------------- -->
+        <section class="workspace-learn" aria-labelledby="learn-heading">
+            <h2 class="sr-only" id="learn-heading">Learn</h2>
+            <div class="learn-panel" id="learn-panel"></div>
+        </section>
     </main>
 {% endblock %}
 
 {% block page_js %}
-
+    {% for lesson in lesson_ids.values() %}
+    <script src="{{ url_for('static', filename='js/lessons/' + lesson + '.js') }}"></script>
+    {% endfor %}
+    <script src="{{ url_for('static', filename='js/teacher.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
     <script>
-        // Toggle between random and manual input
-        function toggleInput() {
-            const radioRandom = document.querySelector('input[name="input_method"][value="random"]');
-            const randomInput = document.getElementById('random-input');
-            const manualInput = document.getElementById('manual-input');
+        /* Everything below is the sorting workspace only. The shell, the
+           control bar and the Learn panel come from the shared pieces. */
+        (function () {
+            'use strict';
 
-            if (radioRandom.checked) {
-                randomInput.style.display = 'block';
-                manualInput.style.display = 'none';
-            } else {
-                randomInput.style.display = 'none';
-                manualInput.style.display = 'block';
-            }
-        }
-          // Animation variables
-        let steps = [];
-        let currentStep = 0;        let animationInterval = null;
-        let animationSpeed = 40;
-        let animationRunning = false;
+            /* The picker carries display names like "Bubble Sort"; the lesson
+               files are keyed by id. One map, built by the server. */
+            var LESSON_FOR = {{ lesson_ids|tojson }};
 
-        // Initialize animation if data is available
-        {% if steps %}
-        steps = {{ steps|tojson }};
-
-        /* The server sends only {array, compared} per step, so the five bar
-           states are worked out here rather than asked for from the backend.
-           compared holds either numeric indices or, on the very last step,
-           the string markers the sorting functions pass to signal completion.
-
-             one index            -> pivot or current element
-             two, array unchanged -> a comparison
-             two, array changed   -> the swap that comparison caused
-             string markers       -> finished, everything is sorted */
-        function classifyStep(idx) {
-            const step = steps[idx];
-            const compared = step.compared || [];
-            if (compared.some(c => typeof c !== 'number')) {
-                return { kind: 'sorted', indices: [] };
-            }
-            if (compared.length === 1) {
-                return { kind: 'pivot', indices: compared };
-            }
-            if (compared.length >= 2) {
-                const prev = idx > 0 ? steps[idx - 1].array : null;
-                const changed = prev && compared.some(i => prev[i] !== step.array[i]);
-                return { kind: changed ? 'swapping' : 'comparing', indices: compared };
-            }
-            return { kind: 'none', indices: [] };
-        }
-
-        function updateBars(step, animate = true) {
-            const barContainer = document.getElementById('array-container');
-            const bars = barContainer.querySelectorAll('.bar');
-            const data = step.array;
-            const state = classifyStep(currentStep);
-            const marked = new Set(state.indices);
-            const isLast = currentStep === steps.length - 1;
-
-            for (let i = 0; i < data.length; i++) {
-                const bar = bars[i];
-                if (!bar) continue;
-
-                bar.style.transition = animate ? '' : 'none';
-
-                const height = Math.max(data[i] * 3, 5);
-                bar.style.height = `${height}px`;
-
-                bar.classList.remove('comparing', 'swapping', 'pivot', 'sorted');
-                if (state.kind === 'sorted' || isLast) {
-                    bar.classList.add('sorted');
-                } else if (marked.has(i) && state.kind !== 'none') {
-                    bar.classList.add(state.kind);
-                }
-
-                const valueLabel = bar.querySelector('.bar-value');
-                if (valueLabel) {
-                    valueLabel.textContent = data[i];
-                }
-            }
-
-            // Step indicator
-            const stepDisplay = document.getElementById('step-display');
-            stepDisplay.textContent = `Step ${currentStep + 1} / ${steps.length}`;
-            stepDisplay.classList.remove('updated');
-            void stepDisplay.offsetWidth; // restart the tick animation
-            stepDisplay.classList.add('updated');
-            setTimeout(() => stepDisplay.classList.remove('updated'), 400);
-
-            // Completion banner. Visibility is a class so the fade lives in the
-            // stylesheet and honours reduced motion there.
-            const completionMessage = document.getElementById('completion-message');
-            if (completionMessage) {
-                if (isLast) {
-                    completionMessage.style.display = 'flex';
-                    requestAnimationFrame(() => completionMessage.classList.add('is-visible'));
-                } else {
-                    completionMessage.classList.remove('is-visible');
-                    completionMessage.style.display = 'none';
-                }
-            }
-        }
-
-        function playAnimation() {
-            animationRunning = true;
-            document.getElementById('play-btn').style.opacity = '0.5';
-            document.getElementById('pause-btn').style.opacity = '1';
-
-            if (currentStep >= steps.length - 1) {
-                resetAnimation();
-            }
-
-            if (animationInterval) {
-                clearInterval(animationInterval);
-            }
-
-            // Enhanced speed calculation with exponential scaling for higher speeds
-            let delay;
-            if (animationSpeed <= 100) {
-                delay = 1200 - (animationSpeed * 10);
-            } else {
-                const extraSpeed = animationSpeed - 100;
-                const exponentialFactor = Math.pow(extraSpeed / 100, 1.5);
-                delay = 200 - (exponentialFactor * 190);
-            }
-
-            delay = Math.max(delay, 10);
-
-            animationInterval = setInterval(() => {
-                if (currentStep >= steps.length - 1) {
-                    clearInterval(animationInterval);
-                    animationRunning = false;
-                    document.getElementById('play-btn').style.opacity = '1';
-                    return;
-                }
-
-                currentStep++;
-                updateBars(steps[currentStep], true);
-            }, delay);
-        }
-
-        function pauseAnimation() {
-            animationRunning = false;
-            document.getElementById('play-btn').style.opacity = '1';
-            document.getElementById('pause-btn').style.opacity = '0.5';
-
-            if (animationInterval) {
-                clearInterval(animationInterval);
-                animationInterval = null;
-            }
-        }
-
-        function resetAnimation() {
-            pauseAnimation();
-            currentStep = 0;
-            updateBars(steps[0], false);
-            // Re-enable transitions after the instant reset has painted.
-            requestAnimationFrame(() => {
-                document.querySelectorAll('.bar').forEach(bar => {
-                    bar.style.transition = '';
+            function lessonsByDisplayName() {
+                var out = {};
+                Object.keys(LESSON_FOR).forEach(function (display) {
+                    out[display] = window.LESSONS[LESSON_FOR[display]];
                 });
-            });
-        }
-
-        // Speed slider with tooltip
-        const speedSlider = document.getElementById('speed-slider');
-        const speedTooltip = document.getElementById('speed-tooltip');
-
-        function getSpeedLabel(value) {
-            if (value <= 20) return 'Very Slow';
-            if (value <= 40) return 'Slow';
-            if (value <= 80) return 'Default';
-            if (value <= 120) return 'Fast';
-            if (value <= 160) return 'Very Fast';
-            return 'Lightning';
-        }
-
-        function updateSpeedTooltip(value, show = true) {
-            if (speedTooltip) {
-                speedTooltip.textContent = getSpeedLabel(value);
-                speedTooltip.style.display = show ? 'block' : 'none';
-
-                const sliderRect = speedSlider.getBoundingClientRect();
-                const percentage = (value - speedSlider.min) / (speedSlider.max - speedSlider.min);
-                const thumbPosition = sliderRect.left + (percentage * sliderRect.width);
-                speedTooltip.style.left = `${thumbPosition}px`;
-                speedTooltip.style.top = `${sliderRect.top - 35}px`;
+                return out;
             }
-        }
 
-        speedSlider.addEventListener('input', function() {
-            const value = parseInt(this.value);
-            animationSpeed = value;
-            updateSpeedTooltip(value, true);
-
-            if (animationRunning) {
-                pauseAnimation();
-                playAnimation();
+            /* Which bar class each action paints. This reproduces exactly what
+               the old page worked out by diffing arrays, now read from the
+               step itself:
+                 compare            -> comparing
+                 swap, place        -> swapping
+                 select             -> pivot
+                 overwrite          -> swapping when a pair moved, else pivot
+                 done               -> every bar sorted */
+            function classFor(step) {
+                switch (step.action) {
+                    case 'compare': return 'comparing';
+                    case 'swap':
+                    case 'place': return 'swapping';
+                    case 'select': return 'pivot';
+                    case 'overwrite':
+                        return (step.compared || []).length >= 2 ? 'swapping' : 'pivot';
+                    default: return null;
+                }
             }
-        });
 
-        speedSlider.addEventListener('mouseenter', function() {
-            updateSpeedTooltip(parseInt(this.value), true);
-        });
+            var methodRandom = document.getElementById('random-input');
+            var methodManual = document.getElementById('manual-input-choice');
+            var sizeField = document.getElementById('size-field');
+            var valuesField = document.getElementById('values-field');
 
-        speedSlider.addEventListener('mouseleave', function() {
-            updateSpeedTooltip(parseInt(this.value), false);
-        });
+            function syncInputMethod() {
+                var manual = methodManual.checked;
+                sizeField.hidden = manual;
+                valuesField.hidden = !manual;
+            }
+            methodRandom.addEventListener('change', syncInputMethod);
+            methodManual.addEventListener('change', syncInputMethod);
+            syncInputMethod();
 
-        // Initialize animation
-        document.addEventListener('DOMContentLoaded', function() {
-            updateBars(steps[0], false);
-            document.getElementById('pause-btn').style.opacity = '0.5';
-            requestAnimationFrame(() => {
-                document.querySelectorAll('.bar').forEach(bar => {
-                    bar.style.transition = '';
-                });
+            Workspace.start({
+                endpoint: '/run_sort',
+                lessons: lessonsByDisplayName(),
+
+                /* The old page's speed curve, kept exactly so a run at a given
+                   slider position takes as long as it always did. */
+                delayFor: function (value) {
+                    var delay;
+                    if (value <= 100) {
+                        delay = 1200 - (value * 10);
+                    } else {
+                        var extra = value - 100;
+                        delay = 200 - (Math.pow(extra / 100, 1.5) * 190);
+                    }
+                    return Math.max(delay, 10);
+                },
+
+                readRequest: function (ui) {
+                    if (methodManual.checked) {
+                        var typed = document.getElementById('manual-input').value;
+                        if (!typed.trim()) {
+                            return { field: 'setup-error', message: 'Enter some numbers, separated by commas.' };
+                        }
+                        return { algorithm: ui.algorithm, values: typed };
+                    }
+                    return {
+                        algorithm: ui.algorithm,
+                        size: document.getElementById('array-size').value
+                    };
+                },
+
+                renderStep: function (step, context) {
+                    var container = document.getElementById('array-container');
+                    var data = step.array;
+
+                    if (container.childElementCount !== data.length) {
+                        container.innerHTML = '';
+                        data.forEach(function (value) {
+                            var bar = document.createElement('div');
+                            bar.className = 'bar';
+                            var label = document.createElement('span');
+                            label.className = 'bar-value';
+                            label.textContent = value;
+                            bar.appendChild(label);
+                            container.appendChild(bar);
+                        });
+                    }
+
+                    var painted = classFor(step);
+                    var marked = step.compared || [];
+                    var finished = step.action === 'done';
+
+                    Array.prototype.forEach.call(container.children, function (bar, i) {
+                        // Same height formula and the same transition as before.
+                        bar.style.height = Math.max(data[i] * 3, 5) + 'px';
+                        bar.classList.remove('comparing', 'swapping', 'pivot', 'sorted');
+                        if (finished) {
+                            bar.classList.add('sorted');
+                        } else if (painted && marked.indexOf(i) !== -1) {
+                            bar.classList.add(painted);
+                        }
+                        bar.querySelector('.bar-value').textContent = data[i];
+                    });
+
+                    document.getElementById('stage-empty').hidden = true;
+                    container.hidden = false;
+                    context.stats({
+                        n: data.length,
+                        comparisons: context.payload.result.comparisons,
+                        swaps: context.payload.result.swaps
+                    });
+                },
+
+                renderResult: function (payload) {
+                    var banner = document.getElementById('run-banner');
+                    var r = payload.result;
+                    banner.setAttribute('data-outcome', 'found');
+                    banner.textContent = payload.algorithm + ' sorted ' + r.n +
+                        ' values in ' + r.comparisons + ' comparison' +
+                        (r.comparisons === 1 ? '' : 's') + ' and ' + r.swaps +
+                        ' swap' + (r.swaps === 1 ? '' : 's') + '.';
+                },
+
+                onError: function (payload) {
+                    document.getElementById('setup-error').textContent = payload.error;
+                    return true;
+                }
             });
-        });
-        {% endif %}
+
+            /* POST /sorting still runs the sort server side. When it did, the
+               workspace opens on that run rather than throwing it away. */
+            var initialRun = {{ initial_run|tojson }};
+            if (initialRun) Workspace.current.load(initialRun);
+        })();
     </script>
 {% endblock %}

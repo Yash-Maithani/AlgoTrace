@@ -552,7 +552,7 @@ A</pre>
                     
                     <!-- Control Buttons - Graph Algorithm Controls -->
                     <div class="control-buttons" style="display: flex; gap: 15px; margin-top: 15px; justify-content: center; align-items: center;">
-                        <button type="button" class="control-btn play-btn" id="play-button" onclick="playSteps()" title="Play Animation" aria-label="Play animation">
+                        <button type="button" class="control-btn play-btn" id="play-pause" onclick="playSteps()" title="Play Animation" aria-label="Play animation">
                             <i class="fas fa-play" aria-hidden="true"></i>
                         </button>
                         <button type="button" class="control-btn pause-btn" id="pause-button" onclick="pauseSteps()" title="Pause Animation" aria-label="Pause animation">
@@ -946,12 +946,12 @@ A</pre>
 
         // Enhanced functions for animation controls with smooth transitions
         function playSteps() {
-            document.getElementById('play-button').style.opacity = '0.5';
+            document.getElementById('play-pause').style.opacity = '0.5';
             document.getElementById('pause-button').style.opacity = '1';
             isPaused = false;
             
             // Add a pulse animation to the play button
-            d3.select('#play-button')
+            d3.select('#play-pause')
                 .transition()
                 .duration(dur(200))
                 .style('transform', 'scale(1.1)')
@@ -968,7 +968,7 @@ A</pre>
         }
         
         function pauseSteps() {
-            document.getElementById('play-button').style.opacity = '1';
+            document.getElementById('play-pause').style.opacity = '1';
             document.getElementById('pause-button').style.opacity = '0.5';
             isPaused = true;
             
@@ -3006,27 +3006,6 @@ A</pre>
                 currentStep--;
                 applyStep(currentStep);
             }
-        }
-
-        function autoPlay() {
-            isPaused = false;
-            document.getElementById('pauseBtn').innerText = 'Pause';
-            playNext();
-        }
-
-        function playNext() {
-            if (isPaused) return;
-            
-            if (currentStep < steps.length - 1) {
-                nextStep();
-                setTimeout(playNext, speed);
-            }
-        }
-
-        function pauseResume() {
-            isPaused = !isPaused;
-            document.getElementById('pauseBtn').innerText = isPaused ? 'Resume' : 'Pause';
-            if (!isPaused) playNext();
         }
 
         function reset() {
