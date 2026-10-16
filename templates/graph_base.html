@@ -2293,6 +2293,7 @@ A</pre>
                             }
                         }
                     });
+                    displayResults('final', [distances, paths], 'dijkstra');
                     break;
             }
         }
@@ -2553,6 +2554,9 @@ A</pre>
                             highlightEdge(traversalPath[index - 1], nodeId, 'visited');
                         }
                     });
+                    // displayResults already handles 'bfs' and 'dfs'; it was
+                    // just never reached, which left the panel blank.
+                    displayResults('final', params, algorithm);
                     break;
             }
         }
