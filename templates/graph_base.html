@@ -629,6 +629,10 @@ A</pre>
     <script>
         let graph = {};
         let steps = [];
+        // Parallel to `steps`, one teacher payload per step, or null where the
+        // page synthesises a step the endpoint did not send. Phase 7 renders
+        // it. Contract: static/js/lessons/README.md section 4.
+        let stepMeta = [];
         let currentStep = 0;
         let speed = 400;
         let isPaused = true;
@@ -1807,15 +1811,20 @@ A</pre>
                         setGraphError('graph-error', data.error);
                         return;
                     }
-                    if (Array.isArray(data)) {
-                        steps = data;
-                    } else {
-                        // /run_bellman_ford answers with an object: the step array plus
-                        // the summary the endpoint computed after the last pass. The
-                        // steps themselves end on `iteration_complete`, so turn that
-                        // summary into a closing step and the playback stays uniform.
-                        steps = (data.steps || []).slice();
-                        steps.push(['final', data.distances, data.has_negative_cycle, data.iterations]);
+                    // Every endpoint answers with {steps, meta}. The bare array
+                    // form is gone, but accepting it costs one line and keeps an
+                    // older cached response from breaking playback.
+                    const payload = Array.isArray(data) ? { steps: data } : data;
+                    steps = (payload.steps || []).slice();
+                    stepMeta = (payload.meta || []).slice();
+                    if ('has_negative_cycle' in payload) {
+                        // /run_bellman_ford also sends the summary it computed after
+                        // the last pass. Its steps end on `iteration_complete`, so
+                        // turn that summary into a closing step and playback stays
+                        // uniform. Nothing describes that synthesised step, so its
+                        // meta slot is null and the two arrays stay the same length.
+                        steps.push(['final', payload.distances, payload.has_negative_cycle, payload.iterations]);
+                        stepMeta.push(null);
                         // The first step is a plain edge check that carries no
                         // distances, so remember the starting row to show until the
                         // first relaxation produces one.

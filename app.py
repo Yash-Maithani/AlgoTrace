@@ -309,6 +309,58 @@ def handle_graph():
     # Return the algo key so the right class is highlighted in the template
     return render_template(f"{graph_algo_dict[selected_algo]}.html", algorithm=selected_algo)
 
+# ---------------------------------------------------------------------------
+# Graph step recording.
+#
+# The step arrays the /run_* endpoints emit are the ones graph_base.html has
+# always drawn, and they do not change. StepLog keeps a parallel meta list in
+# lockstep with them, one teacher payload per step, as described in section 4
+# of static/js/lessons/README.md.
+#
+# Graph actions extend the sorting vocabulary rather than overloading it:
+#   visit      a node is settled and will not be looked at again
+#   enqueue    a node joins the queue, stack or frontier
+#   consider   an edge or a route through a node is being examined
+#   relax      a distance improved
+#   reject     an edge or route was looked at and not taken
+#   include    an edge joins the tree or the answer
+#   milestone  a marker that changes no state, such as a pass finishing
+#   done       the final frame
+# ---------------------------------------------------------------------------
+
+GRAPH_ACTIONS = {
+    "visit", "enqueue", "consider", "relax", "reject", "include",
+    "milestone", "done",
+}
+
+
+class StepLog:
+    """A step array and its parallel meta list, always appended to together."""
+
+    def __init__(self):
+        self.steps = []
+        self.meta = []
+
+    def add(self, step, action, beginner, why, indices=(), values=(),
+            line=None, variables=None):
+        self.steps.append(step)
+        self.meta.append({
+            "action": action,
+            "indices": list(indices),
+            "values": list(values),
+            "line": line,
+            "vars": dict(variables or {}),
+            "explain": {"beginner": beginner, "why": why},
+        })
+        return step
+
+    def payload(self, **extra):
+        """The response body: the steps, their meta, and any summary fields."""
+        body = {"steps": self.steps, "meta": self.meta}
+        body.update(extra)
+        return body
+
+
 @app.route("/run_bfs", methods=["POST"])
 def run_bfs():
     try:
@@ -324,7 +376,14 @@ def run_bfs():
 
         visited = set()
         queue = [start]
-        steps = [["queue", start]]
+        log = StepLog()
+        log.add(["queue", start], "enqueue",
+                "Start at %s, so it is the only node waiting." % start,
+                "Breadth first search always takes the next node from the "
+                "front of the queue, so the order nodes join decides the "
+                "order they are visited.",
+                indices=[start], line="start",
+                variables={"queue": [start], "visited": []})
         traversal_path = []  # Track the order of visited nodes
 
         while queue:
@@ -332,15 +391,37 @@ def run_bfs():
             if node not in visited:
                 visited.add(node)
                 traversal_path.append(node)
-                steps.append(["visit", node])
+                log.add(["visit", node], "visit",
+                        "Take %s off the front of the queue and visit it." % node,
+                        "Every node one step from the start is visited before "
+                        "any node two steps away, which is what makes the "
+                        "search spread out in rings.",
+                        indices=[node], line="pop",
+                        variables={"queue": list(queue),
+                                   "visited": sorted(visited)})
                 for neighbor in graph.get(node, []):
                     if neighbor not in visited and neighbor not in queue:
                         queue.append(neighbor)
-                        steps.append(["queue", neighbor])
+                        log.add(["queue", neighbor], "enqueue",
+                                "%s is a neighbour of %s that has not been seen "
+                                "yet, so it joins the back of the queue."
+                                % (neighbor, node),
+                                "Joining at the back is what keeps the ring "
+                                "order: everything already waiting is at least "
+                                "as close to the start.",
+                                indices=[neighbor], line="enqueue",
+                                variables={"queue": list(queue),
+                                           "visited": sorted(visited)})
         
         # Add final result step
-        steps.append(["final", traversal_path])
-        return jsonify(steps)
+        log.add(["final", traversal_path], "done",
+                "The queue is empty. %d node%s were reached from %s: %s."
+                % (len(traversal_path), "" if len(traversal_path) == 1 else "s",
+                   start, ", ".join(traversal_path)),
+                "Anything not in that list has no path from the start at all.",
+                indices=list(traversal_path), line=None,
+                variables={"queue": [], "visited": sorted(visited)})
+        return jsonify(log.payload())
     except Exception as e:
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
 
@@ -359,7 +440,13 @@ def run_dfs():
 
         visited = set()
         stack = [start]
-        steps = [["stack", start]]
+        log = StepLog()
+        log.add(["stack", start], "enqueue",
+                "Start at %s, so it is the only node on the stack." % start,
+                "Depth first search always takes the node from the top of the "
+                "stack, so the most recently added node is explored next.",
+                indices=[start], line="start",
+                variables={"stack": [start], "visited": []})
         traversal_path = []  # Track the order of visited nodes
 
         while stack:
@@ -367,15 +454,38 @@ def run_dfs():
             if node not in visited:
                 visited.add(node)
                 traversal_path.append(node)
-                steps.append(["visit", node])
+                log.add(["visit", node], "visit",
+                        "Take %s off the top of the stack and visit it." % node,
+                        "Taking from the top means the search follows one path "
+                        "as far as it goes before it backs up and tries "
+                        "another.",
+                        indices=[node], line="pop",
+                        variables={"stack": list(stack),
+                                   "visited": sorted(visited)})
                 for neighbor in reversed(graph.get(node, [])):
                     if neighbor not in visited and neighbor not in stack:
                         stack.append(neighbor)
-                        steps.append(["stack", neighbor])
+                        log.add(["stack", neighbor], "enqueue",
+                                "%s is a neighbour of %s that has not been seen "
+                                "yet, so it goes on the stack."
+                                % (neighbor, node),
+                                "The neighbours are pushed in reverse order, so "
+                                "the first one listed ends up on top and is "
+                                "explored first.",
+                                indices=[neighbor], line="push",
+                                variables={"stack": list(stack),
+                                           "visited": sorted(visited)})
         
         # Add final result step
-        steps.append(["final", traversal_path])
-        return jsonify(steps)
+        log.add(["final", traversal_path], "done",
+                "The stack is empty. %d node%s were reached from %s: %s."
+                % (len(traversal_path), "" if len(traversal_path) == 1 else "s",
+                   start, ", ".join(traversal_path)),
+                "Depth first search reaches exactly the same set of nodes as "
+                "breadth first search does. Only the order differs.",
+                indices=list(traversal_path), line=None,
+                variables={"stack": [], "visited": sorted(visited)})
+        return jsonify(log.payload())
     except Exception as e:
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
 
@@ -396,21 +506,43 @@ def run_dijkstra():
         distances[start] = 0
         previous = {node: None for node in graph}
         unvisited = set(graph.keys())
-        steps = []
+        log = StepLog()
 
         while unvisited:
             current = min(unvisited, key=lambda node: distances[node])
             if distances[current] == float('infinity'):
                 break
             unvisited.remove(current)
-            steps.append(["visit", current])
+            log.add(["visit", current], "visit",
+                    "%s is the nearest unvisited node, %s away from the "
+                    "start, so its distance is now final."
+                    % (current, _wire(distances[current])),
+                    "Every other route to it would have to pass through a "
+                    "node that is already further away, so nothing can "
+                    "improve it.",
+                    indices=[current], values=[_wire(distances[current])],
+                    line="pick-min",
+                    variables={"unvisited": sorted(unvisited),
+                               "settled": len(graph) - len(unvisited)})
             for neighbor, weight in graph[current].items():
                 if neighbor in unvisited:
                     new_distance = distances[current] + weight
                     if new_distance < distances[neighbor]:
+                        was = _wire(distances[neighbor])
                         distances[neighbor] = new_distance
                         previous[neighbor] = current
-                        steps.append(["update", neighbor, new_distance, current])
+                        log.add(["update", neighbor, new_distance, current],
+                                "relax",
+                                "Going through %s reaches %s in %s, which "
+                                "beats the %s on record."
+                                % (current, neighbor, new_distance, was),
+                                "A shorter route is only ever found through a "
+                                "node whose own distance is already settled.",
+                                indices=[neighbor], values=[new_distance],
+                                line="relax",
+                                variables={"current": current, "weight": weight,
+                                           "was": was,
+                                           "unvisited": sorted(unvisited)})
         # Add final answer: shortest paths from start to all nodes
         paths = {}
         for node in graph:
@@ -424,8 +556,16 @@ def run_dijkstra():
             path = path[::-1]
             if path and path[0] == start:
                 paths[node] = path
-        steps.append(["final", distances, paths])
-        return jsonify(steps)
+        reached = [n for n in graph if distances[n] != float('infinity')]
+        log.add(["final", distances, paths], "done",
+                "Distances from %s are settled. %d of %d node%s could be "
+                "reached." % (start, len(reached), len(graph),
+                              "" if len(graph) == 1 else "s"),
+                "A node still at infinity has no path from the start at all.",
+                indices=sorted(graph), line=None,
+                variables={"distances": {k: _wire(v)
+                                         for k, v in distances.items()}})
+        return jsonify(log.payload())
     except Exception as e:
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
 
@@ -446,12 +586,17 @@ def run_prim():
 
         visited = set()
         mst_edges = []
-        steps = []
+        log = StepLog()
         min_heap = []
 
         # Start with the starting node
         visited.add(start)
-        steps.append(["start", start])
+        log.add(["start", start], "visit",
+                "The tree starts as the single node %s." % start,
+                "Prim grows one connected tree outwards, so it needs "
+                "somewhere to grow from. Any node will do.",
+                indices=[start], line="start",
+                variables={"visited": [start], "tree_edges": 0})
         
         # Add all edges from start node to the priority queue
         frontier_nodes = []
@@ -461,23 +606,59 @@ def run_prim():
                 frontier_nodes.append(neighbor)
         
         if frontier_nodes:
-            steps.append(["add_frontier", frontier_nodes])
+            log.add(["add_frontier", frontier_nodes], "enqueue",
+                    "Every edge leaving %s goes into the heap, which puts "
+                    "%s within reach."
+                    % (start, ", ".join(frontier_nodes)),
+                    "The heap always hands back the cheapest edge leaving "
+                    "the tree, so edges have to be in it before they can be "
+                    "chosen.",
+                    indices=list(frontier_nodes), line="push-edges",
+                    variables={"heap_size": len(min_heap),
+                               "visited": sorted(visited)})
 
         while min_heap:
             weight, u, v = heapq.heappop(min_heap)
             
             if v in visited:
                 # This edge connects to an already visited node, ignore it
-                steps.append(["ignore_edge", u, v, weight])
+                log.add(["ignore_edge", u, v, weight], "reject",
+                        "%s to %s costs %s, but %s is already in the tree, "
+                        "so this edge would close a loop."
+                        % (u, v, weight, v),
+                        "An edge is only useful if it reaches something new. "
+                        "Stale entries like this are why the heap can hold "
+                        "more edges than the tree will ever use.",
+                        indices=[u, v], values=[weight],
+                        line="skip-visited",
+                        variables={"heap_size": len(min_heap),
+                                   "visited": sorted(visited)})
                 continue
             
             # Consider this edge
-            steps.append(["consider_edge", u, v, weight])
+            log.add(["consider_edge", u, v, weight], "consider",
+                    "The cheapest edge leaving the tree is %s to %s at %s."
+                    % (u, v, weight),
+                    "Taking the cheapest edge out of the tree every time is "
+                    "the whole of Prim, and it is enough to guarantee the "
+                    "lightest spanning tree.",
+                    indices=[u, v], values=[weight], line="pop-min",
+                    variables={"heap_size": len(min_heap),
+                               "visited": sorted(visited)})
             
             # Add edge to MST
             mst_edges.append((u, v, weight))
             visited.add(v)
-            steps.append(["add_edge", u, v, weight])
+            log.add(["add_edge", u, v, weight], "include",
+                    "%s joins the tree, which now holds %d edge%s."
+                    % (v, len(mst_edges),
+                       "" if len(mst_edges) == 1 else "s"),
+                    "The tree stays in one piece because every edge added "
+                    "has one end already inside it.",
+                    indices=[u, v], values=[weight], line="add-edge",
+                    variables={"tree_edges": len(mst_edges),
+                               "tree_weight": sum(e[2] for e in mst_edges),
+                               "visited": sorted(visited)})
             
             # Add all edges from the newly visited node to unvisited nodes
             new_frontier = []
@@ -487,13 +668,30 @@ def run_prim():
                     new_frontier.append(neighbor)
             
             if new_frontier:
-                steps.append(["add_frontier", new_frontier])
+                log.add(["add_frontier", new_frontier], "enqueue",
+                        "Joining %s puts %s within reach."
+                        % (v, ", ".join(new_frontier)),
+                        "Each new node widens the choice of edges, and the "
+                        "heap keeps the cheapest of them at the front.",
+                        indices=list(new_frontier), line="push-edges",
+                        variables={"heap_size": len(min_heap),
+                                   "visited": sorted(visited)})
         
         # Add final result
         total_weight = sum(e[2] for e in mst_edges)
-        steps.append(["final", mst_edges, total_weight])
+        log.add(["final", mst_edges, total_weight], "done",
+                "The tree holds %d edge%s and weighs %s in total."
+                % (len(mst_edges), "" if len(mst_edges) == 1 else "s",
+                   total_weight),
+                "The heap is empty, so nothing is left that would reach a "
+                "new node. On a disconnected graph that leaves out every "
+                "node Prim could not get to.",
+                indices=sorted(visited), values=[total_weight], line=None,
+                variables={"tree_edges": len(mst_edges),
+                           "tree_weight": total_weight,
+                           "visited": sorted(visited)})
         
-        return jsonify(steps)
+        return jsonify(log.payload())
     except Exception as e:
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
 
@@ -561,23 +759,76 @@ def run_kruskal():
             return True
 
         ordered = sorted(clean_edges, key=lambda e: e[2])
-        steps = [["sort_edges", [[u, v, w] for u, v, w in ordered]]]
+        log = StepLog()
+        log.add(["sort_edges", [[u, v, w] for u, v, w in ordered]],
+                "milestone",
+                "All %d edge%s sorted by weight, cheapest first."
+                % (len(ordered), "" if len(ordered) == 1 else "s"),
+                "Kruskal only ever wants the cheapest edge it has not "
+                "tried yet, so sorting once up front is what makes the "
+                "rest of the run a single pass.",
+                indices=[], values=[w for _, _, w in ordered],
+                line="sort",
+                variables={"edges": len(ordered), "nodes": len(nodes)})
 
         mst_edges = []
         spanning_total = max(len(nodes) - 1, 0)
         for u, v, weight in ordered:
-            steps.append(["consider_edge", u, v, weight])
+            log.add(["consider_edge", u, v, weight], "consider",
+                    "Next cheapest edge: %s to %s at %s." % (u, v, weight),
+                    "Edges arrive in weight order, so the only question "
+                    "left for each one is whether it would close a loop.",
+                    indices=[u, v], values=[weight], line="take-next",
+                    variables={"tree_edges": len(mst_edges),
+                               "needed": spanning_total})
             if union(u, v):
                 mst_edges.append([u, v, weight])
-                steps.append(["add_edge", u, v, weight])
+                log.add(["add_edge", u, v, weight], "include",
+                        "%s and %s were in different groups, so the edge "
+                        "joins them and enters the forest."
+                        % (u, v),
+                        "Union-Find answers the only question that matters "
+                        "here, whether two nodes are already connected, in "
+                        "very nearly constant time.",
+                        indices=[u, v], values=[weight], line="union",
+                        variables={"tree_edges": len(mst_edges),
+                                   "tree_weight": sum(e[2] for e in mst_edges),
+                                   "needed": spanning_total})
                 if len(mst_edges) == spanning_total:
-                    steps.append(["mst_complete"])
+                    log.add(["mst_complete"], "milestone",
+                            "The forest now has %d edge%s, which spans "
+                            "every node. Nothing further can be added."
+                            % (spanning_total,
+                               "" if spanning_total == 1 else "s"),
+                            "A spanning tree over n nodes has exactly n-1 "
+                            "edges, so reaching that count means the job is "
+                            "done even if edges remain unexamined.",
+                            indices=[], line="mst-complete",
+                            variables={"tree_edges": len(mst_edges),
+                                       "needed": spanning_total})
             else:
                 # Endpoints already share a root, so this edge would close a cycle.
-                steps.append(["reject_edge", u, v, weight])
+                log.add(["reject_edge", u, v, weight], "reject",
+                        "%s and %s are already connected, so this edge "
+                        "would close a loop and is skipped." % (u, v),
+                        "A loop adds weight without connecting anything "
+                        "new, so it can never belong to a minimum spanning "
+                        "tree.",
+                        indices=[u, v], values=[weight], line="cycle",
+                        variables={"tree_edges": len(mst_edges),
+                                   "needed": spanning_total})
 
-        steps.append(["final", mst_edges, sum(e[2] for e in mst_edges)])
-        return jsonify(steps)
+        log.add(["final", mst_edges, sum(e[2] for e in mst_edges)], "done",
+                "%d edge%s chosen, weighing %s in total."
+                % (len(mst_edges), "" if len(mst_edges) == 1 else "s",
+                   sum(e[2] for e in mst_edges)),
+                "Fewer than n-1 edges means the graph was disconnected, so "
+                "this is a spanning forest rather than a single tree.",
+                indices=list(nodes),
+                values=[sum(e[2] for e in mst_edges)], line=None,
+                variables={"tree_edges": len(mst_edges),
+                           "needed": spanning_total})
+        return jsonify(log.payload())
     except Exception as e:
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
@@ -621,11 +872,25 @@ def run_floyd_warshall():
         def wire_matrix():
             return [[_wire(value) for value in row] for row in dist]
 
-        steps = [["init", wire_matrix(), nodes]]
+        log = StepLog()
+        log.add(["init", wire_matrix(), nodes], "milestone",
+                "Start from the direct edges only. Every pair with no edge "
+                "between them is infinity for now.",
+                "The table answers one question for every pair of nodes at "
+                "once, so it starts holding what is known without going "
+                "through anything.",
+                indices=list(nodes), line="init",
+                variables={"n": n})
 
         for k in range(n):
             k_node = nodes[k]
-            steps.append(["start_iteration", k, k_node])
+            log.add(["start_iteration", k, k_node], "milestone",
+                    "Pass %d of %d: allow routes that go through %s."
+                    % (k + 1, n, k_node),
+                    "After this pass the table holds the best route using "
+                    "only the nodes considered so far as stopping points.",
+                    indices=[k_node], line="k-loop",
+                    variables={"k": k, "k_node": k_node, "n": n})
             updates = 0
             for i in range(n):
                 for j in range(n):
@@ -633,21 +898,73 @@ def run_floyd_warshall():
                         continue
                     current = dist[i][j]
                     if dist[i][k] == INF or dist[k][j] == INF:
-                        steps.append(["no_path_via_k", nodes[i], nodes[j], k_node])
+                        log.add(["no_path_via_k", nodes[i], nodes[j], k_node],
+                                "reject",
+                                "There is still no route from %s to %s "
+                                "through %s, because one half of it is "
+                                "missing."
+                                % (nodes[i], nodes[j], k_node),
+                                "A route through %s needs both halves to "
+                                "exist, and one of them is infinity." % k_node,
+                                indices=[nodes[i], nodes[j], k_node],
+                                line="check-inf",
+                                variables={"k": k, "i": i, "j": j})
                         continue
                     via_k = dist[i][k] + dist[k][j]
-                    steps.append([
+                    log.add([
                         "consider_path", nodes[i], nodes[j], k_node,
                         _wire(current), dist[i][k], dist[k][j], via_k,
-                    ])
+                    ], "consider",
+                        "%s to %s is %s now, and %s via %s. Which is "
+                        "shorter?"
+                        % (nodes[i], nodes[j], _wire(current), via_k, k_node),
+                        "Every pair is re-checked against every stopping "
+                        "point, which is where the three nested loops and "
+                        "the V cubed come from.",
+                        indices=[nodes[i], nodes[j], k_node],
+                        values=[_wire(current), dist[i][k], dist[k][j], via_k],
+                        line="compare",
+                        variables={"k": k, "i": i, "j": j, "via_k": via_k})
                     if via_k < current:
                         dist[i][j] = via_k
                         next_hop[i][j] = next_hop[i][k]
                         updates += 1
-                        steps.append(["update_distance", nodes[i], nodes[j], k_node, via_k, i, j])
+                        log.add(["update_distance", nodes[i], nodes[j],
+                                 k_node, via_k, i, j], "relax",
+                                "Going through %s makes %s to %s shorter, "
+                                "%s instead of %s."
+                                % (k_node, nodes[i], nodes[j], via_k,
+                                   _wire(current)),
+                                "The table is updated in place, so later "
+                                "passes build on the routes found in this "
+                                "one.",
+                                indices=[nodes[i], nodes[j], k_node],
+                                values=[via_k], line="update",
+                                variables={"k": k, "i": i, "j": j,
+                                           "was": _wire(current),
+                                           "now": via_k})
                     else:
-                        steps.append(["no_update", nodes[i], nodes[j], k_node, _wire(current)])
-            steps.append(["iteration_complete", k, k_node, wire_matrix(), updates])
+                        log.add(["no_update", nodes[i], nodes[j], k_node,
+                                 _wire(current)], "reject",
+                                "Going through %s is no shorter, so %s to "
+                                "%s stays at %s."
+                                % (k_node, nodes[i], nodes[j], _wire(current)),
+                                "Most checks end this way. The table only "
+                                "changes when a genuinely better route "
+                                "turns up.",
+                                indices=[nodes[i], nodes[j], k_node],
+                                values=[_wire(current)], line="keep",
+                                variables={"k": k, "i": i, "j": j,
+                                           "via_k": via_k})
+            log.add(["iteration_complete", k, k_node, wire_matrix(), updates],
+                    "milestone",
+                    "Pass %d is done. Routes through %s improved %d "
+                    "distance%s." % (k + 1, k_node, updates,
+                                     "" if updates == 1 else "s"),
+                    "Once every node has had a pass, the table holds the "
+                    "shortest route between every pair.",
+                    indices=[k_node], values=[updates], line="k-done",
+                    variables={"k": k, "updates": updates, "n": n})
 
         # Rebuild one shortest path per reachable ordered pair for the results panel.
         all_paths = {}
@@ -667,8 +984,14 @@ def run_floyd_warshall():
                         "distance": dist[i][j],
                     }
 
-        steps.append(["final", wire_matrix(), nodes, all_paths])
-        return jsonify(steps)
+        log.add(["final", wire_matrix(), nodes, all_paths], "done",
+                "Every pair is settled. %d ordered pair%s have a route."
+                % (len(all_paths), "" if len(all_paths) == 1 else "s"),
+                "Any pair still at infinity sits in a different piece of a "
+                "disconnected graph.",
+                indices=list(nodes), line=None,
+                variables={"n": n, "pairs_with_a_route": len(all_paths)})
+        return jsonify(log.payload())
     except Exception as e:
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
@@ -708,20 +1031,60 @@ def run_bellman_ford():
         def wire_distances():
             return {node: _wire(value) for node, value in distances.items()}
 
-        steps = []
+        log = StepLog()
         iteration = 0
         # |V| - 1 passes suffice for a shortest path tree; stop early if a pass is quiet.
         for iteration in range(1, max(len(nodes), 1)):
             changed = False
             for u, v, weight in edge_list:
-                steps.append(["check_edge", u, v, weight])
+                log.add(["check_edge", u, v, weight], "consider",
+                        "Look at the edge %s to %s, weight %s."
+                        % (u, v, weight),
+                        "Bellman-Ford sweeps every edge on every pass "
+                        "rather than choosing the nearest node, which is "
+                        "how it copes with negative weights.",
+                        indices=[u, v], values=[weight], line="edge-loop",
+                        variables={"pass": iteration,
+                                   "from": _wire(distances[u]),
+                                   "to": _wire(distances[v])})
                 if distances[u] != INF and distances[u] + weight < distances[v]:
+                    was = _wire(distances[v])
                     distances[v] = distances[u] + weight
                     changed = True
-                    steps.append(["relax", u, v, weight, wire_distances(), iteration])
+                    log.add(["relax", u, v, weight, wire_distances(),
+                             iteration], "relax",
+                            "Reaching %s through %s costs %s, which beats "
+                            "the %s on record."
+                            % (v, u, distances[v], was),
+                            "Each pass lets a shortest path grow by one "
+                            "more edge, so n-1 passes are enough for any "
+                            "path without a cycle.",
+                            indices=[u, v], values=[distances[v]],
+                            line="relax",
+                            variables={"pass": iteration, "was": was,
+                                       "now": distances[v]})
                 else:
-                    steps.append(["no_relax", u, v, weight])
-            steps.append(["iteration_complete", iteration, wire_distances()])
+                    log.add(["no_relax", u, v, weight], "reject",
+                            "That edge gives no shorter route to %s, so "
+                            "nothing changes." % v,
+                            "An edge from a node still at infinity cannot "
+                            "help anything yet, and neither can one that "
+                            "arrives no sooner.",
+                            indices=[u, v], values=[weight],
+                            line="no-improve",
+                            variables={"pass": iteration,
+                                       "from": _wire(distances[u]),
+                                       "to": _wire(distances[v])})
+            log.add(["iteration_complete", iteration, wire_distances()],
+                    "milestone",
+                    "Pass %d is done and %s."
+                    % (iteration,
+                       "something improved" if changed
+                       else "nothing improved, so the answer is settled"),
+                    "A pass that changes nothing means no path can grow "
+                    "any further, so the remaining passes are skipped.",
+                    indices=[], values=[iteration], line="pass-done",
+                    variables={"pass": iteration, "changed": changed})
             if not changed:
                 break
 
@@ -731,12 +1094,11 @@ def run_bellman_ford():
             for u, v, weight in edge_list
         )
 
-        return jsonify({
-            "steps": steps,
-            "has_negative_cycle": has_negative_cycle,
-            "distances": wire_distances(),
-            "iterations": iteration,
-        })
+        return jsonify(log.payload(
+            has_negative_cycle=has_negative_cycle,
+            distances=wire_distances(),
+            iterations=iteration,
+        ))
     except Exception as e:
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 

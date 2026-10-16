@@ -31,7 +31,20 @@ more. Every field is present on every step.
 | `place` | a value reached its final position, as with a quick sort pivot |
 | `done` | the final frame. The array is sorted and nothing is highlighted |
 
-Add to this list rather than overloading an existing action.
+Graph algorithms add their own, because none of the above fits a traversal:
+
+| Action | Meaning |
+| --- | --- |
+| `visit` | a node is settled and will not be looked at again |
+| `enqueue` | a node joins the queue, the stack or the frontier |
+| `consider` | an edge, or a route through a node, is being examined |
+| `relax` | a distance improved |
+| `reject` | an edge or route was examined and not taken |
+| `include` | an edge joins the tree or the answer |
+| `milestone` | a marker that changes no state, such as a pass finishing |
+
+Add to these lists rather than overloading an existing action. The set in force for
+graphs is `GRAPH_ACTIONS` in app.py.
 
 ## 2. Rules
 

@@ -1,0 +1,9641 @@
+{
+  "baseline_commit": "4a1cec8",
+  "note": "Responses from every /run_* endpoint before Phase 4b added meta. The step arrays recorded here must survive unchanged.",
+  "responses": [
+    {
+      "endpoint": "/run_bfs",
+      "case": "simple",
+      "request": {
+        "graph": {
+          "A": [
+            "B",
+            "C"
+          ],
+          "B": [
+            "A",
+            "D"
+          ],
+          "C": [
+            "A",
+            "D"
+          ],
+          "D": [
+            "B",
+            "C",
+            "E"
+          ],
+          "E": [
+            "D"
+          ]
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "queue",
+          "A"
+        ],
+        [
+          "visit",
+          "A"
+        ],
+        [
+          "queue",
+          "B"
+        ],
+        [
+          "queue",
+          "C"
+        ],
+        [
+          "visit",
+          "B"
+        ],
+        [
+          "queue",
+          "D"
+        ],
+        [
+          "visit",
+          "C"
+        ],
+        [
+          "visit",
+          "D"
+        ],
+        [
+          "queue",
+          "E"
+        ],
+        [
+          "visit",
+          "E"
+        ],
+        [
+          "final",
+          [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E"
+          ]
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_dfs",
+      "case": "simple",
+      "request": {
+        "graph": {
+          "A": [
+            "B",
+            "C"
+          ],
+          "B": [
+            "A",
+            "D"
+          ],
+          "C": [
+            "A",
+            "D"
+          ],
+          "D": [
+            "B",
+            "C",
+            "E"
+          ],
+          "E": [
+            "D"
+          ]
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "stack",
+          "A"
+        ],
+        [
+          "visit",
+          "A"
+        ],
+        [
+          "stack",
+          "C"
+        ],
+        [
+          "stack",
+          "B"
+        ],
+        [
+          "visit",
+          "B"
+        ],
+        [
+          "stack",
+          "D"
+        ],
+        [
+          "visit",
+          "D"
+        ],
+        [
+          "stack",
+          "E"
+        ],
+        [
+          "visit",
+          "E"
+        ],
+        [
+          "visit",
+          "C"
+        ],
+        [
+          "final",
+          [
+            "A",
+            "B",
+            "D",
+            "E",
+            "C"
+          ]
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_bfs",
+      "case": "disconnected",
+      "request": {
+        "graph": {
+          "A": [
+            "B"
+          ],
+          "B": [
+            "A"
+          ],
+          "C": [
+            "D"
+          ],
+          "D": [
+            "C"
+          ],
+          "E": []
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "queue",
+          "A"
+        ],
+        [
+          "visit",
+          "A"
+        ],
+        [
+          "queue",
+          "B"
+        ],
+        [
+          "visit",
+          "B"
+        ],
+        [
+          "final",
+          [
+            "A",
+            "B"
+          ]
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_dfs",
+      "case": "disconnected",
+      "request": {
+        "graph": {
+          "A": [
+            "B"
+          ],
+          "B": [
+            "A"
+          ],
+          "C": [
+            "D"
+          ],
+          "D": [
+            "C"
+          ],
+          "E": []
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "stack",
+          "A"
+        ],
+        [
+          "visit",
+          "A"
+        ],
+        [
+          "stack",
+          "B"
+        ],
+        [
+          "visit",
+          "B"
+        ],
+        [
+          "final",
+          [
+            "A",
+            "B"
+          ]
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_bfs",
+      "case": "single_node",
+      "request": {
+        "graph": {
+          "A": []
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "queue",
+          "A"
+        ],
+        [
+          "visit",
+          "A"
+        ],
+        [
+          "final",
+          [
+            "A"
+          ]
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_dfs",
+      "case": "single_node",
+      "request": {
+        "graph": {
+          "A": []
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "stack",
+          "A"
+        ],
+        [
+          "visit",
+          "A"
+        ],
+        [
+          "final",
+          [
+            "A"
+          ]
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_bfs",
+      "case": "two_nodes",
+      "request": {
+        "graph": {
+          "A": [
+            "B"
+          ],
+          "B": [
+            "A"
+          ]
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "queue",
+          "A"
+        ],
+        [
+          "visit",
+          "A"
+        ],
+        [
+          "queue",
+          "B"
+        ],
+        [
+          "visit",
+          "B"
+        ],
+        [
+          "final",
+          [
+            "A",
+            "B"
+          ]
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_dfs",
+      "case": "two_nodes",
+      "request": {
+        "graph": {
+          "A": [
+            "B"
+          ],
+          "B": [
+            "A"
+          ]
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "stack",
+          "A"
+        ],
+        [
+          "visit",
+          "A"
+        ],
+        [
+          "stack",
+          "B"
+        ],
+        [
+          "visit",
+          "B"
+        ],
+        [
+          "final",
+          [
+            "A",
+            "B"
+          ]
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_bfs",
+      "case": "star",
+      "request": {
+        "graph": {
+          "A": [
+            "B",
+            "C",
+            "D",
+            "E"
+          ],
+          "B": [
+            "A"
+          ],
+          "C": [
+            "A"
+          ],
+          "D": [
+            "A"
+          ],
+          "E": [
+            "A"
+          ]
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "queue",
+          "A"
+        ],
+        [
+          "visit",
+          "A"
+        ],
+        [
+          "queue",
+          "B"
+        ],
+        [
+          "queue",
+          "C"
+        ],
+        [
+          "queue",
+          "D"
+        ],
+        [
+          "queue",
+          "E"
+        ],
+        [
+          "visit",
+          "B"
+        ],
+        [
+          "visit",
+          "C"
+        ],
+        [
+          "visit",
+          "D"
+        ],
+        [
+          "visit",
+          "E"
+        ],
+        [
+          "final",
+          [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E"
+          ]
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_dfs",
+      "case": "star",
+      "request": {
+        "graph": {
+          "A": [
+            "B",
+            "C",
+            "D",
+            "E"
+          ],
+          "B": [
+            "A"
+          ],
+          "C": [
+            "A"
+          ],
+          "D": [
+            "A"
+          ],
+          "E": [
+            "A"
+          ]
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "stack",
+          "A"
+        ],
+        [
+          "visit",
+          "A"
+        ],
+        [
+          "stack",
+          "E"
+        ],
+        [
+          "stack",
+          "D"
+        ],
+        [
+          "stack",
+          "C"
+        ],
+        [
+          "stack",
+          "B"
+        ],
+        [
+          "visit",
+          "B"
+        ],
+        [
+          "visit",
+          "C"
+        ],
+        [
+          "visit",
+          "D"
+        ],
+        [
+          "visit",
+          "E"
+        ],
+        [
+          "final",
+          [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E"
+          ]
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_bfs",
+      "case": "cycle",
+      "request": {
+        "graph": {
+          "A": [
+            "B",
+            "E"
+          ],
+          "B": [
+            "A",
+            "C"
+          ],
+          "C": [
+            "B",
+            "D"
+          ],
+          "D": [
+            "C",
+            "E"
+          ],
+          "E": [
+            "D",
+            "A"
+          ]
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "queue",
+          "A"
+        ],
+        [
+          "visit",
+          "A"
+        ],
+        [
+          "queue",
+          "B"
+        ],
+        [
+          "queue",
+          "E"
+        ],
+        [
+          "visit",
+          "B"
+        ],
+        [
+          "queue",
+          "C"
+        ],
+        [
+          "visit",
+          "E"
+        ],
+        [
+          "queue",
+          "D"
+        ],
+        [
+          "visit",
+          "C"
+        ],
+        [
+          "visit",
+          "D"
+        ],
+        [
+          "final",
+          [
+            "A",
+            "B",
+            "E",
+            "C",
+            "D"
+          ]
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_dfs",
+      "case": "cycle",
+      "request": {
+        "graph": {
+          "A": [
+            "B",
+            "E"
+          ],
+          "B": [
+            "A",
+            "C"
+          ],
+          "C": [
+            "B",
+            "D"
+          ],
+          "D": [
+            "C",
+            "E"
+          ],
+          "E": [
+            "D",
+            "A"
+          ]
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "stack",
+          "A"
+        ],
+        [
+          "visit",
+          "A"
+        ],
+        [
+          "stack",
+          "E"
+        ],
+        [
+          "stack",
+          "B"
+        ],
+        [
+          "visit",
+          "B"
+        ],
+        [
+          "stack",
+          "C"
+        ],
+        [
+          "visit",
+          "C"
+        ],
+        [
+          "stack",
+          "D"
+        ],
+        [
+          "visit",
+          "D"
+        ],
+        [
+          "visit",
+          "E"
+        ],
+        [
+          "final",
+          [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E"
+          ]
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_bfs",
+      "case": "self_loop",
+      "request": {
+        "graph": {
+          "A": [
+            "A",
+            "B"
+          ],
+          "B": [
+            "A"
+          ]
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "queue",
+          "A"
+        ],
+        [
+          "visit",
+          "A"
+        ],
+        [
+          "queue",
+          "B"
+        ],
+        [
+          "visit",
+          "B"
+        ],
+        [
+          "final",
+          [
+            "A",
+            "B"
+          ]
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_dfs",
+      "case": "self_loop",
+      "request": {
+        "graph": {
+          "A": [
+            "A",
+            "B"
+          ],
+          "B": [
+            "A"
+          ]
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "stack",
+          "A"
+        ],
+        [
+          "visit",
+          "A"
+        ],
+        [
+          "stack",
+          "B"
+        ],
+        [
+          "visit",
+          "B"
+        ],
+        [
+          "final",
+          [
+            "A",
+            "B"
+          ]
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_dijkstra",
+      "case": "simple",
+      "request": {
+        "graph": {
+          "A": {
+            "B": 4,
+            "C": 2
+          },
+          "B": {
+            "A": 4,
+            "D": 5
+          },
+          "C": {
+            "A": 2,
+            "D": 8
+          },
+          "D": {
+            "B": 5,
+            "C": 8,
+            "E": 6
+          },
+          "E": {
+            "D": 6
+          }
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "visit",
+          "A"
+        ],
+        [
+          "update",
+          "B",
+          4,
+          "A"
+        ],
+        [
+          "update",
+          "C",
+          2,
+          "A"
+        ],
+        [
+          "visit",
+          "C"
+        ],
+        [
+          "update",
+          "D",
+          10,
+          "C"
+        ],
+        [
+          "visit",
+          "B"
+        ],
+        [
+          "update",
+          "D",
+          9,
+          "B"
+        ],
+        [
+          "visit",
+          "D"
+        ],
+        [
+          "update",
+          "E",
+          15,
+          "D"
+        ],
+        [
+          "visit",
+          "E"
+        ],
+        [
+          "final",
+          {
+            "A": 0,
+            "B": 4,
+            "C": 2,
+            "D": 9,
+            "E": 15
+          },
+          {
+            "B": [
+              "A",
+              "B"
+            ],
+            "C": [
+              "A",
+              "C"
+            ],
+            "D": [
+              "A",
+              "B",
+              "D"
+            ],
+            "E": [
+              "A",
+              "B",
+              "D",
+              "E"
+            ]
+          }
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_prim",
+      "case": "simple",
+      "request": {
+        "graph": {
+          "A": {
+            "B": 4,
+            "C": 2
+          },
+          "B": {
+            "A": 4,
+            "D": 5
+          },
+          "C": {
+            "A": 2,
+            "D": 8
+          },
+          "D": {
+            "B": 5,
+            "C": 8,
+            "E": 6
+          },
+          "E": {
+            "D": 6
+          }
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "start",
+          "A"
+        ],
+        [
+          "add_frontier",
+          [
+            "B",
+            "C"
+          ]
+        ],
+        [
+          "consider_edge",
+          "A",
+          "C",
+          2
+        ],
+        [
+          "add_edge",
+          "A",
+          "C",
+          2
+        ],
+        [
+          "add_frontier",
+          [
+            "D"
+          ]
+        ],
+        [
+          "consider_edge",
+          "A",
+          "B",
+          4
+        ],
+        [
+          "add_edge",
+          "A",
+          "B",
+          4
+        ],
+        [
+          "add_frontier",
+          [
+            "D"
+          ]
+        ],
+        [
+          "consider_edge",
+          "B",
+          "D",
+          5
+        ],
+        [
+          "add_edge",
+          "B",
+          "D",
+          5
+        ],
+        [
+          "add_frontier",
+          [
+            "E"
+          ]
+        ],
+        [
+          "consider_edge",
+          "D",
+          "E",
+          6
+        ],
+        [
+          "add_edge",
+          "D",
+          "E",
+          6
+        ],
+        [
+          "ignore_edge",
+          "C",
+          "D",
+          8
+        ],
+        [
+          "final",
+          [
+            [
+              "A",
+              "C",
+              2
+            ],
+            [
+              "A",
+              "B",
+              4
+            ],
+            [
+              "B",
+              "D",
+              5
+            ],
+            [
+              "D",
+              "E",
+              6
+            ]
+          ],
+          17
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_bellman_ford",
+      "case": "simple",
+      "request": {
+        "graph": {
+          "A": {
+            "B": 4,
+            "C": 2
+          },
+          "B": {
+            "A": 4,
+            "D": 5
+          },
+          "C": {
+            "A": 2,
+            "D": 8
+          },
+          "D": {
+            "B": 5,
+            "C": 8,
+            "E": 6
+          },
+          "E": {
+            "D": 6
+          }
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "check_edge",
+          "A",
+          "B",
+          4
+        ],
+        [
+          "relax",
+          "A",
+          "B",
+          4,
+          {
+            "A": 0,
+            "B": 4,
+            "C": "\u221e",
+            "D": "\u221e",
+            "E": "\u221e"
+          },
+          1
+        ],
+        [
+          "check_edge",
+          "A",
+          "C",
+          2
+        ],
+        [
+          "relax",
+          "A",
+          "C",
+          2,
+          {
+            "A": 0,
+            "B": 4,
+            "C": 2,
+            "D": "\u221e",
+            "E": "\u221e"
+          },
+          1
+        ],
+        [
+          "check_edge",
+          "B",
+          "A",
+          4
+        ],
+        [
+          "no_relax",
+          "B",
+          "A",
+          4
+        ],
+        [
+          "check_edge",
+          "B",
+          "D",
+          5
+        ],
+        [
+          "relax",
+          "B",
+          "D",
+          5,
+          {
+            "A": 0,
+            "B": 4,
+            "C": 2,
+            "D": 9,
+            "E": "\u221e"
+          },
+          1
+        ],
+        [
+          "check_edge",
+          "C",
+          "A",
+          2
+        ],
+        [
+          "no_relax",
+          "C",
+          "A",
+          2
+        ],
+        [
+          "check_edge",
+          "C",
+          "D",
+          8
+        ],
+        [
+          "no_relax",
+          "C",
+          "D",
+          8
+        ],
+        [
+          "check_edge",
+          "D",
+          "B",
+          5
+        ],
+        [
+          "no_relax",
+          "D",
+          "B",
+          5
+        ],
+        [
+          "check_edge",
+          "D",
+          "C",
+          8
+        ],
+        [
+          "no_relax",
+          "D",
+          "C",
+          8
+        ],
+        [
+          "check_edge",
+          "D",
+          "E",
+          6
+        ],
+        [
+          "relax",
+          "D",
+          "E",
+          6,
+          {
+            "A": 0,
+            "B": 4,
+            "C": 2,
+            "D": 9,
+            "E": 15
+          },
+          1
+        ],
+        [
+          "check_edge",
+          "E",
+          "D",
+          6
+        ],
+        [
+          "no_relax",
+          "E",
+          "D",
+          6
+        ],
+        [
+          "iteration_complete",
+          1,
+          {
+            "A": 0,
+            "B": 4,
+            "C": 2,
+            "D": 9,
+            "E": 15
+          }
+        ],
+        [
+          "check_edge",
+          "A",
+          "B",
+          4
+        ],
+        [
+          "no_relax",
+          "A",
+          "B",
+          4
+        ],
+        [
+          "check_edge",
+          "A",
+          "C",
+          2
+        ],
+        [
+          "no_relax",
+          "A",
+          "C",
+          2
+        ],
+        [
+          "check_edge",
+          "B",
+          "A",
+          4
+        ],
+        [
+          "no_relax",
+          "B",
+          "A",
+          4
+        ],
+        [
+          "check_edge",
+          "B",
+          "D",
+          5
+        ],
+        [
+          "no_relax",
+          "B",
+          "D",
+          5
+        ],
+        [
+          "check_edge",
+          "C",
+          "A",
+          2
+        ],
+        [
+          "no_relax",
+          "C",
+          "A",
+          2
+        ],
+        [
+          "check_edge",
+          "C",
+          "D",
+          8
+        ],
+        [
+          "no_relax",
+          "C",
+          "D",
+          8
+        ],
+        [
+          "check_edge",
+          "D",
+          "B",
+          5
+        ],
+        [
+          "no_relax",
+          "D",
+          "B",
+          5
+        ],
+        [
+          "check_edge",
+          "D",
+          "C",
+          8
+        ],
+        [
+          "no_relax",
+          "D",
+          "C",
+          8
+        ],
+        [
+          "check_edge",
+          "D",
+          "E",
+          6
+        ],
+        [
+          "no_relax",
+          "D",
+          "E",
+          6
+        ],
+        [
+          "check_edge",
+          "E",
+          "D",
+          6
+        ],
+        [
+          "no_relax",
+          "E",
+          "D",
+          6
+        ],
+        [
+          "iteration_complete",
+          2,
+          {
+            "A": 0,
+            "B": 4,
+            "C": 2,
+            "D": 9,
+            "E": 15
+          }
+        ]
+      ],
+      "envelope": {
+        "distances": {
+          "A": 0,
+          "B": 4,
+          "C": 2,
+          "D": 9,
+          "E": 15
+        },
+        "has_negative_cycle": false,
+        "iterations": 2
+      },
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_dijkstra",
+      "case": "disconnected",
+      "request": {
+        "graph": {
+          "A": {
+            "B": 3
+          },
+          "B": {
+            "A": 3
+          },
+          "C": {
+            "D": 1
+          },
+          "D": {
+            "C": 1
+          },
+          "E": {}
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "visit",
+          "A"
+        ],
+        [
+          "update",
+          "B",
+          3,
+          "A"
+        ],
+        [
+          "visit",
+          "B"
+        ],
+        [
+          "final",
+          {
+            "A": 0,
+            "B": 3,
+            "C": Infinity,
+            "D": Infinity,
+            "E": Infinity
+          },
+          {
+            "B": [
+              "A",
+              "B"
+            ]
+          }
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_prim",
+      "case": "disconnected",
+      "request": {
+        "graph": {
+          "A": {
+            "B": 3
+          },
+          "B": {
+            "A": 3
+          },
+          "C": {
+            "D": 1
+          },
+          "D": {
+            "C": 1
+          },
+          "E": {}
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "start",
+          "A"
+        ],
+        [
+          "add_frontier",
+          [
+            "B"
+          ]
+        ],
+        [
+          "consider_edge",
+          "A",
+          "B",
+          3
+        ],
+        [
+          "add_edge",
+          "A",
+          "B",
+          3
+        ],
+        [
+          "final",
+          [
+            [
+              "A",
+              "B",
+              3
+            ]
+          ],
+          3
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_bellman_ford",
+      "case": "disconnected",
+      "request": {
+        "graph": {
+          "A": {
+            "B": 3
+          },
+          "B": {
+            "A": 3
+          },
+          "C": {
+            "D": 1
+          },
+          "D": {
+            "C": 1
+          },
+          "E": {}
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "check_edge",
+          "A",
+          "B",
+          3
+        ],
+        [
+          "relax",
+          "A",
+          "B",
+          3,
+          {
+            "A": 0,
+            "B": 3,
+            "C": "\u221e",
+            "D": "\u221e",
+            "E": "\u221e"
+          },
+          1
+        ],
+        [
+          "check_edge",
+          "B",
+          "A",
+          3
+        ],
+        [
+          "no_relax",
+          "B",
+          "A",
+          3
+        ],
+        [
+          "check_edge",
+          "C",
+          "D",
+          1
+        ],
+        [
+          "no_relax",
+          "C",
+          "D",
+          1
+        ],
+        [
+          "check_edge",
+          "D",
+          "C",
+          1
+        ],
+        [
+          "no_relax",
+          "D",
+          "C",
+          1
+        ],
+        [
+          "iteration_complete",
+          1,
+          {
+            "A": 0,
+            "B": 3,
+            "C": "\u221e",
+            "D": "\u221e",
+            "E": "\u221e"
+          }
+        ],
+        [
+          "check_edge",
+          "A",
+          "B",
+          3
+        ],
+        [
+          "no_relax",
+          "A",
+          "B",
+          3
+        ],
+        [
+          "check_edge",
+          "B",
+          "A",
+          3
+        ],
+        [
+          "no_relax",
+          "B",
+          "A",
+          3
+        ],
+        [
+          "check_edge",
+          "C",
+          "D",
+          1
+        ],
+        [
+          "no_relax",
+          "C",
+          "D",
+          1
+        ],
+        [
+          "check_edge",
+          "D",
+          "C",
+          1
+        ],
+        [
+          "no_relax",
+          "D",
+          "C",
+          1
+        ],
+        [
+          "iteration_complete",
+          2,
+          {
+            "A": 0,
+            "B": 3,
+            "C": "\u221e",
+            "D": "\u221e",
+            "E": "\u221e"
+          }
+        ]
+      ],
+      "envelope": {
+        "distances": {
+          "A": 0,
+          "B": 3,
+          "C": "\u221e",
+          "D": "\u221e",
+          "E": "\u221e"
+        },
+        "has_negative_cycle": false,
+        "iterations": 2
+      },
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_dijkstra",
+      "case": "single_node",
+      "request": {
+        "graph": {
+          "A": {}
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "visit",
+          "A"
+        ],
+        [
+          "final",
+          {
+            "A": 0
+          },
+          {}
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_prim",
+      "case": "single_node",
+      "request": {
+        "graph": {
+          "A": {}
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "start",
+          "A"
+        ],
+        [
+          "final",
+          [],
+          0
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_bellman_ford",
+      "case": "single_node",
+      "request": {
+        "graph": {
+          "A": {}
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [],
+      "envelope": {
+        "distances": {
+          "A": 0
+        },
+        "has_negative_cycle": false,
+        "iterations": 0
+      },
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_dijkstra",
+      "case": "two_nodes",
+      "request": {
+        "graph": {
+          "A": {
+            "B": 7
+          },
+          "B": {
+            "A": 7
+          }
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "visit",
+          "A"
+        ],
+        [
+          "update",
+          "B",
+          7,
+          "A"
+        ],
+        [
+          "visit",
+          "B"
+        ],
+        [
+          "final",
+          {
+            "A": 0,
+            "B": 7
+          },
+          {
+            "B": [
+              "A",
+              "B"
+            ]
+          }
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_prim",
+      "case": "two_nodes",
+      "request": {
+        "graph": {
+          "A": {
+            "B": 7
+          },
+          "B": {
+            "A": 7
+          }
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "start",
+          "A"
+        ],
+        [
+          "add_frontier",
+          [
+            "B"
+          ]
+        ],
+        [
+          "consider_edge",
+          "A",
+          "B",
+          7
+        ],
+        [
+          "add_edge",
+          "A",
+          "B",
+          7
+        ],
+        [
+          "final",
+          [
+            [
+              "A",
+              "B",
+              7
+            ]
+          ],
+          7
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_bellman_ford",
+      "case": "two_nodes",
+      "request": {
+        "graph": {
+          "A": {
+            "B": 7
+          },
+          "B": {
+            "A": 7
+          }
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "check_edge",
+          "A",
+          "B",
+          7
+        ],
+        [
+          "relax",
+          "A",
+          "B",
+          7,
+          {
+            "A": 0,
+            "B": 7
+          },
+          1
+        ],
+        [
+          "check_edge",
+          "B",
+          "A",
+          7
+        ],
+        [
+          "no_relax",
+          "B",
+          "A",
+          7
+        ],
+        [
+          "iteration_complete",
+          1,
+          {
+            "A": 0,
+            "B": 7
+          }
+        ]
+      ],
+      "envelope": {
+        "distances": {
+          "A": 0,
+          "B": 7
+        },
+        "has_negative_cycle": false,
+        "iterations": 1
+      },
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_dijkstra",
+      "case": "equal_weights",
+      "request": {
+        "graph": {
+          "A": {
+            "B": 1,
+            "C": 1
+          },
+          "B": {
+            "A": 1,
+            "C": 1
+          },
+          "C": {
+            "A": 1,
+            "B": 1
+          }
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "visit",
+          "A"
+        ],
+        [
+          "update",
+          "B",
+          1,
+          "A"
+        ],
+        [
+          "update",
+          "C",
+          1,
+          "A"
+        ],
+        [
+          "visit",
+          "B"
+        ],
+        [
+          "visit",
+          "C"
+        ],
+        [
+          "final",
+          {
+            "A": 0,
+            "B": 1,
+            "C": 1
+          },
+          {
+            "B": [
+              "A",
+              "B"
+            ],
+            "C": [
+              "A",
+              "C"
+            ]
+          }
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": true
+    },
+    {
+      "endpoint": "/run_prim",
+      "case": "equal_weights",
+      "request": {
+        "graph": {
+          "A": {
+            "B": 1,
+            "C": 1
+          },
+          "B": {
+            "A": 1,
+            "C": 1
+          },
+          "C": {
+            "A": 1,
+            "B": 1
+          }
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "start",
+          "A"
+        ],
+        [
+          "add_frontier",
+          [
+            "B",
+            "C"
+          ]
+        ],
+        [
+          "consider_edge",
+          "A",
+          "B",
+          1
+        ],
+        [
+          "add_edge",
+          "A",
+          "B",
+          1
+        ],
+        [
+          "add_frontier",
+          [
+            "C"
+          ]
+        ],
+        [
+          "consider_edge",
+          "A",
+          "C",
+          1
+        ],
+        [
+          "add_edge",
+          "A",
+          "C",
+          1
+        ],
+        [
+          "ignore_edge",
+          "B",
+          "C",
+          1
+        ],
+        [
+          "final",
+          [
+            [
+              "A",
+              "B",
+              1
+            ],
+            [
+              "A",
+              "C",
+              1
+            ]
+          ],
+          2
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_bellman_ford",
+      "case": "equal_weights",
+      "request": {
+        "graph": {
+          "A": {
+            "B": 1,
+            "C": 1
+          },
+          "B": {
+            "A": 1,
+            "C": 1
+          },
+          "C": {
+            "A": 1,
+            "B": 1
+          }
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "check_edge",
+          "A",
+          "B",
+          1
+        ],
+        [
+          "relax",
+          "A",
+          "B",
+          1,
+          {
+            "A": 0,
+            "B": 1,
+            "C": "\u221e"
+          },
+          1
+        ],
+        [
+          "check_edge",
+          "A",
+          "C",
+          1
+        ],
+        [
+          "relax",
+          "A",
+          "C",
+          1,
+          {
+            "A": 0,
+            "B": 1,
+            "C": 1
+          },
+          1
+        ],
+        [
+          "check_edge",
+          "B",
+          "A",
+          1
+        ],
+        [
+          "no_relax",
+          "B",
+          "A",
+          1
+        ],
+        [
+          "check_edge",
+          "B",
+          "C",
+          1
+        ],
+        [
+          "no_relax",
+          "B",
+          "C",
+          1
+        ],
+        [
+          "check_edge",
+          "C",
+          "A",
+          1
+        ],
+        [
+          "no_relax",
+          "C",
+          "A",
+          1
+        ],
+        [
+          "check_edge",
+          "C",
+          "B",
+          1
+        ],
+        [
+          "no_relax",
+          "C",
+          "B",
+          1
+        ],
+        [
+          "iteration_complete",
+          1,
+          {
+            "A": 0,
+            "B": 1,
+            "C": 1
+          }
+        ],
+        [
+          "check_edge",
+          "A",
+          "B",
+          1
+        ],
+        [
+          "no_relax",
+          "A",
+          "B",
+          1
+        ],
+        [
+          "check_edge",
+          "A",
+          "C",
+          1
+        ],
+        [
+          "no_relax",
+          "A",
+          "C",
+          1
+        ],
+        [
+          "check_edge",
+          "B",
+          "A",
+          1
+        ],
+        [
+          "no_relax",
+          "B",
+          "A",
+          1
+        ],
+        [
+          "check_edge",
+          "B",
+          "C",
+          1
+        ],
+        [
+          "no_relax",
+          "B",
+          "C",
+          1
+        ],
+        [
+          "check_edge",
+          "C",
+          "A",
+          1
+        ],
+        [
+          "no_relax",
+          "C",
+          "A",
+          1
+        ],
+        [
+          "check_edge",
+          "C",
+          "B",
+          1
+        ],
+        [
+          "no_relax",
+          "C",
+          "B",
+          1
+        ],
+        [
+          "iteration_complete",
+          2,
+          {
+            "A": 0,
+            "B": 1,
+            "C": 1
+          }
+        ]
+      ],
+      "envelope": {
+        "distances": {
+          "A": 0,
+          "B": 1,
+          "C": 1
+        },
+        "has_negative_cycle": false,
+        "iterations": 2
+      },
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_dijkstra",
+      "case": "zero_weight",
+      "request": {
+        "graph": {
+          "A": {
+            "B": 0,
+            "C": 5
+          },
+          "B": {
+            "A": 0,
+            "C": 2
+          },
+          "C": {
+            "A": 5,
+            "B": 2
+          }
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "visit",
+          "A"
+        ],
+        [
+          "update",
+          "B",
+          0,
+          "A"
+        ],
+        [
+          "update",
+          "C",
+          5,
+          "A"
+        ],
+        [
+          "visit",
+          "B"
+        ],
+        [
+          "update",
+          "C",
+          2,
+          "B"
+        ],
+        [
+          "visit",
+          "C"
+        ],
+        [
+          "final",
+          {
+            "A": 0,
+            "B": 0,
+            "C": 2
+          },
+          {
+            "B": [
+              "A",
+              "B"
+            ],
+            "C": [
+              "A",
+              "B",
+              "C"
+            ]
+          }
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_prim",
+      "case": "zero_weight",
+      "request": {
+        "graph": {
+          "A": {
+            "B": 0,
+            "C": 5
+          },
+          "B": {
+            "A": 0,
+            "C": 2
+          },
+          "C": {
+            "A": 5,
+            "B": 2
+          }
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "start",
+          "A"
+        ],
+        [
+          "add_frontier",
+          [
+            "B",
+            "C"
+          ]
+        ],
+        [
+          "consider_edge",
+          "A",
+          "B",
+          0
+        ],
+        [
+          "add_edge",
+          "A",
+          "B",
+          0
+        ],
+        [
+          "add_frontier",
+          [
+            "C"
+          ]
+        ],
+        [
+          "consider_edge",
+          "B",
+          "C",
+          2
+        ],
+        [
+          "add_edge",
+          "B",
+          "C",
+          2
+        ],
+        [
+          "ignore_edge",
+          "A",
+          "C",
+          5
+        ],
+        [
+          "final",
+          [
+            [
+              "A",
+              "B",
+              0
+            ],
+            [
+              "B",
+              "C",
+              2
+            ]
+          ],
+          2
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_bellman_ford",
+      "case": "zero_weight",
+      "request": {
+        "graph": {
+          "A": {
+            "B": 0,
+            "C": 5
+          },
+          "B": {
+            "A": 0,
+            "C": 2
+          },
+          "C": {
+            "A": 5,
+            "B": 2
+          }
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "check_edge",
+          "A",
+          "B",
+          0
+        ],
+        [
+          "relax",
+          "A",
+          "B",
+          0,
+          {
+            "A": 0,
+            "B": 0,
+            "C": "\u221e"
+          },
+          1
+        ],
+        [
+          "check_edge",
+          "A",
+          "C",
+          5
+        ],
+        [
+          "relax",
+          "A",
+          "C",
+          5,
+          {
+            "A": 0,
+            "B": 0,
+            "C": 5
+          },
+          1
+        ],
+        [
+          "check_edge",
+          "B",
+          "A",
+          0
+        ],
+        [
+          "no_relax",
+          "B",
+          "A",
+          0
+        ],
+        [
+          "check_edge",
+          "B",
+          "C",
+          2
+        ],
+        [
+          "relax",
+          "B",
+          "C",
+          2,
+          {
+            "A": 0,
+            "B": 0,
+            "C": 2
+          },
+          1
+        ],
+        [
+          "check_edge",
+          "C",
+          "A",
+          5
+        ],
+        [
+          "no_relax",
+          "C",
+          "A",
+          5
+        ],
+        [
+          "check_edge",
+          "C",
+          "B",
+          2
+        ],
+        [
+          "no_relax",
+          "C",
+          "B",
+          2
+        ],
+        [
+          "iteration_complete",
+          1,
+          {
+            "A": 0,
+            "B": 0,
+            "C": 2
+          }
+        ],
+        [
+          "check_edge",
+          "A",
+          "B",
+          0
+        ],
+        [
+          "no_relax",
+          "A",
+          "B",
+          0
+        ],
+        [
+          "check_edge",
+          "A",
+          "C",
+          5
+        ],
+        [
+          "no_relax",
+          "A",
+          "C",
+          5
+        ],
+        [
+          "check_edge",
+          "B",
+          "A",
+          0
+        ],
+        [
+          "no_relax",
+          "B",
+          "A",
+          0
+        ],
+        [
+          "check_edge",
+          "B",
+          "C",
+          2
+        ],
+        [
+          "no_relax",
+          "B",
+          "C",
+          2
+        ],
+        [
+          "check_edge",
+          "C",
+          "A",
+          5
+        ],
+        [
+          "no_relax",
+          "C",
+          "A",
+          5
+        ],
+        [
+          "check_edge",
+          "C",
+          "B",
+          2
+        ],
+        [
+          "no_relax",
+          "C",
+          "B",
+          2
+        ],
+        [
+          "iteration_complete",
+          2,
+          {
+            "A": 0,
+            "B": 0,
+            "C": 2
+          }
+        ]
+      ],
+      "envelope": {
+        "distances": {
+          "A": 0,
+          "B": 0,
+          "C": 2
+        },
+        "has_negative_cycle": false,
+        "iterations": 2
+      },
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_bellman_ford",
+      "case": "negative_edge",
+      "request": {
+        "graph": {
+          "A": {
+            "B": 4,
+            "C": 5
+          },
+          "B": {
+            "D": -3
+          },
+          "C": {
+            "D": 2
+          },
+          "D": {}
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "check_edge",
+          "A",
+          "B",
+          4
+        ],
+        [
+          "relax",
+          "A",
+          "B",
+          4,
+          {
+            "A": 0,
+            "B": 4,
+            "C": "\u221e",
+            "D": "\u221e"
+          },
+          1
+        ],
+        [
+          "check_edge",
+          "A",
+          "C",
+          5
+        ],
+        [
+          "relax",
+          "A",
+          "C",
+          5,
+          {
+            "A": 0,
+            "B": 4,
+            "C": 5,
+            "D": "\u221e"
+          },
+          1
+        ],
+        [
+          "check_edge",
+          "B",
+          "D",
+          -3
+        ],
+        [
+          "relax",
+          "B",
+          "D",
+          -3,
+          {
+            "A": 0,
+            "B": 4,
+            "C": 5,
+            "D": 1
+          },
+          1
+        ],
+        [
+          "check_edge",
+          "C",
+          "D",
+          2
+        ],
+        [
+          "no_relax",
+          "C",
+          "D",
+          2
+        ],
+        [
+          "iteration_complete",
+          1,
+          {
+            "A": 0,
+            "B": 4,
+            "C": 5,
+            "D": 1
+          }
+        ],
+        [
+          "check_edge",
+          "A",
+          "B",
+          4
+        ],
+        [
+          "no_relax",
+          "A",
+          "B",
+          4
+        ],
+        [
+          "check_edge",
+          "A",
+          "C",
+          5
+        ],
+        [
+          "no_relax",
+          "A",
+          "C",
+          5
+        ],
+        [
+          "check_edge",
+          "B",
+          "D",
+          -3
+        ],
+        [
+          "no_relax",
+          "B",
+          "D",
+          -3
+        ],
+        [
+          "check_edge",
+          "C",
+          "D",
+          2
+        ],
+        [
+          "no_relax",
+          "C",
+          "D",
+          2
+        ],
+        [
+          "iteration_complete",
+          2,
+          {
+            "A": 0,
+            "B": 4,
+            "C": 5,
+            "D": 1
+          }
+        ]
+      ],
+      "envelope": {
+        "distances": {
+          "A": 0,
+          "B": 4,
+          "C": 5,
+          "D": 1
+        },
+        "has_negative_cycle": false,
+        "iterations": 2
+      },
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_bellman_ford",
+      "case": "negative_cycle",
+      "request": {
+        "graph": {
+          "A": {
+            "B": 1
+          },
+          "B": {
+            "C": -2
+          },
+          "C": {
+            "A": -2
+          },
+          "D": {
+            "A": 4
+          }
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "check_edge",
+          "A",
+          "B",
+          1
+        ],
+        [
+          "relax",
+          "A",
+          "B",
+          1,
+          {
+            "A": 0,
+            "B": 1,
+            "C": "\u221e",
+            "D": "\u221e"
+          },
+          1
+        ],
+        [
+          "check_edge",
+          "B",
+          "C",
+          -2
+        ],
+        [
+          "relax",
+          "B",
+          "C",
+          -2,
+          {
+            "A": 0,
+            "B": 1,
+            "C": -1,
+            "D": "\u221e"
+          },
+          1
+        ],
+        [
+          "check_edge",
+          "C",
+          "A",
+          -2
+        ],
+        [
+          "relax",
+          "C",
+          "A",
+          -2,
+          {
+            "A": -3,
+            "B": 1,
+            "C": -1,
+            "D": "\u221e"
+          },
+          1
+        ],
+        [
+          "check_edge",
+          "D",
+          "A",
+          4
+        ],
+        [
+          "no_relax",
+          "D",
+          "A",
+          4
+        ],
+        [
+          "iteration_complete",
+          1,
+          {
+            "A": -3,
+            "B": 1,
+            "C": -1,
+            "D": "\u221e"
+          }
+        ],
+        [
+          "check_edge",
+          "A",
+          "B",
+          1
+        ],
+        [
+          "relax",
+          "A",
+          "B",
+          1,
+          {
+            "A": -3,
+            "B": -2,
+            "C": -1,
+            "D": "\u221e"
+          },
+          2
+        ],
+        [
+          "check_edge",
+          "B",
+          "C",
+          -2
+        ],
+        [
+          "relax",
+          "B",
+          "C",
+          -2,
+          {
+            "A": -3,
+            "B": -2,
+            "C": -4,
+            "D": "\u221e"
+          },
+          2
+        ],
+        [
+          "check_edge",
+          "C",
+          "A",
+          -2
+        ],
+        [
+          "relax",
+          "C",
+          "A",
+          -2,
+          {
+            "A": -6,
+            "B": -2,
+            "C": -4,
+            "D": "\u221e"
+          },
+          2
+        ],
+        [
+          "check_edge",
+          "D",
+          "A",
+          4
+        ],
+        [
+          "no_relax",
+          "D",
+          "A",
+          4
+        ],
+        [
+          "iteration_complete",
+          2,
+          {
+            "A": -6,
+            "B": -2,
+            "C": -4,
+            "D": "\u221e"
+          }
+        ],
+        [
+          "check_edge",
+          "A",
+          "B",
+          1
+        ],
+        [
+          "relax",
+          "A",
+          "B",
+          1,
+          {
+            "A": -6,
+            "B": -5,
+            "C": -4,
+            "D": "\u221e"
+          },
+          3
+        ],
+        [
+          "check_edge",
+          "B",
+          "C",
+          -2
+        ],
+        [
+          "relax",
+          "B",
+          "C",
+          -2,
+          {
+            "A": -6,
+            "B": -5,
+            "C": -7,
+            "D": "\u221e"
+          },
+          3
+        ],
+        [
+          "check_edge",
+          "C",
+          "A",
+          -2
+        ],
+        [
+          "relax",
+          "C",
+          "A",
+          -2,
+          {
+            "A": -9,
+            "B": -5,
+            "C": -7,
+            "D": "\u221e"
+          },
+          3
+        ],
+        [
+          "check_edge",
+          "D",
+          "A",
+          4
+        ],
+        [
+          "no_relax",
+          "D",
+          "A",
+          4
+        ],
+        [
+          "iteration_complete",
+          3,
+          {
+            "A": -9,
+            "B": -5,
+            "C": -7,
+            "D": "\u221e"
+          }
+        ]
+      ],
+      "envelope": {
+        "distances": {
+          "A": -9,
+          "B": -5,
+          "C": -7,
+          "D": "\u221e"
+        },
+        "has_negative_cycle": true,
+        "iterations": 3
+      },
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_bellman_ford",
+      "case": "negative_unreachable",
+      "request": {
+        "graph": {
+          "A": {
+            "B": 2
+          },
+          "B": {},
+          "C": {
+            "D": -5
+          },
+          "D": {
+            "C": -5
+          }
+        },
+        "start": "A"
+      },
+      "status": 200,
+      "steps": [
+        [
+          "check_edge",
+          "A",
+          "B",
+          2
+        ],
+        [
+          "relax",
+          "A",
+          "B",
+          2,
+          {
+            "A": 0,
+            "B": 2,
+            "C": "\u221e",
+            "D": "\u221e"
+          },
+          1
+        ],
+        [
+          "check_edge",
+          "C",
+          "D",
+          -5
+        ],
+        [
+          "no_relax",
+          "C",
+          "D",
+          -5
+        ],
+        [
+          "check_edge",
+          "D",
+          "C",
+          -5
+        ],
+        [
+          "no_relax",
+          "D",
+          "C",
+          -5
+        ],
+        [
+          "iteration_complete",
+          1,
+          {
+            "A": 0,
+            "B": 2,
+            "C": "\u221e",
+            "D": "\u221e"
+          }
+        ],
+        [
+          "check_edge",
+          "A",
+          "B",
+          2
+        ],
+        [
+          "no_relax",
+          "A",
+          "B",
+          2
+        ],
+        [
+          "check_edge",
+          "C",
+          "D",
+          -5
+        ],
+        [
+          "no_relax",
+          "C",
+          "D",
+          -5
+        ],
+        [
+          "check_edge",
+          "D",
+          "C",
+          -5
+        ],
+        [
+          "no_relax",
+          "D",
+          "C",
+          -5
+        ],
+        [
+          "iteration_complete",
+          2,
+          {
+            "A": 0,
+            "B": 2,
+            "C": "\u221e",
+            "D": "\u221e"
+          }
+        ]
+      ],
+      "envelope": {
+        "distances": {
+          "A": 0,
+          "B": 2,
+          "C": "\u221e",
+          "D": "\u221e"
+        },
+        "has_negative_cycle": false,
+        "iterations": 2
+      },
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_kruskal",
+      "case": "simple",
+      "request": {
+        "nodes": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E"
+        ],
+        "edges": [
+          [
+            "A",
+            "B",
+            4
+          ],
+          [
+            "A",
+            "C",
+            2
+          ],
+          [
+            "B",
+            "D",
+            5
+          ],
+          [
+            "C",
+            "D",
+            8
+          ],
+          [
+            "D",
+            "E",
+            6
+          ]
+        ]
+      },
+      "status": 200,
+      "steps": [
+        [
+          "sort_edges",
+          [
+            [
+              "A",
+              "C",
+              2
+            ],
+            [
+              "A",
+              "B",
+              4
+            ],
+            [
+              "B",
+              "D",
+              5
+            ],
+            [
+              "D",
+              "E",
+              6
+            ],
+            [
+              "C",
+              "D",
+              8
+            ]
+          ]
+        ],
+        [
+          "consider_edge",
+          "A",
+          "C",
+          2
+        ],
+        [
+          "add_edge",
+          "A",
+          "C",
+          2
+        ],
+        [
+          "consider_edge",
+          "A",
+          "B",
+          4
+        ],
+        [
+          "add_edge",
+          "A",
+          "B",
+          4
+        ],
+        [
+          "consider_edge",
+          "B",
+          "D",
+          5
+        ],
+        [
+          "add_edge",
+          "B",
+          "D",
+          5
+        ],
+        [
+          "consider_edge",
+          "D",
+          "E",
+          6
+        ],
+        [
+          "add_edge",
+          "D",
+          "E",
+          6
+        ],
+        [
+          "mst_complete"
+        ],
+        [
+          "consider_edge",
+          "C",
+          "D",
+          8
+        ],
+        [
+          "reject_edge",
+          "C",
+          "D",
+          8
+        ],
+        [
+          "final",
+          [
+            [
+              "A",
+              "C",
+              2
+            ],
+            [
+              "A",
+              "B",
+              4
+            ],
+            [
+              "B",
+              "D",
+              5
+            ],
+            [
+              "D",
+              "E",
+              6
+            ]
+          ],
+          17
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_floyd_warshall",
+      "case": "simple",
+      "request": {
+        "nodes": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E"
+        ],
+        "edges": [
+          [
+            "A",
+            "B",
+            4
+          ],
+          [
+            "A",
+            "C",
+            2
+          ],
+          [
+            "B",
+            "D",
+            5
+          ],
+          [
+            "C",
+            "D",
+            8
+          ],
+          [
+            "D",
+            "E",
+            6
+          ]
+        ]
+      },
+      "status": 200,
+      "steps": [
+        [
+          "init",
+          [
+            [
+              0,
+              4,
+              2,
+              "\u221e",
+              "\u221e"
+            ],
+            [
+              4,
+              0,
+              "\u221e",
+              5,
+              "\u221e"
+            ],
+            [
+              2,
+              "\u221e",
+              0,
+              8,
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              5,
+              8,
+              0,
+              6
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              "\u221e",
+              6,
+              0
+            ]
+          ],
+          [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E"
+          ]
+        ],
+        [
+          "start_iteration",
+          0,
+          "A"
+        ],
+        [
+          "consider_path",
+          "A",
+          "B",
+          "A",
+          4,
+          0,
+          4,
+          4
+        ],
+        [
+          "no_update",
+          "A",
+          "B",
+          "A",
+          4
+        ],
+        [
+          "consider_path",
+          "A",
+          "C",
+          "A",
+          2,
+          0,
+          2,
+          2
+        ],
+        [
+          "no_update",
+          "A",
+          "C",
+          "A",
+          2
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "D",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "E",
+          "A"
+        ],
+        [
+          "consider_path",
+          "B",
+          "A",
+          "A",
+          4,
+          4,
+          0,
+          4
+        ],
+        [
+          "no_update",
+          "B",
+          "A",
+          "A",
+          4
+        ],
+        [
+          "consider_path",
+          "B",
+          "C",
+          "A",
+          "\u221e",
+          4,
+          2,
+          6
+        ],
+        [
+          "update_distance",
+          "B",
+          "C",
+          "A",
+          6,
+          1,
+          2
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "D",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "E",
+          "A"
+        ],
+        [
+          "consider_path",
+          "C",
+          "A",
+          "A",
+          2,
+          2,
+          0,
+          2
+        ],
+        [
+          "no_update",
+          "C",
+          "A",
+          "A",
+          2
+        ],
+        [
+          "consider_path",
+          "C",
+          "B",
+          "A",
+          "\u221e",
+          2,
+          4,
+          6
+        ],
+        [
+          "update_distance",
+          "C",
+          "B",
+          "A",
+          6,
+          2,
+          1
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "D",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "E",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "A",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "B",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "C",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "E",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "A",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "B",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "C",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "D",
+          "A"
+        ],
+        [
+          "iteration_complete",
+          0,
+          "A",
+          [
+            [
+              0,
+              4,
+              2,
+              "\u221e",
+              "\u221e"
+            ],
+            [
+              4,
+              0,
+              6,
+              5,
+              "\u221e"
+            ],
+            [
+              2,
+              6,
+              0,
+              8,
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              5,
+              8,
+              0,
+              6
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              "\u221e",
+              6,
+              0
+            ]
+          ],
+          2
+        ],
+        [
+          "start_iteration",
+          1,
+          "B"
+        ],
+        [
+          "consider_path",
+          "A",
+          "B",
+          "B",
+          4,
+          4,
+          0,
+          4
+        ],
+        [
+          "no_update",
+          "A",
+          "B",
+          "B",
+          4
+        ],
+        [
+          "consider_path",
+          "A",
+          "C",
+          "B",
+          2,
+          4,
+          6,
+          10
+        ],
+        [
+          "no_update",
+          "A",
+          "C",
+          "B",
+          2
+        ],
+        [
+          "consider_path",
+          "A",
+          "D",
+          "B",
+          "\u221e",
+          4,
+          5,
+          9
+        ],
+        [
+          "update_distance",
+          "A",
+          "D",
+          "B",
+          9,
+          0,
+          3
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "E",
+          "B"
+        ],
+        [
+          "consider_path",
+          "B",
+          "A",
+          "B",
+          4,
+          0,
+          4,
+          4
+        ],
+        [
+          "no_update",
+          "B",
+          "A",
+          "B",
+          4
+        ],
+        [
+          "consider_path",
+          "B",
+          "C",
+          "B",
+          6,
+          0,
+          6,
+          6
+        ],
+        [
+          "no_update",
+          "B",
+          "C",
+          "B",
+          6
+        ],
+        [
+          "consider_path",
+          "B",
+          "D",
+          "B",
+          5,
+          0,
+          5,
+          5
+        ],
+        [
+          "no_update",
+          "B",
+          "D",
+          "B",
+          5
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "E",
+          "B"
+        ],
+        [
+          "consider_path",
+          "C",
+          "A",
+          "B",
+          2,
+          6,
+          4,
+          10
+        ],
+        [
+          "no_update",
+          "C",
+          "A",
+          "B",
+          2
+        ],
+        [
+          "consider_path",
+          "C",
+          "B",
+          "B",
+          6,
+          6,
+          0,
+          6
+        ],
+        [
+          "no_update",
+          "C",
+          "B",
+          "B",
+          6
+        ],
+        [
+          "consider_path",
+          "C",
+          "D",
+          "B",
+          8,
+          6,
+          5,
+          11
+        ],
+        [
+          "no_update",
+          "C",
+          "D",
+          "B",
+          8
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "E",
+          "B"
+        ],
+        [
+          "consider_path",
+          "D",
+          "A",
+          "B",
+          "\u221e",
+          5,
+          4,
+          9
+        ],
+        [
+          "update_distance",
+          "D",
+          "A",
+          "B",
+          9,
+          3,
+          0
+        ],
+        [
+          "consider_path",
+          "D",
+          "B",
+          "B",
+          5,
+          5,
+          0,
+          5
+        ],
+        [
+          "no_update",
+          "D",
+          "B",
+          "B",
+          5
+        ],
+        [
+          "consider_path",
+          "D",
+          "C",
+          "B",
+          8,
+          5,
+          6,
+          11
+        ],
+        [
+          "no_update",
+          "D",
+          "C",
+          "B",
+          8
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "E",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "A",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "B",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "C",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "D",
+          "B"
+        ],
+        [
+          "iteration_complete",
+          1,
+          "B",
+          [
+            [
+              0,
+              4,
+              2,
+              9,
+              "\u221e"
+            ],
+            [
+              4,
+              0,
+              6,
+              5,
+              "\u221e"
+            ],
+            [
+              2,
+              6,
+              0,
+              8,
+              "\u221e"
+            ],
+            [
+              9,
+              5,
+              8,
+              0,
+              6
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              "\u221e",
+              6,
+              0
+            ]
+          ],
+          2
+        ],
+        [
+          "start_iteration",
+          2,
+          "C"
+        ],
+        [
+          "consider_path",
+          "A",
+          "B",
+          "C",
+          4,
+          2,
+          6,
+          8
+        ],
+        [
+          "no_update",
+          "A",
+          "B",
+          "C",
+          4
+        ],
+        [
+          "consider_path",
+          "A",
+          "C",
+          "C",
+          2,
+          2,
+          0,
+          2
+        ],
+        [
+          "no_update",
+          "A",
+          "C",
+          "C",
+          2
+        ],
+        [
+          "consider_path",
+          "A",
+          "D",
+          "C",
+          9,
+          2,
+          8,
+          10
+        ],
+        [
+          "no_update",
+          "A",
+          "D",
+          "C",
+          9
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "E",
+          "C"
+        ],
+        [
+          "consider_path",
+          "B",
+          "A",
+          "C",
+          4,
+          6,
+          2,
+          8
+        ],
+        [
+          "no_update",
+          "B",
+          "A",
+          "C",
+          4
+        ],
+        [
+          "consider_path",
+          "B",
+          "C",
+          "C",
+          6,
+          6,
+          0,
+          6
+        ],
+        [
+          "no_update",
+          "B",
+          "C",
+          "C",
+          6
+        ],
+        [
+          "consider_path",
+          "B",
+          "D",
+          "C",
+          5,
+          6,
+          8,
+          14
+        ],
+        [
+          "no_update",
+          "B",
+          "D",
+          "C",
+          5
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "E",
+          "C"
+        ],
+        [
+          "consider_path",
+          "C",
+          "A",
+          "C",
+          2,
+          0,
+          2,
+          2
+        ],
+        [
+          "no_update",
+          "C",
+          "A",
+          "C",
+          2
+        ],
+        [
+          "consider_path",
+          "C",
+          "B",
+          "C",
+          6,
+          0,
+          6,
+          6
+        ],
+        [
+          "no_update",
+          "C",
+          "B",
+          "C",
+          6
+        ],
+        [
+          "consider_path",
+          "C",
+          "D",
+          "C",
+          8,
+          0,
+          8,
+          8
+        ],
+        [
+          "no_update",
+          "C",
+          "D",
+          "C",
+          8
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "E",
+          "C"
+        ],
+        [
+          "consider_path",
+          "D",
+          "A",
+          "C",
+          9,
+          8,
+          2,
+          10
+        ],
+        [
+          "no_update",
+          "D",
+          "A",
+          "C",
+          9
+        ],
+        [
+          "consider_path",
+          "D",
+          "B",
+          "C",
+          5,
+          8,
+          6,
+          14
+        ],
+        [
+          "no_update",
+          "D",
+          "B",
+          "C",
+          5
+        ],
+        [
+          "consider_path",
+          "D",
+          "C",
+          "C",
+          8,
+          8,
+          0,
+          8
+        ],
+        [
+          "no_update",
+          "D",
+          "C",
+          "C",
+          8
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "E",
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "A",
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "B",
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "C",
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "D",
+          "C"
+        ],
+        [
+          "iteration_complete",
+          2,
+          "C",
+          [
+            [
+              0,
+              4,
+              2,
+              9,
+              "\u221e"
+            ],
+            [
+              4,
+              0,
+              6,
+              5,
+              "\u221e"
+            ],
+            [
+              2,
+              6,
+              0,
+              8,
+              "\u221e"
+            ],
+            [
+              9,
+              5,
+              8,
+              0,
+              6
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              "\u221e",
+              6,
+              0
+            ]
+          ],
+          0
+        ],
+        [
+          "start_iteration",
+          3,
+          "D"
+        ],
+        [
+          "consider_path",
+          "A",
+          "B",
+          "D",
+          4,
+          9,
+          5,
+          14
+        ],
+        [
+          "no_update",
+          "A",
+          "B",
+          "D",
+          4
+        ],
+        [
+          "consider_path",
+          "A",
+          "C",
+          "D",
+          2,
+          9,
+          8,
+          17
+        ],
+        [
+          "no_update",
+          "A",
+          "C",
+          "D",
+          2
+        ],
+        [
+          "consider_path",
+          "A",
+          "D",
+          "D",
+          9,
+          9,
+          0,
+          9
+        ],
+        [
+          "no_update",
+          "A",
+          "D",
+          "D",
+          9
+        ],
+        [
+          "consider_path",
+          "A",
+          "E",
+          "D",
+          "\u221e",
+          9,
+          6,
+          15
+        ],
+        [
+          "update_distance",
+          "A",
+          "E",
+          "D",
+          15,
+          0,
+          4
+        ],
+        [
+          "consider_path",
+          "B",
+          "A",
+          "D",
+          4,
+          5,
+          9,
+          14
+        ],
+        [
+          "no_update",
+          "B",
+          "A",
+          "D",
+          4
+        ],
+        [
+          "consider_path",
+          "B",
+          "C",
+          "D",
+          6,
+          5,
+          8,
+          13
+        ],
+        [
+          "no_update",
+          "B",
+          "C",
+          "D",
+          6
+        ],
+        [
+          "consider_path",
+          "B",
+          "D",
+          "D",
+          5,
+          5,
+          0,
+          5
+        ],
+        [
+          "no_update",
+          "B",
+          "D",
+          "D",
+          5
+        ],
+        [
+          "consider_path",
+          "B",
+          "E",
+          "D",
+          "\u221e",
+          5,
+          6,
+          11
+        ],
+        [
+          "update_distance",
+          "B",
+          "E",
+          "D",
+          11,
+          1,
+          4
+        ],
+        [
+          "consider_path",
+          "C",
+          "A",
+          "D",
+          2,
+          8,
+          9,
+          17
+        ],
+        [
+          "no_update",
+          "C",
+          "A",
+          "D",
+          2
+        ],
+        [
+          "consider_path",
+          "C",
+          "B",
+          "D",
+          6,
+          8,
+          5,
+          13
+        ],
+        [
+          "no_update",
+          "C",
+          "B",
+          "D",
+          6
+        ],
+        [
+          "consider_path",
+          "C",
+          "D",
+          "D",
+          8,
+          8,
+          0,
+          8
+        ],
+        [
+          "no_update",
+          "C",
+          "D",
+          "D",
+          8
+        ],
+        [
+          "consider_path",
+          "C",
+          "E",
+          "D",
+          "\u221e",
+          8,
+          6,
+          14
+        ],
+        [
+          "update_distance",
+          "C",
+          "E",
+          "D",
+          14,
+          2,
+          4
+        ],
+        [
+          "consider_path",
+          "D",
+          "A",
+          "D",
+          9,
+          0,
+          9,
+          9
+        ],
+        [
+          "no_update",
+          "D",
+          "A",
+          "D",
+          9
+        ],
+        [
+          "consider_path",
+          "D",
+          "B",
+          "D",
+          5,
+          0,
+          5,
+          5
+        ],
+        [
+          "no_update",
+          "D",
+          "B",
+          "D",
+          5
+        ],
+        [
+          "consider_path",
+          "D",
+          "C",
+          "D",
+          8,
+          0,
+          8,
+          8
+        ],
+        [
+          "no_update",
+          "D",
+          "C",
+          "D",
+          8
+        ],
+        [
+          "consider_path",
+          "D",
+          "E",
+          "D",
+          6,
+          0,
+          6,
+          6
+        ],
+        [
+          "no_update",
+          "D",
+          "E",
+          "D",
+          6
+        ],
+        [
+          "consider_path",
+          "E",
+          "A",
+          "D",
+          "\u221e",
+          6,
+          9,
+          15
+        ],
+        [
+          "update_distance",
+          "E",
+          "A",
+          "D",
+          15,
+          4,
+          0
+        ],
+        [
+          "consider_path",
+          "E",
+          "B",
+          "D",
+          "\u221e",
+          6,
+          5,
+          11
+        ],
+        [
+          "update_distance",
+          "E",
+          "B",
+          "D",
+          11,
+          4,
+          1
+        ],
+        [
+          "consider_path",
+          "E",
+          "C",
+          "D",
+          "\u221e",
+          6,
+          8,
+          14
+        ],
+        [
+          "update_distance",
+          "E",
+          "C",
+          "D",
+          14,
+          4,
+          2
+        ],
+        [
+          "consider_path",
+          "E",
+          "D",
+          "D",
+          6,
+          6,
+          0,
+          6
+        ],
+        [
+          "no_update",
+          "E",
+          "D",
+          "D",
+          6
+        ],
+        [
+          "iteration_complete",
+          3,
+          "D",
+          [
+            [
+              0,
+              4,
+              2,
+              9,
+              15
+            ],
+            [
+              4,
+              0,
+              6,
+              5,
+              11
+            ],
+            [
+              2,
+              6,
+              0,
+              8,
+              14
+            ],
+            [
+              9,
+              5,
+              8,
+              0,
+              6
+            ],
+            [
+              15,
+              11,
+              14,
+              6,
+              0
+            ]
+          ],
+          6
+        ],
+        [
+          "start_iteration",
+          4,
+          "E"
+        ],
+        [
+          "consider_path",
+          "A",
+          "B",
+          "E",
+          4,
+          15,
+          11,
+          26
+        ],
+        [
+          "no_update",
+          "A",
+          "B",
+          "E",
+          4
+        ],
+        [
+          "consider_path",
+          "A",
+          "C",
+          "E",
+          2,
+          15,
+          14,
+          29
+        ],
+        [
+          "no_update",
+          "A",
+          "C",
+          "E",
+          2
+        ],
+        [
+          "consider_path",
+          "A",
+          "D",
+          "E",
+          9,
+          15,
+          6,
+          21
+        ],
+        [
+          "no_update",
+          "A",
+          "D",
+          "E",
+          9
+        ],
+        [
+          "consider_path",
+          "A",
+          "E",
+          "E",
+          15,
+          15,
+          0,
+          15
+        ],
+        [
+          "no_update",
+          "A",
+          "E",
+          "E",
+          15
+        ],
+        [
+          "consider_path",
+          "B",
+          "A",
+          "E",
+          4,
+          11,
+          15,
+          26
+        ],
+        [
+          "no_update",
+          "B",
+          "A",
+          "E",
+          4
+        ],
+        [
+          "consider_path",
+          "B",
+          "C",
+          "E",
+          6,
+          11,
+          14,
+          25
+        ],
+        [
+          "no_update",
+          "B",
+          "C",
+          "E",
+          6
+        ],
+        [
+          "consider_path",
+          "B",
+          "D",
+          "E",
+          5,
+          11,
+          6,
+          17
+        ],
+        [
+          "no_update",
+          "B",
+          "D",
+          "E",
+          5
+        ],
+        [
+          "consider_path",
+          "B",
+          "E",
+          "E",
+          11,
+          11,
+          0,
+          11
+        ],
+        [
+          "no_update",
+          "B",
+          "E",
+          "E",
+          11
+        ],
+        [
+          "consider_path",
+          "C",
+          "A",
+          "E",
+          2,
+          14,
+          15,
+          29
+        ],
+        [
+          "no_update",
+          "C",
+          "A",
+          "E",
+          2
+        ],
+        [
+          "consider_path",
+          "C",
+          "B",
+          "E",
+          6,
+          14,
+          11,
+          25
+        ],
+        [
+          "no_update",
+          "C",
+          "B",
+          "E",
+          6
+        ],
+        [
+          "consider_path",
+          "C",
+          "D",
+          "E",
+          8,
+          14,
+          6,
+          20
+        ],
+        [
+          "no_update",
+          "C",
+          "D",
+          "E",
+          8
+        ],
+        [
+          "consider_path",
+          "C",
+          "E",
+          "E",
+          14,
+          14,
+          0,
+          14
+        ],
+        [
+          "no_update",
+          "C",
+          "E",
+          "E",
+          14
+        ],
+        [
+          "consider_path",
+          "D",
+          "A",
+          "E",
+          9,
+          6,
+          15,
+          21
+        ],
+        [
+          "no_update",
+          "D",
+          "A",
+          "E",
+          9
+        ],
+        [
+          "consider_path",
+          "D",
+          "B",
+          "E",
+          5,
+          6,
+          11,
+          17
+        ],
+        [
+          "no_update",
+          "D",
+          "B",
+          "E",
+          5
+        ],
+        [
+          "consider_path",
+          "D",
+          "C",
+          "E",
+          8,
+          6,
+          14,
+          20
+        ],
+        [
+          "no_update",
+          "D",
+          "C",
+          "E",
+          8
+        ],
+        [
+          "consider_path",
+          "D",
+          "E",
+          "E",
+          6,
+          6,
+          0,
+          6
+        ],
+        [
+          "no_update",
+          "D",
+          "E",
+          "E",
+          6
+        ],
+        [
+          "consider_path",
+          "E",
+          "A",
+          "E",
+          15,
+          0,
+          15,
+          15
+        ],
+        [
+          "no_update",
+          "E",
+          "A",
+          "E",
+          15
+        ],
+        [
+          "consider_path",
+          "E",
+          "B",
+          "E",
+          11,
+          0,
+          11,
+          11
+        ],
+        [
+          "no_update",
+          "E",
+          "B",
+          "E",
+          11
+        ],
+        [
+          "consider_path",
+          "E",
+          "C",
+          "E",
+          14,
+          0,
+          14,
+          14
+        ],
+        [
+          "no_update",
+          "E",
+          "C",
+          "E",
+          14
+        ],
+        [
+          "consider_path",
+          "E",
+          "D",
+          "E",
+          6,
+          0,
+          6,
+          6
+        ],
+        [
+          "no_update",
+          "E",
+          "D",
+          "E",
+          6
+        ],
+        [
+          "iteration_complete",
+          4,
+          "E",
+          [
+            [
+              0,
+              4,
+              2,
+              9,
+              15
+            ],
+            [
+              4,
+              0,
+              6,
+              5,
+              11
+            ],
+            [
+              2,
+              6,
+              0,
+              8,
+              14
+            ],
+            [
+              9,
+              5,
+              8,
+              0,
+              6
+            ],
+            [
+              15,
+              11,
+              14,
+              6,
+              0
+            ]
+          ],
+          0
+        ],
+        [
+          "final",
+          [
+            [
+              0,
+              4,
+              2,
+              9,
+              15
+            ],
+            [
+              4,
+              0,
+              6,
+              5,
+              11
+            ],
+            [
+              2,
+              6,
+              0,
+              8,
+              14
+            ],
+            [
+              9,
+              5,
+              8,
+              0,
+              6
+            ],
+            [
+              15,
+              11,
+              14,
+              6,
+              0
+            ]
+          ],
+          [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E"
+          ],
+          {
+            "A \u2192 B": {
+              "distance": 4,
+              "path": [
+                "A",
+                "B"
+              ]
+            },
+            "A \u2192 C": {
+              "distance": 2,
+              "path": [
+                "A",
+                "C"
+              ]
+            },
+            "A \u2192 D": {
+              "distance": 9,
+              "path": [
+                "A",
+                "B",
+                "D"
+              ]
+            },
+            "A \u2192 E": {
+              "distance": 15,
+              "path": [
+                "A",
+                "B",
+                "D",
+                "E"
+              ]
+            },
+            "B \u2192 A": {
+              "distance": 4,
+              "path": [
+                "B",
+                "A"
+              ]
+            },
+            "B \u2192 C": {
+              "distance": 6,
+              "path": [
+                "B",
+                "A",
+                "C"
+              ]
+            },
+            "B \u2192 D": {
+              "distance": 5,
+              "path": [
+                "B",
+                "D"
+              ]
+            },
+            "B \u2192 E": {
+              "distance": 11,
+              "path": [
+                "B",
+                "D",
+                "E"
+              ]
+            },
+            "C \u2192 A": {
+              "distance": 2,
+              "path": [
+                "C",
+                "A"
+              ]
+            },
+            "C \u2192 B": {
+              "distance": 6,
+              "path": [
+                "C",
+                "A",
+                "B"
+              ]
+            },
+            "C \u2192 D": {
+              "distance": 8,
+              "path": [
+                "C",
+                "D"
+              ]
+            },
+            "C \u2192 E": {
+              "distance": 14,
+              "path": [
+                "C",
+                "D",
+                "E"
+              ]
+            },
+            "D \u2192 A": {
+              "distance": 9,
+              "path": [
+                "D",
+                "B",
+                "A"
+              ]
+            },
+            "D \u2192 B": {
+              "distance": 5,
+              "path": [
+                "D",
+                "B"
+              ]
+            },
+            "D \u2192 C": {
+              "distance": 8,
+              "path": [
+                "D",
+                "C"
+              ]
+            },
+            "D \u2192 E": {
+              "distance": 6,
+              "path": [
+                "D",
+                "E"
+              ]
+            },
+            "E \u2192 A": {
+              "distance": 15,
+              "path": [
+                "E",
+                "D",
+                "B",
+                "A"
+              ]
+            },
+            "E \u2192 B": {
+              "distance": 11,
+              "path": [
+                "E",
+                "D",
+                "B"
+              ]
+            },
+            "E \u2192 C": {
+              "distance": 14,
+              "path": [
+                "E",
+                "D",
+                "C"
+              ]
+            },
+            "E \u2192 D": {
+              "distance": 6,
+              "path": [
+                "E",
+                "D"
+              ]
+            }
+          }
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_kruskal",
+      "case": "disconnected",
+      "request": {
+        "nodes": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E"
+        ],
+        "edges": [
+          [
+            "A",
+            "B",
+            3
+          ],
+          [
+            "C",
+            "D",
+            1
+          ]
+        ]
+      },
+      "status": 200,
+      "steps": [
+        [
+          "sort_edges",
+          [
+            [
+              "C",
+              "D",
+              1
+            ],
+            [
+              "A",
+              "B",
+              3
+            ]
+          ]
+        ],
+        [
+          "consider_edge",
+          "C",
+          "D",
+          1
+        ],
+        [
+          "add_edge",
+          "C",
+          "D",
+          1
+        ],
+        [
+          "consider_edge",
+          "A",
+          "B",
+          3
+        ],
+        [
+          "add_edge",
+          "A",
+          "B",
+          3
+        ],
+        [
+          "final",
+          [
+            [
+              "C",
+              "D",
+              1
+            ],
+            [
+              "A",
+              "B",
+              3
+            ]
+          ],
+          4
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_floyd_warshall",
+      "case": "disconnected",
+      "request": {
+        "nodes": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E"
+        ],
+        "edges": [
+          [
+            "A",
+            "B",
+            3
+          ],
+          [
+            "C",
+            "D",
+            1
+          ]
+        ]
+      },
+      "status": 200,
+      "steps": [
+        [
+          "init",
+          [
+            [
+              0,
+              3,
+              "\u221e",
+              "\u221e",
+              "\u221e"
+            ],
+            [
+              3,
+              0,
+              "\u221e",
+              "\u221e",
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              0,
+              1,
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              1,
+              0,
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              "\u221e",
+              "\u221e",
+              0
+            ]
+          ],
+          [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E"
+          ]
+        ],
+        [
+          "start_iteration",
+          0,
+          "A"
+        ],
+        [
+          "consider_path",
+          "A",
+          "B",
+          "A",
+          3,
+          0,
+          3,
+          3
+        ],
+        [
+          "no_update",
+          "A",
+          "B",
+          "A",
+          3
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "C",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "D",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "E",
+          "A"
+        ],
+        [
+          "consider_path",
+          "B",
+          "A",
+          "A",
+          3,
+          3,
+          0,
+          3
+        ],
+        [
+          "no_update",
+          "B",
+          "A",
+          "A",
+          3
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "C",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "D",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "E",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "A",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "B",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "D",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "E",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "A",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "B",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "C",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "E",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "A",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "B",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "C",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "D",
+          "A"
+        ],
+        [
+          "iteration_complete",
+          0,
+          "A",
+          [
+            [
+              0,
+              3,
+              "\u221e",
+              "\u221e",
+              "\u221e"
+            ],
+            [
+              3,
+              0,
+              "\u221e",
+              "\u221e",
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              0,
+              1,
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              1,
+              0,
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              "\u221e",
+              "\u221e",
+              0
+            ]
+          ],
+          0
+        ],
+        [
+          "start_iteration",
+          1,
+          "B"
+        ],
+        [
+          "consider_path",
+          "A",
+          "B",
+          "B",
+          3,
+          3,
+          0,
+          3
+        ],
+        [
+          "no_update",
+          "A",
+          "B",
+          "B",
+          3
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "C",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "D",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "E",
+          "B"
+        ],
+        [
+          "consider_path",
+          "B",
+          "A",
+          "B",
+          3,
+          0,
+          3,
+          3
+        ],
+        [
+          "no_update",
+          "B",
+          "A",
+          "B",
+          3
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "C",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "D",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "E",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "A",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "B",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "D",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "E",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "A",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "B",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "C",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "E",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "A",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "B",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "C",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "D",
+          "B"
+        ],
+        [
+          "iteration_complete",
+          1,
+          "B",
+          [
+            [
+              0,
+              3,
+              "\u221e",
+              "\u221e",
+              "\u221e"
+            ],
+            [
+              3,
+              0,
+              "\u221e",
+              "\u221e",
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              0,
+              1,
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              1,
+              0,
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              "\u221e",
+              "\u221e",
+              0
+            ]
+          ],
+          0
+        ],
+        [
+          "start_iteration",
+          2,
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "B",
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "C",
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "D",
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "E",
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "A",
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "C",
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "D",
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "E",
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "A",
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "B",
+          "C"
+        ],
+        [
+          "consider_path",
+          "C",
+          "D",
+          "C",
+          1,
+          0,
+          1,
+          1
+        ],
+        [
+          "no_update",
+          "C",
+          "D",
+          "C",
+          1
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "E",
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "A",
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "B",
+          "C"
+        ],
+        [
+          "consider_path",
+          "D",
+          "C",
+          "C",
+          1,
+          1,
+          0,
+          1
+        ],
+        [
+          "no_update",
+          "D",
+          "C",
+          "C",
+          1
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "E",
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "A",
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "B",
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "C",
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "D",
+          "C"
+        ],
+        [
+          "iteration_complete",
+          2,
+          "C",
+          [
+            [
+              0,
+              3,
+              "\u221e",
+              "\u221e",
+              "\u221e"
+            ],
+            [
+              3,
+              0,
+              "\u221e",
+              "\u221e",
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              0,
+              1,
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              1,
+              0,
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              "\u221e",
+              "\u221e",
+              0
+            ]
+          ],
+          0
+        ],
+        [
+          "start_iteration",
+          3,
+          "D"
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "B",
+          "D"
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "C",
+          "D"
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "D",
+          "D"
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "E",
+          "D"
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "A",
+          "D"
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "C",
+          "D"
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "D",
+          "D"
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "E",
+          "D"
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "A",
+          "D"
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "B",
+          "D"
+        ],
+        [
+          "consider_path",
+          "C",
+          "D",
+          "D",
+          1,
+          1,
+          0,
+          1
+        ],
+        [
+          "no_update",
+          "C",
+          "D",
+          "D",
+          1
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "E",
+          "D"
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "A",
+          "D"
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "B",
+          "D"
+        ],
+        [
+          "consider_path",
+          "D",
+          "C",
+          "D",
+          1,
+          0,
+          1,
+          1
+        ],
+        [
+          "no_update",
+          "D",
+          "C",
+          "D",
+          1
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "E",
+          "D"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "A",
+          "D"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "B",
+          "D"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "C",
+          "D"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "D",
+          "D"
+        ],
+        [
+          "iteration_complete",
+          3,
+          "D",
+          [
+            [
+              0,
+              3,
+              "\u221e",
+              "\u221e",
+              "\u221e"
+            ],
+            [
+              3,
+              0,
+              "\u221e",
+              "\u221e",
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              0,
+              1,
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              1,
+              0,
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              "\u221e",
+              "\u221e",
+              0
+            ]
+          ],
+          0
+        ],
+        [
+          "start_iteration",
+          4,
+          "E"
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "B",
+          "E"
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "C",
+          "E"
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "D",
+          "E"
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "E",
+          "E"
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "A",
+          "E"
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "C",
+          "E"
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "D",
+          "E"
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "E",
+          "E"
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "A",
+          "E"
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "B",
+          "E"
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "D",
+          "E"
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "E",
+          "E"
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "A",
+          "E"
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "B",
+          "E"
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "C",
+          "E"
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "E",
+          "E"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "A",
+          "E"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "B",
+          "E"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "C",
+          "E"
+        ],
+        [
+          "no_path_via_k",
+          "E",
+          "D",
+          "E"
+        ],
+        [
+          "iteration_complete",
+          4,
+          "E",
+          [
+            [
+              0,
+              3,
+              "\u221e",
+              "\u221e",
+              "\u221e"
+            ],
+            [
+              3,
+              0,
+              "\u221e",
+              "\u221e",
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              0,
+              1,
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              1,
+              0,
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              "\u221e",
+              "\u221e",
+              0
+            ]
+          ],
+          0
+        ],
+        [
+          "final",
+          [
+            [
+              0,
+              3,
+              "\u221e",
+              "\u221e",
+              "\u221e"
+            ],
+            [
+              3,
+              0,
+              "\u221e",
+              "\u221e",
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              0,
+              1,
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              1,
+              0,
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              "\u221e",
+              "\u221e",
+              0
+            ]
+          ],
+          [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E"
+          ],
+          {
+            "A \u2192 B": {
+              "distance": 3,
+              "path": [
+                "A",
+                "B"
+              ]
+            },
+            "B \u2192 A": {
+              "distance": 3,
+              "path": [
+                "B",
+                "A"
+              ]
+            },
+            "C \u2192 D": {
+              "distance": 1,
+              "path": [
+                "C",
+                "D"
+              ]
+            },
+            "D \u2192 C": {
+              "distance": 1,
+              "path": [
+                "D",
+                "C"
+              ]
+            }
+          }
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_kruskal",
+      "case": "single_node",
+      "request": {
+        "nodes": [
+          "A"
+        ],
+        "edges": []
+      },
+      "status": 200,
+      "steps": [
+        [
+          "sort_edges",
+          []
+        ],
+        [
+          "final",
+          [],
+          0
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_floyd_warshall",
+      "case": "single_node",
+      "request": {
+        "nodes": [
+          "A"
+        ],
+        "edges": []
+      },
+      "status": 200,
+      "steps": [
+        [
+          "init",
+          [
+            [
+              0
+            ]
+          ],
+          [
+            "A"
+          ]
+        ],
+        [
+          "start_iteration",
+          0,
+          "A"
+        ],
+        [
+          "iteration_complete",
+          0,
+          "A",
+          [
+            [
+              0
+            ]
+          ],
+          0
+        ],
+        [
+          "final",
+          [
+            [
+              0
+            ]
+          ],
+          [
+            "A"
+          ],
+          {}
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_kruskal",
+      "case": "two_nodes",
+      "request": {
+        "nodes": [
+          "A",
+          "B"
+        ],
+        "edges": [
+          [
+            "A",
+            "B",
+            7
+          ]
+        ]
+      },
+      "status": 200,
+      "steps": [
+        [
+          "sort_edges",
+          [
+            [
+              "A",
+              "B",
+              7
+            ]
+          ]
+        ],
+        [
+          "consider_edge",
+          "A",
+          "B",
+          7
+        ],
+        [
+          "add_edge",
+          "A",
+          "B",
+          7
+        ],
+        [
+          "mst_complete"
+        ],
+        [
+          "final",
+          [
+            [
+              "A",
+              "B",
+              7
+            ]
+          ],
+          7
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_floyd_warshall",
+      "case": "two_nodes",
+      "request": {
+        "nodes": [
+          "A",
+          "B"
+        ],
+        "edges": [
+          [
+            "A",
+            "B",
+            7
+          ]
+        ]
+      },
+      "status": 200,
+      "steps": [
+        [
+          "init",
+          [
+            [
+              0,
+              7
+            ],
+            [
+              7,
+              0
+            ]
+          ],
+          [
+            "A",
+            "B"
+          ]
+        ],
+        [
+          "start_iteration",
+          0,
+          "A"
+        ],
+        [
+          "consider_path",
+          "A",
+          "B",
+          "A",
+          7,
+          0,
+          7,
+          7
+        ],
+        [
+          "no_update",
+          "A",
+          "B",
+          "A",
+          7
+        ],
+        [
+          "consider_path",
+          "B",
+          "A",
+          "A",
+          7,
+          7,
+          0,
+          7
+        ],
+        [
+          "no_update",
+          "B",
+          "A",
+          "A",
+          7
+        ],
+        [
+          "iteration_complete",
+          0,
+          "A",
+          [
+            [
+              0,
+              7
+            ],
+            [
+              7,
+              0
+            ]
+          ],
+          0
+        ],
+        [
+          "start_iteration",
+          1,
+          "B"
+        ],
+        [
+          "consider_path",
+          "A",
+          "B",
+          "B",
+          7,
+          7,
+          0,
+          7
+        ],
+        [
+          "no_update",
+          "A",
+          "B",
+          "B",
+          7
+        ],
+        [
+          "consider_path",
+          "B",
+          "A",
+          "B",
+          7,
+          0,
+          7,
+          7
+        ],
+        [
+          "no_update",
+          "B",
+          "A",
+          "B",
+          7
+        ],
+        [
+          "iteration_complete",
+          1,
+          "B",
+          [
+            [
+              0,
+              7
+            ],
+            [
+              7,
+              0
+            ]
+          ],
+          0
+        ],
+        [
+          "final",
+          [
+            [
+              0,
+              7
+            ],
+            [
+              7,
+              0
+            ]
+          ],
+          [
+            "A",
+            "B"
+          ],
+          {
+            "A \u2192 B": {
+              "distance": 7,
+              "path": [
+                "A",
+                "B"
+              ]
+            },
+            "B \u2192 A": {
+              "distance": 7,
+              "path": [
+                "B",
+                "A"
+              ]
+            }
+          }
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_kruskal",
+      "case": "parallel_edges",
+      "request": {
+        "nodes": [
+          "A",
+          "B",
+          "C"
+        ],
+        "edges": [
+          [
+            "A",
+            "B",
+            9
+          ],
+          [
+            "A",
+            "B",
+            3
+          ],
+          [
+            "B",
+            "C",
+            2
+          ],
+          [
+            "A",
+            "C",
+            10
+          ]
+        ]
+      },
+      "status": 200,
+      "steps": [
+        [
+          "sort_edges",
+          [
+            [
+              "B",
+              "C",
+              2
+            ],
+            [
+              "A",
+              "B",
+              3
+            ],
+            [
+              "A",
+              "B",
+              9
+            ],
+            [
+              "A",
+              "C",
+              10
+            ]
+          ]
+        ],
+        [
+          "consider_edge",
+          "B",
+          "C",
+          2
+        ],
+        [
+          "add_edge",
+          "B",
+          "C",
+          2
+        ],
+        [
+          "consider_edge",
+          "A",
+          "B",
+          3
+        ],
+        [
+          "add_edge",
+          "A",
+          "B",
+          3
+        ],
+        [
+          "mst_complete"
+        ],
+        [
+          "consider_edge",
+          "A",
+          "B",
+          9
+        ],
+        [
+          "reject_edge",
+          "A",
+          "B",
+          9
+        ],
+        [
+          "consider_edge",
+          "A",
+          "C",
+          10
+        ],
+        [
+          "reject_edge",
+          "A",
+          "C",
+          10
+        ],
+        [
+          "final",
+          [
+            [
+              "B",
+              "C",
+              2
+            ],
+            [
+              "A",
+              "B",
+              3
+            ]
+          ],
+          5
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_floyd_warshall",
+      "case": "parallel_edges",
+      "request": {
+        "nodes": [
+          "A",
+          "B",
+          "C"
+        ],
+        "edges": [
+          [
+            "A",
+            "B",
+            9
+          ],
+          [
+            "A",
+            "B",
+            3
+          ],
+          [
+            "B",
+            "C",
+            2
+          ],
+          [
+            "A",
+            "C",
+            10
+          ]
+        ]
+      },
+      "status": 200,
+      "steps": [
+        [
+          "init",
+          [
+            [
+              0,
+              3,
+              10
+            ],
+            [
+              3,
+              0,
+              2
+            ],
+            [
+              10,
+              2,
+              0
+            ]
+          ],
+          [
+            "A",
+            "B",
+            "C"
+          ]
+        ],
+        [
+          "start_iteration",
+          0,
+          "A"
+        ],
+        [
+          "consider_path",
+          "A",
+          "B",
+          "A",
+          3,
+          0,
+          3,
+          3
+        ],
+        [
+          "no_update",
+          "A",
+          "B",
+          "A",
+          3
+        ],
+        [
+          "consider_path",
+          "A",
+          "C",
+          "A",
+          10,
+          0,
+          10,
+          10
+        ],
+        [
+          "no_update",
+          "A",
+          "C",
+          "A",
+          10
+        ],
+        [
+          "consider_path",
+          "B",
+          "A",
+          "A",
+          3,
+          3,
+          0,
+          3
+        ],
+        [
+          "no_update",
+          "B",
+          "A",
+          "A",
+          3
+        ],
+        [
+          "consider_path",
+          "B",
+          "C",
+          "A",
+          2,
+          3,
+          10,
+          13
+        ],
+        [
+          "no_update",
+          "B",
+          "C",
+          "A",
+          2
+        ],
+        [
+          "consider_path",
+          "C",
+          "A",
+          "A",
+          10,
+          10,
+          0,
+          10
+        ],
+        [
+          "no_update",
+          "C",
+          "A",
+          "A",
+          10
+        ],
+        [
+          "consider_path",
+          "C",
+          "B",
+          "A",
+          2,
+          10,
+          3,
+          13
+        ],
+        [
+          "no_update",
+          "C",
+          "B",
+          "A",
+          2
+        ],
+        [
+          "iteration_complete",
+          0,
+          "A",
+          [
+            [
+              0,
+              3,
+              10
+            ],
+            [
+              3,
+              0,
+              2
+            ],
+            [
+              10,
+              2,
+              0
+            ]
+          ],
+          0
+        ],
+        [
+          "start_iteration",
+          1,
+          "B"
+        ],
+        [
+          "consider_path",
+          "A",
+          "B",
+          "B",
+          3,
+          3,
+          0,
+          3
+        ],
+        [
+          "no_update",
+          "A",
+          "B",
+          "B",
+          3
+        ],
+        [
+          "consider_path",
+          "A",
+          "C",
+          "B",
+          10,
+          3,
+          2,
+          5
+        ],
+        [
+          "update_distance",
+          "A",
+          "C",
+          "B",
+          5,
+          0,
+          2
+        ],
+        [
+          "consider_path",
+          "B",
+          "A",
+          "B",
+          3,
+          0,
+          3,
+          3
+        ],
+        [
+          "no_update",
+          "B",
+          "A",
+          "B",
+          3
+        ],
+        [
+          "consider_path",
+          "B",
+          "C",
+          "B",
+          2,
+          0,
+          2,
+          2
+        ],
+        [
+          "no_update",
+          "B",
+          "C",
+          "B",
+          2
+        ],
+        [
+          "consider_path",
+          "C",
+          "A",
+          "B",
+          10,
+          2,
+          3,
+          5
+        ],
+        [
+          "update_distance",
+          "C",
+          "A",
+          "B",
+          5,
+          2,
+          0
+        ],
+        [
+          "consider_path",
+          "C",
+          "B",
+          "B",
+          2,
+          2,
+          0,
+          2
+        ],
+        [
+          "no_update",
+          "C",
+          "B",
+          "B",
+          2
+        ],
+        [
+          "iteration_complete",
+          1,
+          "B",
+          [
+            [
+              0,
+              3,
+              5
+            ],
+            [
+              3,
+              0,
+              2
+            ],
+            [
+              5,
+              2,
+              0
+            ]
+          ],
+          2
+        ],
+        [
+          "start_iteration",
+          2,
+          "C"
+        ],
+        [
+          "consider_path",
+          "A",
+          "B",
+          "C",
+          3,
+          5,
+          2,
+          7
+        ],
+        [
+          "no_update",
+          "A",
+          "B",
+          "C",
+          3
+        ],
+        [
+          "consider_path",
+          "A",
+          "C",
+          "C",
+          5,
+          5,
+          0,
+          5
+        ],
+        [
+          "no_update",
+          "A",
+          "C",
+          "C",
+          5
+        ],
+        [
+          "consider_path",
+          "B",
+          "A",
+          "C",
+          3,
+          2,
+          5,
+          7
+        ],
+        [
+          "no_update",
+          "B",
+          "A",
+          "C",
+          3
+        ],
+        [
+          "consider_path",
+          "B",
+          "C",
+          "C",
+          2,
+          2,
+          0,
+          2
+        ],
+        [
+          "no_update",
+          "B",
+          "C",
+          "C",
+          2
+        ],
+        [
+          "consider_path",
+          "C",
+          "A",
+          "C",
+          5,
+          0,
+          5,
+          5
+        ],
+        [
+          "no_update",
+          "C",
+          "A",
+          "C",
+          5
+        ],
+        [
+          "consider_path",
+          "C",
+          "B",
+          "C",
+          2,
+          0,
+          2,
+          2
+        ],
+        [
+          "no_update",
+          "C",
+          "B",
+          "C",
+          2
+        ],
+        [
+          "iteration_complete",
+          2,
+          "C",
+          [
+            [
+              0,
+              3,
+              5
+            ],
+            [
+              3,
+              0,
+              2
+            ],
+            [
+              5,
+              2,
+              0
+            ]
+          ],
+          0
+        ],
+        [
+          "final",
+          [
+            [
+              0,
+              3,
+              5
+            ],
+            [
+              3,
+              0,
+              2
+            ],
+            [
+              5,
+              2,
+              0
+            ]
+          ],
+          [
+            "A",
+            "B",
+            "C"
+          ],
+          {
+            "A \u2192 B": {
+              "distance": 3,
+              "path": [
+                "A",
+                "B"
+              ]
+            },
+            "A \u2192 C": {
+              "distance": 5,
+              "path": [
+                "A",
+                "B",
+                "C"
+              ]
+            },
+            "B \u2192 A": {
+              "distance": 3,
+              "path": [
+                "B",
+                "A"
+              ]
+            },
+            "B \u2192 C": {
+              "distance": 2,
+              "path": [
+                "B",
+                "C"
+              ]
+            },
+            "C \u2192 A": {
+              "distance": 5,
+              "path": [
+                "C",
+                "B",
+                "A"
+              ]
+            },
+            "C \u2192 B": {
+              "distance": 2,
+              "path": [
+                "C",
+                "B"
+              ]
+            }
+          }
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_kruskal",
+      "case": "equal_weights",
+      "request": {
+        "nodes": [
+          "A",
+          "B",
+          "C"
+        ],
+        "edges": [
+          [
+            "A",
+            "B",
+            1
+          ],
+          [
+            "B",
+            "C",
+            1
+          ],
+          [
+            "A",
+            "C",
+            1
+          ]
+        ]
+      },
+      "status": 200,
+      "steps": [
+        [
+          "sort_edges",
+          [
+            [
+              "A",
+              "B",
+              1
+            ],
+            [
+              "B",
+              "C",
+              1
+            ],
+            [
+              "A",
+              "C",
+              1
+            ]
+          ]
+        ],
+        [
+          "consider_edge",
+          "A",
+          "B",
+          1
+        ],
+        [
+          "add_edge",
+          "A",
+          "B",
+          1
+        ],
+        [
+          "consider_edge",
+          "B",
+          "C",
+          1
+        ],
+        [
+          "add_edge",
+          "B",
+          "C",
+          1
+        ],
+        [
+          "mst_complete"
+        ],
+        [
+          "consider_edge",
+          "A",
+          "C",
+          1
+        ],
+        [
+          "reject_edge",
+          "A",
+          "C",
+          1
+        ],
+        [
+          "final",
+          [
+            [
+              "A",
+              "B",
+              1
+            ],
+            [
+              "B",
+              "C",
+              1
+            ]
+          ],
+          2
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_floyd_warshall",
+      "case": "equal_weights",
+      "request": {
+        "nodes": [
+          "A",
+          "B",
+          "C"
+        ],
+        "edges": [
+          [
+            "A",
+            "B",
+            1
+          ],
+          [
+            "B",
+            "C",
+            1
+          ],
+          [
+            "A",
+            "C",
+            1
+          ]
+        ]
+      },
+      "status": 200,
+      "steps": [
+        [
+          "init",
+          [
+            [
+              0,
+              1,
+              1
+            ],
+            [
+              1,
+              0,
+              1
+            ],
+            [
+              1,
+              1,
+              0
+            ]
+          ],
+          [
+            "A",
+            "B",
+            "C"
+          ]
+        ],
+        [
+          "start_iteration",
+          0,
+          "A"
+        ],
+        [
+          "consider_path",
+          "A",
+          "B",
+          "A",
+          1,
+          0,
+          1,
+          1
+        ],
+        [
+          "no_update",
+          "A",
+          "B",
+          "A",
+          1
+        ],
+        [
+          "consider_path",
+          "A",
+          "C",
+          "A",
+          1,
+          0,
+          1,
+          1
+        ],
+        [
+          "no_update",
+          "A",
+          "C",
+          "A",
+          1
+        ],
+        [
+          "consider_path",
+          "B",
+          "A",
+          "A",
+          1,
+          1,
+          0,
+          1
+        ],
+        [
+          "no_update",
+          "B",
+          "A",
+          "A",
+          1
+        ],
+        [
+          "consider_path",
+          "B",
+          "C",
+          "A",
+          1,
+          1,
+          1,
+          2
+        ],
+        [
+          "no_update",
+          "B",
+          "C",
+          "A",
+          1
+        ],
+        [
+          "consider_path",
+          "C",
+          "A",
+          "A",
+          1,
+          1,
+          0,
+          1
+        ],
+        [
+          "no_update",
+          "C",
+          "A",
+          "A",
+          1
+        ],
+        [
+          "consider_path",
+          "C",
+          "B",
+          "A",
+          1,
+          1,
+          1,
+          2
+        ],
+        [
+          "no_update",
+          "C",
+          "B",
+          "A",
+          1
+        ],
+        [
+          "iteration_complete",
+          0,
+          "A",
+          [
+            [
+              0,
+              1,
+              1
+            ],
+            [
+              1,
+              0,
+              1
+            ],
+            [
+              1,
+              1,
+              0
+            ]
+          ],
+          0
+        ],
+        [
+          "start_iteration",
+          1,
+          "B"
+        ],
+        [
+          "consider_path",
+          "A",
+          "B",
+          "B",
+          1,
+          1,
+          0,
+          1
+        ],
+        [
+          "no_update",
+          "A",
+          "B",
+          "B",
+          1
+        ],
+        [
+          "consider_path",
+          "A",
+          "C",
+          "B",
+          1,
+          1,
+          1,
+          2
+        ],
+        [
+          "no_update",
+          "A",
+          "C",
+          "B",
+          1
+        ],
+        [
+          "consider_path",
+          "B",
+          "A",
+          "B",
+          1,
+          0,
+          1,
+          1
+        ],
+        [
+          "no_update",
+          "B",
+          "A",
+          "B",
+          1
+        ],
+        [
+          "consider_path",
+          "B",
+          "C",
+          "B",
+          1,
+          0,
+          1,
+          1
+        ],
+        [
+          "no_update",
+          "B",
+          "C",
+          "B",
+          1
+        ],
+        [
+          "consider_path",
+          "C",
+          "A",
+          "B",
+          1,
+          1,
+          1,
+          2
+        ],
+        [
+          "no_update",
+          "C",
+          "A",
+          "B",
+          1
+        ],
+        [
+          "consider_path",
+          "C",
+          "B",
+          "B",
+          1,
+          1,
+          0,
+          1
+        ],
+        [
+          "no_update",
+          "C",
+          "B",
+          "B",
+          1
+        ],
+        [
+          "iteration_complete",
+          1,
+          "B",
+          [
+            [
+              0,
+              1,
+              1
+            ],
+            [
+              1,
+              0,
+              1
+            ],
+            [
+              1,
+              1,
+              0
+            ]
+          ],
+          0
+        ],
+        [
+          "start_iteration",
+          2,
+          "C"
+        ],
+        [
+          "consider_path",
+          "A",
+          "B",
+          "C",
+          1,
+          1,
+          1,
+          2
+        ],
+        [
+          "no_update",
+          "A",
+          "B",
+          "C",
+          1
+        ],
+        [
+          "consider_path",
+          "A",
+          "C",
+          "C",
+          1,
+          1,
+          0,
+          1
+        ],
+        [
+          "no_update",
+          "A",
+          "C",
+          "C",
+          1
+        ],
+        [
+          "consider_path",
+          "B",
+          "A",
+          "C",
+          1,
+          1,
+          1,
+          2
+        ],
+        [
+          "no_update",
+          "B",
+          "A",
+          "C",
+          1
+        ],
+        [
+          "consider_path",
+          "B",
+          "C",
+          "C",
+          1,
+          1,
+          0,
+          1
+        ],
+        [
+          "no_update",
+          "B",
+          "C",
+          "C",
+          1
+        ],
+        [
+          "consider_path",
+          "C",
+          "A",
+          "C",
+          1,
+          0,
+          1,
+          1
+        ],
+        [
+          "no_update",
+          "C",
+          "A",
+          "C",
+          1
+        ],
+        [
+          "consider_path",
+          "C",
+          "B",
+          "C",
+          1,
+          0,
+          1,
+          1
+        ],
+        [
+          "no_update",
+          "C",
+          "B",
+          "C",
+          1
+        ],
+        [
+          "iteration_complete",
+          2,
+          "C",
+          [
+            [
+              0,
+              1,
+              1
+            ],
+            [
+              1,
+              0,
+              1
+            ],
+            [
+              1,
+              1,
+              0
+            ]
+          ],
+          0
+        ],
+        [
+          "final",
+          [
+            [
+              0,
+              1,
+              1
+            ],
+            [
+              1,
+              0,
+              1
+            ],
+            [
+              1,
+              1,
+              0
+            ]
+          ],
+          [
+            "A",
+            "B",
+            "C"
+          ],
+          {
+            "A \u2192 B": {
+              "distance": 1,
+              "path": [
+                "A",
+                "B"
+              ]
+            },
+            "A \u2192 C": {
+              "distance": 1,
+              "path": [
+                "A",
+                "C"
+              ]
+            },
+            "B \u2192 A": {
+              "distance": 1,
+              "path": [
+                "B",
+                "A"
+              ]
+            },
+            "B \u2192 C": {
+              "distance": 1,
+              "path": [
+                "B",
+                "C"
+              ]
+            },
+            "C \u2192 A": {
+              "distance": 1,
+              "path": [
+                "C",
+                "A"
+              ]
+            },
+            "C \u2192 B": {
+              "distance": 1,
+              "path": [
+                "C",
+                "B"
+              ]
+            }
+          }
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_kruskal",
+      "case": "negative_edge",
+      "request": {
+        "nodes": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "edges": [
+          [
+            "A",
+            "B",
+            4
+          ],
+          [
+            "A",
+            "C",
+            5
+          ],
+          [
+            "B",
+            "D",
+            -3
+          ],
+          [
+            "C",
+            "D",
+            2
+          ]
+        ]
+      },
+      "status": 200,
+      "steps": [
+        [
+          "sort_edges",
+          [
+            [
+              "B",
+              "D",
+              -3
+            ],
+            [
+              "C",
+              "D",
+              2
+            ],
+            [
+              "A",
+              "B",
+              4
+            ],
+            [
+              "A",
+              "C",
+              5
+            ]
+          ]
+        ],
+        [
+          "consider_edge",
+          "B",
+          "D",
+          -3
+        ],
+        [
+          "add_edge",
+          "B",
+          "D",
+          -3
+        ],
+        [
+          "consider_edge",
+          "C",
+          "D",
+          2
+        ],
+        [
+          "add_edge",
+          "C",
+          "D",
+          2
+        ],
+        [
+          "consider_edge",
+          "A",
+          "B",
+          4
+        ],
+        [
+          "add_edge",
+          "A",
+          "B",
+          4
+        ],
+        [
+          "mst_complete"
+        ],
+        [
+          "consider_edge",
+          "A",
+          "C",
+          5
+        ],
+        [
+          "reject_edge",
+          "A",
+          "C",
+          5
+        ],
+        [
+          "final",
+          [
+            [
+              "B",
+              "D",
+              -3
+            ],
+            [
+              "C",
+              "D",
+              2
+            ],
+            [
+              "A",
+              "B",
+              4
+            ]
+          ],
+          3
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_floyd_warshall",
+      "case": "negative_edge",
+      "request": {
+        "nodes": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "edges": [
+          [
+            "A",
+            "B",
+            4
+          ],
+          [
+            "A",
+            "C",
+            5
+          ],
+          [
+            "B",
+            "D",
+            -3
+          ],
+          [
+            "C",
+            "D",
+            2
+          ]
+        ]
+      },
+      "status": 200,
+      "steps": [
+        [
+          "init",
+          [
+            [
+              0,
+              4,
+              5,
+              "\u221e"
+            ],
+            [
+              4,
+              0,
+              "\u221e",
+              -3
+            ],
+            [
+              5,
+              "\u221e",
+              0,
+              2
+            ],
+            [
+              "\u221e",
+              -3,
+              2,
+              0
+            ]
+          ],
+          [
+            "A",
+            "B",
+            "C",
+            "D"
+          ]
+        ],
+        [
+          "start_iteration",
+          0,
+          "A"
+        ],
+        [
+          "consider_path",
+          "A",
+          "B",
+          "A",
+          4,
+          0,
+          4,
+          4
+        ],
+        [
+          "no_update",
+          "A",
+          "B",
+          "A",
+          4
+        ],
+        [
+          "consider_path",
+          "A",
+          "C",
+          "A",
+          5,
+          0,
+          5,
+          5
+        ],
+        [
+          "no_update",
+          "A",
+          "C",
+          "A",
+          5
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "D",
+          "A"
+        ],
+        [
+          "consider_path",
+          "B",
+          "A",
+          "A",
+          4,
+          4,
+          0,
+          4
+        ],
+        [
+          "no_update",
+          "B",
+          "A",
+          "A",
+          4
+        ],
+        [
+          "consider_path",
+          "B",
+          "C",
+          "A",
+          "\u221e",
+          4,
+          5,
+          9
+        ],
+        [
+          "update_distance",
+          "B",
+          "C",
+          "A",
+          9,
+          1,
+          2
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "D",
+          "A"
+        ],
+        [
+          "consider_path",
+          "C",
+          "A",
+          "A",
+          5,
+          5,
+          0,
+          5
+        ],
+        [
+          "no_update",
+          "C",
+          "A",
+          "A",
+          5
+        ],
+        [
+          "consider_path",
+          "C",
+          "B",
+          "A",
+          "\u221e",
+          5,
+          4,
+          9
+        ],
+        [
+          "update_distance",
+          "C",
+          "B",
+          "A",
+          9,
+          2,
+          1
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "D",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "A",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "B",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "D",
+          "C",
+          "A"
+        ],
+        [
+          "iteration_complete",
+          0,
+          "A",
+          [
+            [
+              0,
+              4,
+              5,
+              "\u221e"
+            ],
+            [
+              4,
+              0,
+              9,
+              -3
+            ],
+            [
+              5,
+              9,
+              0,
+              2
+            ],
+            [
+              "\u221e",
+              -3,
+              2,
+              0
+            ]
+          ],
+          2
+        ],
+        [
+          "start_iteration",
+          1,
+          "B"
+        ],
+        [
+          "consider_path",
+          "A",
+          "B",
+          "B",
+          4,
+          4,
+          0,
+          4
+        ],
+        [
+          "no_update",
+          "A",
+          "B",
+          "B",
+          4
+        ],
+        [
+          "consider_path",
+          "A",
+          "C",
+          "B",
+          5,
+          4,
+          9,
+          13
+        ],
+        [
+          "no_update",
+          "A",
+          "C",
+          "B",
+          5
+        ],
+        [
+          "consider_path",
+          "A",
+          "D",
+          "B",
+          "\u221e",
+          4,
+          -3,
+          1
+        ],
+        [
+          "update_distance",
+          "A",
+          "D",
+          "B",
+          1,
+          0,
+          3
+        ],
+        [
+          "consider_path",
+          "B",
+          "A",
+          "B",
+          4,
+          0,
+          4,
+          4
+        ],
+        [
+          "no_update",
+          "B",
+          "A",
+          "B",
+          4
+        ],
+        [
+          "consider_path",
+          "B",
+          "C",
+          "B",
+          9,
+          0,
+          9,
+          9
+        ],
+        [
+          "no_update",
+          "B",
+          "C",
+          "B",
+          9
+        ],
+        [
+          "consider_path",
+          "B",
+          "D",
+          "B",
+          -3,
+          0,
+          -3,
+          -3
+        ],
+        [
+          "no_update",
+          "B",
+          "D",
+          "B",
+          -3
+        ],
+        [
+          "consider_path",
+          "C",
+          "A",
+          "B",
+          5,
+          9,
+          4,
+          13
+        ],
+        [
+          "no_update",
+          "C",
+          "A",
+          "B",
+          5
+        ],
+        [
+          "consider_path",
+          "C",
+          "B",
+          "B",
+          9,
+          9,
+          0,
+          9
+        ],
+        [
+          "no_update",
+          "C",
+          "B",
+          "B",
+          9
+        ],
+        [
+          "consider_path",
+          "C",
+          "D",
+          "B",
+          2,
+          9,
+          -3,
+          6
+        ],
+        [
+          "no_update",
+          "C",
+          "D",
+          "B",
+          2
+        ],
+        [
+          "consider_path",
+          "D",
+          "A",
+          "B",
+          "\u221e",
+          -3,
+          4,
+          1
+        ],
+        [
+          "update_distance",
+          "D",
+          "A",
+          "B",
+          1,
+          3,
+          0
+        ],
+        [
+          "consider_path",
+          "D",
+          "B",
+          "B",
+          -3,
+          -3,
+          0,
+          -3
+        ],
+        [
+          "no_update",
+          "D",
+          "B",
+          "B",
+          -3
+        ],
+        [
+          "consider_path",
+          "D",
+          "C",
+          "B",
+          2,
+          -3,
+          9,
+          6
+        ],
+        [
+          "no_update",
+          "D",
+          "C",
+          "B",
+          2
+        ],
+        [
+          "iteration_complete",
+          1,
+          "B",
+          [
+            [
+              0,
+              4,
+              5,
+              1
+            ],
+            [
+              4,
+              0,
+              9,
+              -3
+            ],
+            [
+              5,
+              9,
+              0,
+              2
+            ],
+            [
+              1,
+              -3,
+              2,
+              0
+            ]
+          ],
+          2
+        ],
+        [
+          "start_iteration",
+          2,
+          "C"
+        ],
+        [
+          "consider_path",
+          "A",
+          "B",
+          "C",
+          4,
+          5,
+          9,
+          14
+        ],
+        [
+          "no_update",
+          "A",
+          "B",
+          "C",
+          4
+        ],
+        [
+          "consider_path",
+          "A",
+          "C",
+          "C",
+          5,
+          5,
+          0,
+          5
+        ],
+        [
+          "no_update",
+          "A",
+          "C",
+          "C",
+          5
+        ],
+        [
+          "consider_path",
+          "A",
+          "D",
+          "C",
+          1,
+          5,
+          2,
+          7
+        ],
+        [
+          "no_update",
+          "A",
+          "D",
+          "C",
+          1
+        ],
+        [
+          "consider_path",
+          "B",
+          "A",
+          "C",
+          4,
+          9,
+          5,
+          14
+        ],
+        [
+          "no_update",
+          "B",
+          "A",
+          "C",
+          4
+        ],
+        [
+          "consider_path",
+          "B",
+          "C",
+          "C",
+          9,
+          9,
+          0,
+          9
+        ],
+        [
+          "no_update",
+          "B",
+          "C",
+          "C",
+          9
+        ],
+        [
+          "consider_path",
+          "B",
+          "D",
+          "C",
+          -3,
+          9,
+          2,
+          11
+        ],
+        [
+          "no_update",
+          "B",
+          "D",
+          "C",
+          -3
+        ],
+        [
+          "consider_path",
+          "C",
+          "A",
+          "C",
+          5,
+          0,
+          5,
+          5
+        ],
+        [
+          "no_update",
+          "C",
+          "A",
+          "C",
+          5
+        ],
+        [
+          "consider_path",
+          "C",
+          "B",
+          "C",
+          9,
+          0,
+          9,
+          9
+        ],
+        [
+          "no_update",
+          "C",
+          "B",
+          "C",
+          9
+        ],
+        [
+          "consider_path",
+          "C",
+          "D",
+          "C",
+          2,
+          0,
+          2,
+          2
+        ],
+        [
+          "no_update",
+          "C",
+          "D",
+          "C",
+          2
+        ],
+        [
+          "consider_path",
+          "D",
+          "A",
+          "C",
+          1,
+          2,
+          5,
+          7
+        ],
+        [
+          "no_update",
+          "D",
+          "A",
+          "C",
+          1
+        ],
+        [
+          "consider_path",
+          "D",
+          "B",
+          "C",
+          -3,
+          2,
+          9,
+          11
+        ],
+        [
+          "no_update",
+          "D",
+          "B",
+          "C",
+          -3
+        ],
+        [
+          "consider_path",
+          "D",
+          "C",
+          "C",
+          2,
+          2,
+          0,
+          2
+        ],
+        [
+          "no_update",
+          "D",
+          "C",
+          "C",
+          2
+        ],
+        [
+          "iteration_complete",
+          2,
+          "C",
+          [
+            [
+              0,
+              4,
+              5,
+              1
+            ],
+            [
+              4,
+              0,
+              9,
+              -3
+            ],
+            [
+              5,
+              9,
+              0,
+              2
+            ],
+            [
+              1,
+              -3,
+              2,
+              0
+            ]
+          ],
+          0
+        ],
+        [
+          "start_iteration",
+          3,
+          "D"
+        ],
+        [
+          "consider_path",
+          "A",
+          "B",
+          "D",
+          4,
+          1,
+          -3,
+          -2
+        ],
+        [
+          "update_distance",
+          "A",
+          "B",
+          "D",
+          -2,
+          0,
+          1
+        ],
+        [
+          "consider_path",
+          "A",
+          "C",
+          "D",
+          5,
+          1,
+          2,
+          3
+        ],
+        [
+          "update_distance",
+          "A",
+          "C",
+          "D",
+          3,
+          0,
+          2
+        ],
+        [
+          "consider_path",
+          "A",
+          "D",
+          "D",
+          1,
+          1,
+          0,
+          1
+        ],
+        [
+          "no_update",
+          "A",
+          "D",
+          "D",
+          1
+        ],
+        [
+          "consider_path",
+          "B",
+          "A",
+          "D",
+          4,
+          -3,
+          1,
+          -2
+        ],
+        [
+          "update_distance",
+          "B",
+          "A",
+          "D",
+          -2,
+          1,
+          0
+        ],
+        [
+          "consider_path",
+          "B",
+          "C",
+          "D",
+          9,
+          -3,
+          2,
+          -1
+        ],
+        [
+          "update_distance",
+          "B",
+          "C",
+          "D",
+          -1,
+          1,
+          2
+        ],
+        [
+          "consider_path",
+          "B",
+          "D",
+          "D",
+          -3,
+          -3,
+          0,
+          -3
+        ],
+        [
+          "no_update",
+          "B",
+          "D",
+          "D",
+          -3
+        ],
+        [
+          "consider_path",
+          "C",
+          "A",
+          "D",
+          5,
+          2,
+          1,
+          3
+        ],
+        [
+          "update_distance",
+          "C",
+          "A",
+          "D",
+          3,
+          2,
+          0
+        ],
+        [
+          "consider_path",
+          "C",
+          "B",
+          "D",
+          9,
+          2,
+          -3,
+          -1
+        ],
+        [
+          "update_distance",
+          "C",
+          "B",
+          "D",
+          -1,
+          2,
+          1
+        ],
+        [
+          "consider_path",
+          "C",
+          "D",
+          "D",
+          2,
+          2,
+          0,
+          2
+        ],
+        [
+          "no_update",
+          "C",
+          "D",
+          "D",
+          2
+        ],
+        [
+          "consider_path",
+          "D",
+          "A",
+          "D",
+          1,
+          0,
+          1,
+          1
+        ],
+        [
+          "no_update",
+          "D",
+          "A",
+          "D",
+          1
+        ],
+        [
+          "consider_path",
+          "D",
+          "B",
+          "D",
+          -3,
+          0,
+          -3,
+          -3
+        ],
+        [
+          "no_update",
+          "D",
+          "B",
+          "D",
+          -3
+        ],
+        [
+          "consider_path",
+          "D",
+          "C",
+          "D",
+          2,
+          0,
+          2,
+          2
+        ],
+        [
+          "no_update",
+          "D",
+          "C",
+          "D",
+          2
+        ],
+        [
+          "iteration_complete",
+          3,
+          "D",
+          [
+            [
+              0,
+              -2,
+              3,
+              1
+            ],
+            [
+              -2,
+              0,
+              -1,
+              -3
+            ],
+            [
+              3,
+              -1,
+              0,
+              2
+            ],
+            [
+              1,
+              -3,
+              2,
+              0
+            ]
+          ],
+          6
+        ],
+        [
+          "final",
+          [
+            [
+              0,
+              -2,
+              3,
+              1
+            ],
+            [
+              -2,
+              0,
+              -1,
+              -3
+            ],
+            [
+              3,
+              -1,
+              0,
+              2
+            ],
+            [
+              1,
+              -3,
+              2,
+              0
+            ]
+          ],
+          [
+            "A",
+            "B",
+            "C",
+            "D"
+          ],
+          {
+            "A \u2192 B": {
+              "distance": -2,
+              "path": [
+                "A",
+                "B"
+              ]
+            },
+            "A \u2192 C": {
+              "distance": 3,
+              "path": [
+                "A",
+                "B",
+                "D",
+                "C"
+              ]
+            },
+            "A \u2192 D": {
+              "distance": 1,
+              "path": [
+                "A",
+                "B",
+                "D"
+              ]
+            },
+            "B \u2192 C": {
+              "distance": -1,
+              "path": [
+                "B",
+                "D",
+                "C"
+              ]
+            },
+            "B \u2192 D": {
+              "distance": -3,
+              "path": [
+                "B",
+                "D"
+              ]
+            },
+            "C \u2192 B": {
+              "distance": -1,
+              "path": [
+                "C",
+                "D",
+                "B"
+              ]
+            },
+            "C \u2192 D": {
+              "distance": 2,
+              "path": [
+                "C",
+                "D"
+              ]
+            },
+            "D \u2192 B": {
+              "distance": -3,
+              "path": [
+                "D",
+                "B"
+              ]
+            },
+            "D \u2192 C": {
+              "distance": 2,
+              "path": [
+                "D",
+                "C"
+              ]
+            }
+          }
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_kruskal",
+      "case": "no_edges",
+      "request": {
+        "nodes": [
+          "A",
+          "B",
+          "C"
+        ],
+        "edges": []
+      },
+      "status": 200,
+      "steps": [
+        [
+          "sort_edges",
+          []
+        ],
+        [
+          "final",
+          [],
+          0
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    },
+    {
+      "endpoint": "/run_floyd_warshall",
+      "case": "no_edges",
+      "request": {
+        "nodes": [
+          "A",
+          "B",
+          "C"
+        ],
+        "edges": []
+      },
+      "status": 200,
+      "steps": [
+        [
+          "init",
+          [
+            [
+              0,
+              "\u221e",
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              0,
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              0
+            ]
+          ],
+          [
+            "A",
+            "B",
+            "C"
+          ]
+        ],
+        [
+          "start_iteration",
+          0,
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "B",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "C",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "A",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "C",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "A",
+          "A"
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "B",
+          "A"
+        ],
+        [
+          "iteration_complete",
+          0,
+          "A",
+          [
+            [
+              0,
+              "\u221e",
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              0,
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              0
+            ]
+          ],
+          0
+        ],
+        [
+          "start_iteration",
+          1,
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "B",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "C",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "A",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "C",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "A",
+          "B"
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "B",
+          "B"
+        ],
+        [
+          "iteration_complete",
+          1,
+          "B",
+          [
+            [
+              0,
+              "\u221e",
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              0,
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              0
+            ]
+          ],
+          0
+        ],
+        [
+          "start_iteration",
+          2,
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "B",
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "A",
+          "C",
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "A",
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "B",
+          "C",
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "A",
+          "C"
+        ],
+        [
+          "no_path_via_k",
+          "C",
+          "B",
+          "C"
+        ],
+        [
+          "iteration_complete",
+          2,
+          "C",
+          [
+            [
+              0,
+              "\u221e",
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              0,
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              0
+            ]
+          ],
+          0
+        ],
+        [
+          "final",
+          [
+            [
+              0,
+              "\u221e",
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              0,
+              "\u221e"
+            ],
+            [
+              "\u221e",
+              "\u221e",
+              0
+            ]
+          ],
+          [
+            "A",
+            "B",
+            "C"
+          ],
+          {}
+        ]
+      ],
+      "envelope": null,
+      "order_sensitive": false
+    }
+  ],
+  "order_sensitive_note": "run_dijkstra picks the next node with min() over a set. When two unvisited nodes tie on distance, the winner depends on set iteration order, which Python varies between processes via PYTHONHASHSEED. The one case below was observed changing across 8 seeds, so its step array is compared loosely. This is a pre-existing bug, present at 4a1cec8 and before; Phase 4b did not introduce it and does not change it."
+}

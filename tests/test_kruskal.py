@@ -38,7 +38,9 @@ class TestKruskalVisualization:
                              content_type='application/json')
         
         assert response.status_code == 200
-        data = response.get_json()
+        # Phase 4b: the endpoint answers with {steps, meta} rather than a
+        # bare array. The steps themselves are unchanged.
+        data = response.get_json()["steps"]
         
         # Should have steps for each edge addition plus final step
         assert len(data) > 0
@@ -68,7 +70,9 @@ class TestKruskalVisualization:
                              content_type='application/json')
         
         assert response.status_code == 200
-        data = response.get_json()
+        # Phase 4b: the endpoint answers with {steps, meta} rather than a
+        # bare array. The steps themselves are unchanged.
+        data = response.get_json()["steps"]
         
         # Should have 2 MST edges (one per component)
         mst_edges = [step for step in data if step[0] == 'add_edge']
@@ -86,7 +90,9 @@ class TestKruskalVisualization:
                              content_type='application/json')
         
         assert response.status_code == 200
-        data = response.get_json()
+        # Phase 4b: the endpoint answers with {steps, meta} rather than a
+        # bare array. The steps themselves are unchanged.
+        data = response.get_json()["steps"]
         
         # Should have only final step with empty MST
         final_step = data[-1]
@@ -135,7 +141,9 @@ class TestKruskalVisualization:
                              content_type='application/json')
         
         assert response.status_code == 200
-        data = response.get_json()
+        # Phase 4b: the endpoint answers with {steps, meta} rather than a
+        # bare array. The steps themselves are unchanged.
+        data = response.get_json()["steps"]
         
         # Should have 9 MST edges for 10 nodes
         mst_edges = [step for step in data if step[0] == 'add_edge']
