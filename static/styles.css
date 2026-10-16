@@ -2247,6 +2247,664 @@ a.logo:focus-visible,
 }
 
 /* ==========================================================================
+   WORKSPACE
+   The three column shell every workspace uses: setup, stage with its control
+   bar and legend, Learn panel. DESIGN section 3.
+
+   Nothing here names an algorithm or a family. Phases 6 and 7 put a sorting
+   or a graph stage inside .stage and get the rest unchanged.
+   ========================================================================== */
+
+.workspace {
+    display: grid;
+    gap: var(--space-4);
+    max-width: 1680px;
+    margin: 0 auto var(--space-8);
+    padding: 0 var(--space-4);
+}
+
+/* Order below 768px: stage, control bar, legend, setup, Learn panel. The
+   stage comes first because it is what the page is for. */
+.workspace-stage-col { order: 1; min-width: 0; }
+.workspace-setup     { order: 2; min-width: 0; }
+.workspace-learn     { order: 3; min-width: 0; }
+
+@media (min-width: 768px) {
+    .workspace { padding: 0 var(--space-6); }
+}
+
+@media (min-width: 1024px) {
+    .workspace {
+        grid-template-columns: minmax(0, 1fr) 340px;
+        gap: var(--space-4) var(--space-4);
+        padding: 0 var(--space-8);
+    }
+    /* Setup becomes a strip above the stage, Learn panel moves alongside. */
+    .workspace-setup     { order: 1; grid-column: 1 / -1; }
+    .workspace-stage-col { order: 2; grid-column: 1; }
+    .workspace-learn     { order: 3; grid-column: 2; grid-row: 2; }
+}
+
+@media (min-width: 1280px) {
+    .workspace {
+        grid-template-columns: 300px minmax(0, 1fr) 380px;
+        gap: 20px;
+    }
+    .workspace-setup     { order: 1; grid-column: 1; grid-row: 1; }
+    .workspace-stage-col { order: 2; grid-column: 2; grid-row: 1; }
+    .workspace-learn     { order: 3; grid-column: 3; grid-row: 1; }
+}
+
+/* --- Panels --------------------------------------------------------------- */
+
+.panel {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-6);
+}
+
+.panel + .panel { margin-top: var(--space-4); }
+
+.panel-title {
+    font-size: var(--text-lg);
+    font-weight: 600;
+    margin: 0 0 var(--space-3);
+}
+
+/* --- Setup column --------------------------------------------------------- */
+
+.algo-picker {
+    list-style: none;
+    margin: 0 0 var(--space-4);
+    padding: 0;
+    display: grid;
+    gap: var(--space-2);
+}
+
+.algo-picker a {
+    --pick-accent: var(--border-strong);
+    display: block;
+    padding: var(--space-3);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--pick-accent);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: var(--text);
+    transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.algo-picker a[data-accent="1"] { --pick-accent: var(--algo-1); }
+.algo-picker a[data-accent="2"] { --pick-accent: var(--algo-2); }
+.algo-picker a[data-accent="3"] { --pick-accent: var(--algo-3); }
+.algo-picker a[data-accent="4"] { --pick-accent: var(--algo-4); }
+.algo-picker a[data-accent="5"] { --pick-accent: var(--algo-5); }
+.algo-picker a[data-accent="6"] { --pick-accent: var(--algo-6); }
+.algo-picker a[data-accent="7"] { --pick-accent: var(--algo-7); }
+
+.algo-picker a:hover { background-color: var(--sunken); }
+
+.algo-picker a[aria-current="true"] {
+    background-color: var(--queued-wash);
+    border-color: var(--accent);
+    border-left-color: var(--pick-accent);
+}
+
+.algo-picker .pick-name { font-weight: 600; display: block; }
+
+.algo-picker .pick-note {
+    display: block;
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+}
+
+.setup-field { margin-bottom: var(--space-4); }
+
+.setup-field label {
+    font-weight: 500;
+    font-size: var(--text-sm);
+}
+
+.setup-hint {
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    margin: var(--space-1) 0 0;
+}
+
+.setup-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+}
+
+.field-error {
+    margin-top: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background-color: var(--reject-wash);
+    border-left: 3px solid var(--reject);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: var(--text-sm);
+}
+
+.field-error:empty { display: none; }
+
+.field-error .btn { margin-top: var(--space-2); }
+
+@media (min-width: 768px) and (max-width: 1279px) {
+    /* Setup is a strip here, so its fields sit side by side. */
+    .setup-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: var(--space-4);
+        align-items: start;
+    }
+    .algo-picker { grid-auto-flow: column; grid-auto-columns: 1fr; }
+}
+
+/* --- Stage ---------------------------------------------------------------- */
+
+.stage {
+    height: min(62vh, 620px);
+    min-height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-4);
+    background-color: var(--sunken);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    overflow: auto;
+}
+
+.stage-empty {
+    color: var(--text-muted);
+    text-align: center;
+    max-width: 40ch;
+}
+
+/* The control bar is always the element immediately below the stage. */
+.control-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+.transport {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.transport-btn {
+    width: var(--target);
+    height: var(--target);
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background-color: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background-color var(--dur-fast) var(--ease-out),
+                transform var(--dur-fast) var(--ease-out);
+}
+
+.transport-btn:hover:not(:disabled) { background-color: var(--sunken); }
+.transport-btn:active:not(:disabled) { transform: scale(0.97); }
+
+.transport-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* Play and pause are one button that swaps icon, not two that dim. */
+.transport-btn.is-primary {
+    background-color: var(--done-solid);
+    border-color: var(--done-solid);
+    color: var(--on-state);
+}
+
+.transport-btn.is-primary:hover:not(:disabled) { background-color: var(--done-ink); }
+
+.transport-btn[data-playing="true"] .icon-play,
+.transport-btn[data-playing="false"] .icon-pause { display: none; }
+
+.speed-field {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex: 1 1 180px;
+    min-width: 0;
+}
+
+.speed-field label {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.speed-field input { flex: 1 1 auto; min-width: 80px; }
+
+.step-counter {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+    /* Two rows: transport first, speed and counter second. */
+    .control-bar {
+        position: sticky;
+        bottom: 0;
+        z-index: 20;
+        padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+        box-shadow: var(--shadow-2);
+    }
+    .transport { flex: 1 1 100%; justify-content: space-between; }
+    .speed-field { flex: 1 1 60%; }
+    .step-counter { flex: 0 0 auto; }
+}
+
+/* --- Legend --------------------------------------------------------------- */
+
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    margin-top: var(--space-3);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+}
+
+.legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+/* Shape carries meaning as well as colour: square for a cell or a bar,
+   circle for a node, short bar for an edge. */
+.legend-swatch {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 auto;
+    border: 1px solid var(--border-strong);
+    background-color: var(--swatch, var(--idle-sort));
+}
+
+.legend-swatch[data-shape="node"] { border-radius: 50%; }
+.legend-swatch[data-shape="edge"] { height: 4px; width: 18px; border-radius: 2px; }
+
+/* --- Result banner -------------------------------------------------------- */
+
+.run-banner {
+    margin-top: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background-color: var(--surface);
+    font-variant-numeric: tabular-nums;
+}
+
+.run-banner:empty { display: none; }
+.run-banner[data-outcome="found"]   { border-left-color: var(--done); background-color: var(--done-wash); }
+.run-banner[data-outcome="missing"] { border-left-color: var(--reject); background-color: var(--reject-wash); }
+
+/* ==========================================================================
+   LEARN PANEL
+   Built by static/js/teacher.js. DESIGN section 7.
+   ========================================================================== */
+
+.learn-panel {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.learn-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+
+.learn-tab {
+    flex: 0 0 auto;
+    min-height: var(--target);
+    padding: 0 var(--space-4);
+    border: none;
+    border-bottom: 2px solid transparent;
+    background-color: transparent;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.learn-tab:hover { color: var(--text); background-color: var(--sunken); }
+
+.learn-tab[aria-selected="true"] {
+    color: var(--text);
+    background-color: var(--surface);
+    border-bottom-color: var(--accent);
+    font-weight: 600;
+}
+
+.learn-body {
+    padding: var(--space-4);
+    overflow-y: auto;
+}
+
+@media (min-width: 1024px) {
+    /* The body scrolls on its own so the stage stays in view. */
+    .learn-body { max-height: min(62vh, 620px); }
+}
+
+.learn-body h3 {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin: var(--space-4) 0 var(--space-2);
+}
+
+.learn-body h3:first-child { margin-top: 0; }
+
+.learn-body p { margin: 0 0 var(--space-3); }
+
+/* --- Explain -------------------------------------------------------------- */
+
+.explain-head { min-height: 22px; }
+
+.explain-action {
+    display: inline-block;
+    padding: 1px var(--space-2);
+    border-radius: var(--radius-sm);
+    background-color: var(--sunken);
+    border: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+}
+
+.explain-action:empty { display: none; }
+.explain-action[data-action="found"]   { background-color: var(--done-wash); color: var(--done-ink); border-color: var(--done); }
+.explain-action[data-action="missing"] { background-color: var(--reject-wash); color: var(--reject-ink); border-color: var(--reject); }
+.explain-action[data-action="compare"] { background-color: var(--active-wash); color: var(--active-ink); border-color: var(--active); }
+
+/* Two lines are reserved so the tabs never move when the text changes. */
+.explain-text {
+    font-size: var(--text-lg);
+    min-height: calc(2 * 1.5em);
+    margin-top: var(--space-2);
+}
+
+.explain-why {
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+    min-height: calc(2 * 1.5em);
+}
+
+/* --- Code ----------------------------------------------------------------- */
+
+.code-toggle {
+    display: flex;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+}
+
+.code-toggle-btn {
+    padding: var(--space-2) var(--space-3);
+    min-height: 36px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background-color: var(--surface);
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: var(--text-sm);
+    cursor: pointer;
+}
+
+.code-toggle-btn[aria-pressed="true"] {
+    background-color: var(--queued-wash);
+    border-color: var(--accent);
+    color: var(--queued-ink);
+    font-weight: 600;
+}
+
+.code-listing {
+    list-style: none;
+    margin: 0 0 var(--space-4);
+    padding: var(--space-2) 0;
+    background-color: var(--sunken);
+    border-radius: var(--radius-sm);
+    counter-reset: codeline;
+    overflow-x: auto;
+}
+
+.code-line {
+    counter-increment: codeline;
+    display: flex;
+    gap: var(--space-2);
+    padding: 2px var(--space-3) 2px calc(var(--space-3) - 3px);
+    border-left: 3px solid transparent;
+    white-space: pre;
+}
+
+.code-line::before {
+    content: counter(codeline);
+    flex: 0 0 1.5em;
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+}
+
+.code-line code {
+    padding-left: calc(var(--indent, 0) * 1.25em);
+}
+
+/* The current line is marked by a rule and a wash, not by colour alone. */
+.code-line.is-current {
+    border-left-color: var(--active);
+    background-color: var(--active-wash);
+}
+
+.vars-heading { margin-top: var(--space-4); }
+
+.var-table {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-1) var(--space-3);
+    margin: 0;
+    font-size: var(--text-sm);
+}
+
+.var-table dt {
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+}
+
+.var-table dd {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+}
+
+/* --- Complexity ----------------------------------------------------------- */
+
+.complexity-table {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-2) var(--space-3);
+    margin: 0 0 var(--space-3);
+    font-size: var(--text-sm);
+}
+
+.complexity-table dt {
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.complexity-table dd { margin: 0; }
+
+.complexity-value {
+    display: block;
+    font-family: var(--font-mono);
+    color: var(--text);
+}
+
+.complexity-reason {
+    display: block;
+    color: var(--text-muted);
+    margin-top: var(--space-1);
+}
+
+.worked, .space-line { font-size: var(--text-sm); }
+.worked-note, .aux-note, .divergence {
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+}
+
+.this-run {
+    padding: var(--space-3);
+    background-color: var(--sunken);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-2);
+}
+
+.this-run-empty { margin: 0; color: var(--text-muted); font-size: var(--text-sm); }
+
+.growth-chart {
+    width: 100%;
+    height: auto;
+    max-height: 160px;
+    display: block;
+}
+
+.growth-ref {
+    stroke: var(--text-muted);
+    stroke-width: 1.5;
+    opacity: 0.4;
+}
+
+.growth-mine {
+    stroke: var(--accent);
+    stroke-width: 2.5;
+}
+
+.growth-caption, .growth-data {
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+}
+
+.growth-data summary { cursor: pointer; min-height: var(--target); display: flex; align-items: center; }
+.growth-data table { border-collapse: collapse; width: 100%; }
+.growth-data th, .growth-data td { text-align: left; padding: var(--space-1) 0; }
+
+.idea-list { margin: 0 0 var(--space-3); padding-left: var(--space-6); }
+.idea-list li { margin-bottom: var(--space-2); }
+
+/* --- Array stage cells ----------------------------------------------------
+   A one dimensional row of labelled cells. Searching uses it now; any later
+   workspace that shows an array can use it too. */
+
+.cell-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    justify-content: center;
+    align-items: flex-end;
+}
+
+.cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.cell-box {
+    min-width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--space-2);
+    background-color: var(--surface);
+    border: 2px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    transition: background-color var(--dur-base) var(--ease-out),
+                border-color var(--dur-base) var(--ease-out),
+                opacity var(--dur-base) var(--ease-out);
+}
+
+.cell-index {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+}
+
+.cell[data-state="current"] .cell-box {
+    background-color: var(--active);
+    border-color: var(--active);
+    color: var(--on-state);
+}
+
+.cell[data-state="found"] .cell-box {
+    background-color: var(--done);
+    border-color: var(--done);
+    color: var(--on-state);
+}
+
+/* Discarded cells stay legible. They are dimmed and marked, never hidden. */
+.cell[data-state="discarded"] .cell-box {
+    opacity: 0.45;
+    border-style: dashed;
+}
+
+.cell-pointers {
+    display: flex;
+    gap: 2px;
+    min-height: 1.2em;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 600;
+}
+
+.pointer-low  { color: var(--queued-ink); }
+.pointer-mid  { color: var(--active-ink); }
+.pointer-high { color: var(--pivot-ink); }
+
+
+/* ==========================================================================
    SECTION REVEAL ON FIRST VIEW
    Transition driven rather than keyframes, so a fast scroll retargets
    instead of restarting. Only JS arms a group, so with JS off, and before

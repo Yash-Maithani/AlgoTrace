@@ -48,23 +48,21 @@ def test_lesson_registers_under_its_own_name(name):
     assert re.search(r"id:\s*'%s'" % name, source)
 
 
-@pytest.mark.parametrize('name', SEARCHING)
-def test_searching_lessons_declare_their_code_is_pending(name):
-    """They ship before Phase 5 writes the implementation, so they say so."""
-    with open(os.path.join(LESSON_DIR, '%s.js' % name), encoding='utf-8') as fh:
-        source = fh.read()
-
-    assert 'codePending: true' in source
-    assert 'Phase 5' in source
-
-
-@pytest.mark.parametrize('name', SORTING)
-def test_sorting_lessons_are_not_pending(name):
-    """Their code exists in this commit, so nothing about them is deferred."""
+@pytest.mark.parametrize('name', SORTING + SEARCHING)
+def test_no_lesson_is_pending(name):
+    """Phase 5 built the searching code, so nothing is deferred any more."""
     with open(os.path.join(LESSON_DIR, '%s.js' % name), encoding='utf-8') as fh:
         source = fh.read()
 
     assert 'codePending' not in source
+
+
+@pytest.mark.parametrize('name', SEARCHING)
+def test_searching_lesson_has_an_implementation_behind_it(name):
+    """The listing is only honest if the module it describes exists."""
+    module = os.path.join(ROOT, 'searching_algorithms', '%s.py' % name)
+
+    assert os.path.isfile(module), '%s.js describes code that is not there' % name
 
 
 @pytest.mark.skipif(shutil.which('node') is None,

@@ -1,0 +1,326 @@
+{% extends "layout.html" %}
+
+{% block title %}Searching | Algorithm Visualizer{% endblock %}
+
+{% block content %}
+    <main class="workspace" id="main">
+
+        <!-- SETUP ------------------------------------------------------- -->
+        <section class="workspace-setup" aria-labelledby="setup-heading">
+            <div class="panel">
+                <h2 class="panel-title" id="setup-heading">Set up a run</h2>
+                <div class="setup-grid">
+                    <div>
+                        <ul class="algo-picker" id="algo-picker">
+                            {% for key, name, note in algorithms %}
+                            <li>
+                                <a href="#" data-algorithm="{{ key }}"
+                                   data-accent="{{ loop.index }}"
+                                   aria-current="{{ 'true' if loop.first else 'false' }}">
+                                    <span class="pick-name">{{ name }}</span>
+                                    <span class="pick-note">{{ note }}</span>
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div>
+                        <div class="setup-field">
+                            <label for="array-input">Values</label>
+                            <input type="text" id="array-input"
+                                   value="4, 8, 15, 16, 23, 42"
+                                   autocomplete="off" spellcheck="false"
+                                   aria-describedby="array-hint">
+                            <p class="setup-hint" id="array-hint">
+                                Whole numbers, separated by commas. Up to 30 of them.
+                            </p>
+                            <div class="setup-row">
+                                <button type="button" class="btn btn-secondary btn-sm"
+                                        id="random-array">Random array</button>
+                                <button type="button" class="btn btn-secondary btn-sm"
+                                        id="sort-array">Sort it</button>
+                            </div>
+                            <div class="field-error" id="array-error" role="alert"></div>
+                        </div>
+
+                        <div class="setup-field">
+                            <label for="target-input">Target</label>
+                            <input type="number" id="target-input" value="16"
+                                   autocomplete="off">
+                            <div class="setup-row">
+                                <button type="button" class="btn btn-secondary btn-sm"
+                                        id="pick-present">Pick one that exists</button>
+                                <button type="button" class="btn btn-secondary btn-sm"
+                                        id="pick-absent">Pick one that does not</button>
+                            </div>
+                            <div class="field-error" id="target-error" role="alert"></div>
+                        </div>
+
+                        <button type="button" class="btn btn-primary" id="run-button">
+                            Run the search
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STAGE, CONTROL BAR, LEGEND ---------------------------------- -->
+        <section class="workspace-stage-col" aria-labelledby="stage-heading">
+            <h2 class="sr-only" id="stage-heading">Visualization</h2>
+
+            <div class="stage" id="stage">
+                <p class="stage-empty" id="stage-empty">
+                    Choose an algorithm, enter some values and a target,
+                    then run the search.
+                </p>
+                <div class="cell-row" id="cell-row" hidden></div>
+            </div>
+
+            <div class="control-bar" role="group" aria-label="Playback">
+                <div class="transport">
+                    <button type="button" class="transport-btn" id="step-back"
+                            aria-label="Step back" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
+                    <button type="button" class="transport-btn is-primary" id="play-pause"
+                            data-playing="false" aria-label="Play" disabled>
+                        <svg class="icon-play" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <polygon points="7 5 19 12 7 19"></polygon>
+                        </svg>
+                        <svg class="icon-pause" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <rect x="7" y="5" width="4" height="14"></rect>
+                            <rect x="13" y="5" width="4" height="14"></rect>
+                        </svg>
+                    </button>
+                    <button type="button" class="transport-btn" id="step-forward"
+                            aria-label="Step forward" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
+                    <button type="button" class="transport-btn" id="reset"
+                            aria-label="Reset to the first step" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="1 4 1 10 7 10"></polyline>
+                            <path d="M3.5 15a9 9 0 1 0 2.1-9.4L1 10"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="speed-field">
+                    <label for="speed">Speed</label>
+                    <input type="range" id="speed" min="1" max="10" value="5"
+                           aria-describedby="step-counter">
+                </div>
+
+                <div class="step-counter" id="step-counter" role="status" aria-live="polite">
+                    Step 0 of 0
+                </div>
+            </div>
+
+            <div class="legend" id="legend">
+                <span class="legend-item">
+                    <span class="legend-swatch" data-shape="cell" style="--swatch: var(--surface)"></span>
+                    In the live range
+                </span>
+                <span class="legend-item">
+                    <span class="legend-swatch" data-shape="cell" style="--swatch: var(--active)"></span>
+                    Being compared
+                </span>
+                <span class="legend-item">
+                    <span class="legend-swatch" data-shape="cell" style="--swatch: var(--done)"></span>
+                    Found
+                </span>
+                <span class="legend-item">
+                    <span class="legend-swatch" data-shape="cell" style="--swatch: var(--sunken)"></span>
+                    Ruled out, shown dashed
+                </span>
+            </div>
+
+            <div class="run-banner" id="run-banner" role="status" aria-live="polite"></div>
+        </section>
+
+        <!-- LEARN PANEL -------------------------------------------------- -->
+        <section class="workspace-learn" aria-labelledby="learn-heading">
+            <h2 class="sr-only" id="learn-heading">Learn</h2>
+            <div class="learn-panel" id="learn-panel"></div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block page_js %}
+    <script src="{{ url_for('static', filename='js/lessons/linear_search.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/lessons/binary_search.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/teacher.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
+    <script>
+        /* Everything below is the searching workspace only. The shell, the
+           control bar and the Learn panel come from the shared pieces. */
+        Workspace.start({
+            endpoint: '/run_search',
+            lessons: window.LESSONS,
+
+            /* Build the request from the setup column. Returning a string
+               instead of an object reports a validation problem. */
+            readRequest: function (ui) {
+                var raw = document.getElementById('array-input').value;
+                var target = document.getElementById('target-input').value;
+                if (!target.trim()) return { field: 'target-error', message: 'Enter a target to search for.' };
+                return {
+                    algorithm: ui.algorithm,
+                    array: raw,
+                    target: target
+                };
+            },
+
+            /* Draw one step onto the stage. */
+            renderStep: function (step, context) {
+                var row = document.getElementById('cell-row');
+                var values = step.array;
+                var vars = step.vars || {};
+                var low = typeof vars.low === 'number' ? vars.low : 0;
+                var high = typeof vars.high === 'number' ? vars.high : values.length - 1;
+                var usesRange = typeof vars.low === 'number';
+
+                if (row.childElementCount !== values.length) {
+                    row.innerHTML = '';
+                    values.forEach(function (value, index) {
+                        var cell = document.createElement('div');
+                        cell.className = 'cell';
+                        var pointers = document.createElement('span');
+                        pointers.className = 'cell-pointers';
+                        var box = document.createElement('span');
+                        box.className = 'cell-box';
+                        box.textContent = value;
+                        var label = document.createElement('span');
+                        label.className = 'cell-index';
+                        label.textContent = index;
+                        cell.appendChild(pointers);
+                        cell.appendChild(box);
+                        cell.appendChild(label);
+                        row.appendChild(cell);
+                    });
+                }
+
+                Array.prototype.forEach.call(row.children, function (cell, index) {
+                    var state = 'live';
+                    if (usesRange && (index < low || index > high)) state = 'discarded';
+                    if (step.indices.indexOf(index) !== -1) {
+                        state = step.action === 'found' ? 'found' : 'current';
+                    }
+                    cell.setAttribute('data-state', state);
+
+                    var pointers = cell.firstChild;
+                    pointers.innerHTML = '';
+                    if (!usesRange) return;
+                    [['low', low, 'pointer-low'],
+                     ['mid', vars.mid, 'pointer-mid'],
+                     ['high', high, 'pointer-high']].forEach(function (p) {
+                        if (p[1] !== index) return;
+                        var tag = document.createElement('span');
+                        tag.className = p[2];
+                        tag.textContent = p[0];
+                        pointers.appendChild(tag);
+                    });
+                });
+
+                document.getElementById('stage-empty').hidden = true;
+                row.hidden = false;
+                context.stats({ n: values.length, comparisons: vars.comparisons });
+            },
+
+            /* The closing banner the plan asks for, in the run's own numbers. */
+            renderResult: function (payload) {
+                var banner = document.getElementById('run-banner');
+                var result = payload.result;
+                var plural = result.comparisons === 1 ? '' : 's';
+                if (result.found) {
+                    banner.setAttribute('data-outcome', 'found');
+                    banner.textContent = 'Found ' + payload.target + ' at index ' +
+                        result.index + ' after ' + result.comparisons +
+                        ' comparison' + plural + '.';
+                } else {
+                    banner.setAttribute('data-outcome', 'missing');
+                    banner.textContent = payload.target + ' is not in the array. Checked ' +
+                        result.comparisons + ' value' + plural + '.';
+                }
+            },
+
+            /* Binary search on an unsorted list is refused rather than
+               answered wrongly, and the refusal carries the sorted copy, so
+               the fix is one button away. */
+            onError: function (payload, ui) {
+                var box = document.getElementById('array-error');
+                box.textContent = payload.error;
+                if (!payload.unsorted) return true;
+
+                var fix = document.createElement('button');
+                fix.type = 'button';
+                fix.className = 'btn btn-secondary btn-sm';
+                fix.textContent = 'Sort it for me';
+                fix.addEventListener('click', function () {
+                    document.getElementById('array-input').value =
+                        payload.sorted_array.join(', ');
+                    box.textContent = '';
+                    document.getElementById('run-button').click();
+                });
+                box.appendChild(fix);
+                return true;
+            }
+        });
+
+        /* The setup controls below belong to this page alone. */
+        (function () {
+            'use strict';
+
+            var arrayInput = document.getElementById('array-input');
+            var targetInput = document.getElementById('target-input');
+
+            function values() {
+                return arrayInput.value.split(',')
+                    .map(function (part) { return parseInt(part.trim(), 10); })
+                    .filter(function (value) { return !isNaN(value); });
+            }
+
+            document.getElementById('random-array').addEventListener('click', function () {
+                var size = 5 + Math.floor(Math.random() * 26);   // 5 to 30
+                var picked = [];
+                for (var i = 0; i < size; i++) {
+                    picked.push(1 + Math.floor(Math.random() * 99));
+                }
+                // Binary search needs a sorted list, so give it one rather
+                // than generating input its own validation will refuse.
+                if (Workspace.current.algorithm === 'binary_search') {
+                    picked.sort(function (a, b) { return a - b; });
+                }
+                arrayInput.value = picked.join(', ');
+                document.getElementById('array-error').textContent = '';
+            });
+
+            document.getElementById('sort-array').addEventListener('click', function () {
+                arrayInput.value = values()
+                    .sort(function (a, b) { return a - b; })
+                    .join(', ');
+                document.getElementById('array-error').textContent = '';
+            });
+
+            document.getElementById('pick-present').addEventListener('click', function () {
+                var list = values();
+                if (!list.length) return;
+                targetInput.value = list[Math.floor(Math.random() * list.length)];
+                document.getElementById('target-error').textContent = '';
+            });
+
+            document.getElementById('pick-absent').addEventListener('click', function () {
+                var list = values();
+                var candidate = 0;
+                while (list.indexOf(candidate) !== -1) candidate++;
+                targetInput.value = candidate;
+                document.getElementById('target-error').textContent = '';
+            });
+        })();
+    </script>
+{% endblock %}

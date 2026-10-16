@@ -1,16 +1,13 @@
 /* Lesson content for Binary Search. Contract: static/js/lessons/README.md
 
-   codePending: the implementation lands in Phase 5. The listing below is the
-   iterative form the plan specifies, and the counts here assume one
-   comparison each time the loop looks at a middle value. Phase 5 must build
-   searching_algorithms/binary_search.py to match this listing and its line
-   ids, or update this file in the same commit. */
+   The listing matches searching_algorithms/binary_search.py, and the counts
+   assume one comparison each time the loop looks at a middle value, which is
+   what that module counts. tests/test_searching.py holds the two together. */
 window.LESSONS = window.LESSONS || {};
 window.LESSONS.binary_search = {
     id: 'binary_search',
     name: 'Binary Search',
     family: 'searching',
-    codePending: true,
 
     idea: [
         'Keep a low and a high marker around the part of the list that could still hold the target.',

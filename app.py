@@ -8,6 +8,8 @@ from sorting_algorithms.insertion_sort import insertion_sort
 from sorting_algorithms.heap_sort import heap_sort
 from sorting_algorithms.merge_sort import merge_sort
 from sorting_algorithms.quick_sort import quick_sort
+from searching_algorithms.linear_search import linear_search
+from searching_algorithms.binary_search import binary_search, is_sorted
 
 app = Flask(__name__)
 
@@ -185,6 +187,129 @@ def sorting_page():
             error="",
             info=None
         )
+
+# ---------------------------------------------------------------------------
+# Searching.
+#
+# Steps follow section 1 of static/js/lessons/README.md: array and compared
+# drive the stage, the six teacher fields drive the Learn panel. The search
+# actions extend the shared vocabulary rather than overloading it:
+#   compare   a value was read and tested against the target
+#   discard   binary search threw away the half that cannot hold the target
+#   found     the target was located at this position
+#   missing   the search ended without a match
+# ---------------------------------------------------------------------------
+
+SEARCH_ACTIONS = {"compare", "discard", "found", "missing"}
+
+SEARCH_ALGORITHMS = {
+    "linear_search": linear_search,
+    "binary_search": binary_search,
+}
+
+MAX_SEARCH_SIZE = 30
+
+
+def _parse_values(raw):
+    """Read the comma separated list the user typed. Returns (values, error)."""
+    if isinstance(raw, list):
+        items = raw
+    else:
+        text = (raw or "").replace("\n", ",").strip()
+        if not text:
+            return None, "Enter some numbers, separated by commas."
+        items = [part.strip() for part in text.split(",") if part.strip()]
+
+    if not items:
+        return None, "Enter some numbers, separated by commas."
+    if len(items) > MAX_SEARCH_SIZE:
+        return None, "That is %d values. Use %d or fewer so the cells stay readable." % (
+            len(items), MAX_SEARCH_SIZE)
+
+    values = []
+    for item in items:
+        if isinstance(item, bool) or not isinstance(item, (int, float, str)):
+            return None, "%r is not a whole number." % (item,)
+        try:
+            values.append(int(str(item).strip()))
+        except ValueError:
+            return None, "%s is not a whole number. Use digits separated by commas." % item
+    return values, None
+
+
+@app.route("/searching")
+def searching_page():
+    """The searching workspace. The run itself goes through /run_search."""
+    return render_template(
+        "searching.html",
+        algorithms=[
+            ("linear_search", "Linear Search",
+             "Check every value until you find it."),
+            ("binary_search", "Binary Search",
+             "Halve a sorted list over and over."),
+        ],
+    )
+
+
+@app.route("/run_search", methods=["POST"])
+def run_search():
+    try:
+        data = request.json or {}
+        name = data.get("algorithm", "linear_search")
+        if name not in SEARCH_ALGORITHMS:
+            return jsonify({"error": "Unknown search algorithm %r." % name}), 400
+
+        values, problem = _parse_values(data.get("array"))
+        if problem:
+            return jsonify({"error": problem}), 400
+
+        raw_target = data.get("target")
+        if isinstance(raw_target, bool) or raw_target is None or raw_target == "":
+            return jsonify({"error": "Enter a target to search for."}), 400
+        try:
+            target = int(str(raw_target).strip())
+        except (ValueError, TypeError):
+            return jsonify({"error": "%s is not a whole number." % raw_target}), 400
+
+        # Binary search is only correct on a sorted list, so the run is
+        # blocked rather than quietly returning a wrong answer. The sorted
+        # copy travels with the refusal so the page can offer to fix it.
+        if name == "binary_search" and not is_sorted(values):
+            return jsonify({
+                "error": "Binary search only works on a sorted list, because "
+                         "it throws away half the range based on the value in "
+                         "the middle.",
+                "unsorted": True,
+                "sorted_array": sorted(values),
+            }), 400
+
+        steps = []
+
+        def draw(indices, meta):
+            step_data = {
+                "array": list(values),
+                "compared": list(indices),
+            }
+            step_data.update(meta)
+            steps.append(step_data)
+
+        stats = {"comparisons": 0}
+        found_at = SEARCH_ALGORITHMS[name](values, target, draw, None, stats)
+
+        return jsonify({
+            "steps": steps,
+            "array": values,
+            "target": target,
+            "algorithm": name,
+            "result": {
+                "found": found_at != -1,
+                "index": found_at,
+                "comparisons": stats["comparisons"],
+            },
+        })
+    except Exception as e:
+        return jsonify({"error": "An error occurred: %s" % e}), 500
+
 
 @app.route("/learn")
 def learn():

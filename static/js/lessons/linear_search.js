@@ -1,16 +1,13 @@
 /* Lesson content for Linear Search. Contract: static/js/lessons/README.md
 
-   codePending: the implementation lands in Phase 5. The listing below is the
-   iterative form the plan specifies, and the counts here assume one
-   comparison each time the loop looks at a value. Phase 5 must build
-   searching_algorithms/linear_search.py to match this listing and its line
-   ids, or update this file in the same commit. */
+   The listing matches searching_algorithms/linear_search.py, and the counts
+   assume one comparison each time the loop looks at a value, which is what
+   that module counts. tests/test_searching.py holds the two together. */
 window.LESSONS = window.LESSONS || {};
 window.LESSONS.linear_search = {
     id: 'linear_search',
     name: 'Linear Search',
     family: 'searching',
-    codePending: true,
 
     idea: [
         'Start at the first value and look at each one in turn.',

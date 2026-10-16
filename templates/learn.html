@@ -19,14 +19,14 @@
 
         <ol class="order-list">
             <li class="is-next">
-                <span class="order-name">Linear Search</span>
+                <a class="order-name" href="{{ url_for('searching_page') }}?algorithm=linear_search">Linear Search</a>
                 <span class="order-note">Check every item until you find it.</span>
-                <span class="order-tag">Coming soon</span>
+                <span class="order-tag">O(n)</span>
             </li>
             <li>
-                <span class="order-name">Binary Search</span>
+                <a class="order-name" href="{{ url_for('searching_page') }}?algorithm=binary_search">Binary Search</a>
                 <span class="order-note">Halve a sorted list over and over.</span>
-                <span class="order-tag">Coming soon</span>
+                <span class="order-tag">O(log n)</span>
             </li>
             <li><a class="order-name" href="{{ url_for('sorting_page') }}?algorithm=Bubble+Sort">Bubble Sort</a>
                 <span class="order-note">Swap neighbours until nothing is out of order.</span>
@@ -70,26 +70,31 @@
         </ol>
 
         <h2>Searching</h2>
-        <p>Two algorithms, arriving with the searching workspace.</p>
+        <p>Two algorithms. Both figures below describe the implementations in
+           <code>searching_algorithms/</code>.</p>
         <div class="card-grid">
-            <div class="algo-card is-soon" data-accent="1">
+            <a class="algo-card" data-accent="1" href="{{ url_for('searching_page') }}?algorithm=linear_search">
                 <h3>Linear Search</h3>
                 <p>Walk the list from the start and stop at the first match.</p>
                 <dl class="algo-facts">
-                    <dt>Time</dt><dd>Coming soon</dd>
-                    <dt>Space</dt><dd>Coming soon</dd>
+                    <dt>Best</dt><dd>O(1)</dd>
+                    <dt>Worst</dt><dd>O(n)</dd>
+                    <dt>Space</dt><dd>O(1)</dd>
                 </dl>
-                <span class="algo-soon">Coming soon</span>
-            </div>
-            <div class="algo-card is-soon" data-accent="2">
+                <p class="algo-note">Ruling a value out means looking at every position,
+                   so a failed search always costs the full n.</p>
+            </a>
+            <a class="algo-card" data-accent="2" href="{{ url_for('searching_page') }}?algorithm=binary_search">
                 <h3>Binary Search</h3>
                 <p>Halve the remaining range on every comparison. Needs a sorted list.</p>
                 <dl class="algo-facts">
-                    <dt>Time</dt><dd>Coming soon</dd>
-                    <dt>Space</dt><dd>Coming soon</dd>
+                    <dt>Best</dt><dd>O(1)</dd>
+                    <dt>Worst</dt><dd>O(log n)</dd>
+                    <dt>Space</dt><dd>O(1)</dd>
                 </dl>
-                <span class="algo-soon">Coming soon</span>
-            </div>
+                <p class="algo-note">The iterative form keeps three markers and no
+                   recursion, so its extra memory does not grow with the list.</p>
+            </a>
         </div>
 
         <h2>Sorting</h2>
