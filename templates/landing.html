@@ -1,29 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script>
-        /* Resolves the theme before first paint so there is no flash of the
-           wrong colours. Stored choice wins; otherwise follow the system. */
-        (function () {
-            var t = null;
-            try { t = localStorage.getItem('theme'); } catch (e) {}
-            var explicit = (t === 'dark' || t === 'light');
-            if (!explicit) {
-                t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            }
-            document.documentElement.setAttribute('data-theme', t);
-            document.documentElement.setAttribute('data-theme-source', explicit ? 'user' : 'system');
-        })();
-    </script>
-    <title>Algorithm Visualizer | Interactive Learning Platform</title>
-    <meta name="theme-color" content="#FAF8F5" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#1A1A18" media="(prefers-color-scheme: dark)">
-    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+{% extends "layout.html" %}
+
+{% block title %}Algorithm Visualizer | Interactive Learning Platform{% endblock %}
+
+{% block page_css %}
     <style>
         /* Page specific only. Colour, type, spacing, radius, elevation and
            motion come from the tokens in styles.css. */
@@ -43,10 +22,9 @@
 
         .hero-content { max-width: 760px; margin: 0 auto; }
 
+        /* Hero type comes from the shared --text-hero token so the scale lives
+           in one place. Family and line height arrive with .hero-title. */
         .hero h1 {
-            font-size: clamp(2rem, 5vw, 3rem);
-            font-weight: 700;
-            line-height: 1.15;
             margin-bottom: var(--space-4);
             color: var(--text);
         }
@@ -266,45 +244,9 @@
             .loading { animation-duration: 3s; }
         }
     </style>
-    <script src="{{ url_for('static', filename='js/theme.js') }}" defer></script>
-</head>
-<body>
-    <a href="#main" class="skip-link">Skip to main content</a>
+{% endblock %}
 
-    <!-- Header Navigation -->
-    <header id="header">
-        <nav aria-label="Primary">
-            <a href="{{ url_for('index') }}" class="logo">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
-                    <line x1="5" y1="19" x2="5" y2="12"></line>
-                    <line x1="12" y1="19" x2="12" y2="5"></line>
-                    <line x1="19" y1="19" x2="19" y2="9"></line>
-                </svg>
-                Algorithm Visualizer
-            </a>
-            <div class="nav-links">
-                <a href="{{ url_for('index') }}" class="nav-link active" aria-current="page">Home</a>
-                <a href="{{ url_for('sorting_page') }}" class="nav-link">Sorting</a>
-                <a href="{{ url_for('graph_page') }}" class="nav-link">Graph</a>
-            </div>
-            <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch to dark mode" title="Switch to dark mode" aria-pressed="false">
-                <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-                    <circle cx="12" cy="12" r="4.2"></circle>
-                    <line x1="12" y1="2" x2="12" y2="4.6"></line>
-                    <line x1="12" y1="19.4" x2="12" y2="22"></line>
-                    <line x1="2" y1="12" x2="4.6" y2="12"></line>
-                    <line x1="19.4" y1="12" x2="22" y2="12"></line>
-                    <line x1="4.9" y1="4.9" x2="6.8" y2="6.8"></line>
-                    <line x1="17.2" y1="17.2" x2="19.1" y2="19.1"></line>
-                    <line x1="4.9" y1="19.1" x2="6.8" y2="17.2"></line>
-                    <line x1="17.2" y1="6.8" x2="19.1" y2="4.9"></line>
-                </svg>
-                <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M20.5 14.3A8.5 8.5 0 0 1 9.7 3.5a8.5 8.5 0 1 0 10.8 10.8z"></path>
-                </svg>
-            </button>
-        </nav>
-    </header>
+{% block content %}
 
     <!-- Main Content -->
     <main class="main" id="main">
@@ -312,7 +254,7 @@
         <section class="hero">
             <div class="wrap">
                 <div class="hero-content">
-                    <h1 class="reveal">Interactive Algorithm Visualizer</h1>
+                    <h1 class="hero-title reveal">Interactive Algorithm Visualizer</h1>
                     <p class="hero-subtitle reveal">
                         Explore, learn, and understand algorithms through beautiful, interactive visualizations.
                         Master sorting and graph algorithms with step-by-step guidance and real-time analysis.
@@ -426,16 +368,9 @@
             </div>
         </section>
     </main>
+{% endblock %}
 
-    <footer class="site-footer">
-        <div class="footer-inner">
-            <span>Algorithm Visualizer</span>
-            <nav class="footer-links" aria-label="Footer">
-                <a href="{{ url_for('static', filename='privacy.html') }}">Privacy Policy</a>
-                <a href="{{ url_for('static', filename='terms.html') }}">Terms and Conditions</a>
-            </nav>
-        </div>
-    </footer>
+{% block page_js %}
 
     <script>
         // Header scroll effect
@@ -470,5 +405,4 @@
             });
         });
     </script>
-</body>
-</html>
+{% endblock %}

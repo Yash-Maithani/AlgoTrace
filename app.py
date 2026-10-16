@@ -110,6 +110,18 @@ def sorting_page():
             info=None
         )
 
+@app.route("/privacy")
+def privacy():
+    """Privacy policy, rendered inside the shared layout."""
+    return render_template("privacy.html")
+
+
+@app.route("/terms")
+def terms():
+    """Terms and conditions, rendered inside the shared layout."""
+    return render_template("terms.html")
+
+
 @app.route("/graph")
 def graph_page():
     # Get algorithm from query parameter, default to BFS

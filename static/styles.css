@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Fira+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
 
 /* ==========================================================================
    PALETTE
@@ -92,6 +92,10 @@
     --node-stroke: #FFFFFF;
 
     /* Type */
+    /* Three families, one job each. See DESIGN.md section 5.
+       Display is allowed on the hero and on reading page h1 and h2 only,
+       never in a workspace panel and never below 20px. */
+    --font-display: 'Space Grotesk', 'Fira Sans', 'Segoe UI', sans-serif;
     --font-sans: 'Fira Sans', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif;
     --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, monospace;
     --text-xs: 0.75rem;
@@ -101,6 +105,8 @@
     --text-xl: 1.25rem;
     --text-2xl: 1.5rem;
     --text-3xl: 2rem;
+    /* 33px at 375, 47px at 768, 56px at 1024, caps at 64px from 1280. */
+    --text-hero: clamp(2rem, 1.25rem + 3.5vw, 4rem);
 
     /* Space */
     --space-1: 4px;
@@ -521,11 +527,31 @@ nav {
    ========================================================================== */
 
 h1 {
+    font-family: var(--font-display);
     font-size: var(--text-2xl);
-    font-weight: 700;
+    font-weight: 600;
+    letter-spacing: -0.01em;
     color: var(--text);
     margin: 0 0 var(--space-6);
     text-wrap: balance;
+}
+
+/* Reading pages opt their section headings into the display family. Workspace
+   panels deliberately do not, so the dense side stays an instrument. */
+.reading h2 {
+    font-family: var(--font-display);
+    font-size: var(--text-3xl);
+    letter-spacing: -0.01em;
+}
+
+.hero-title {
+    font-family: var(--font-display);
+    font-size: var(--text-hero);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    margin: 0 0 var(--space-4);
 }
 
 h2 {

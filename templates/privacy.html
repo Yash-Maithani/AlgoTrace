@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+
+{% block title %}Privacy Policy | Algorithm Visualizer{% endblock %}
+
+{% block content %}
+    <main class="container reading" id="main">
+        <h1>Privacy Policy</h1>
+
+        <p>Algorithm Visualizer is a student project built to teach sorting and graph
+        algorithms. This page describes what the application does with information you
+        enter into it.</p>
+
+        <h2>What is collected</h2>
+        <p>Nothing. There are no accounts, no sign in, no analytics, no advertising and
+        no third party trackers. The application does not set cookies and does not store
+        anything in your browser between visits.</p>
+
+        <h2>What you type into the page</h2>
+        <p>Array values, graph definitions and the start node you enter are sent to the
+        server so the algorithm can be run and the animation steps calculated. They are
+        used to build that one response and are not written to a database, a log file or
+        any storage that outlives the request.</p>
+
+        <h2>Requests to other services</h2>
+        <p>Two resources are loaded from outside this site: the Fira Sans and Fira Code
+        typefaces from Google Fonts, and the D3 charting library from its public CDN on
+        the graph pages. Loading those files tells the services involved your IP address
+        and browser version, as any web request does. No information you enter into this
+        application is sent to them.</p>
+
+        <h2>Running it yourself</h2>
+        <p>The source is a Flask application that can be run on your own machine. When it
+        runs locally, requests never leave your computer apart from the font and library
+        files described above.</p>
+
+        <h2>Changes</h2>
+        <p>If this project later adds anything that stores or shares information, this
+        page will be updated to say so before that feature ships.</p>
+    </main>
+{% endblock %}

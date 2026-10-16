@@ -1,68 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script>
-        /* Resolves the theme before first paint so there is no flash of the
-           wrong colours. Stored choice wins; otherwise follow the system. */
-        (function () {
-            var t = null;
-            try { t = localStorage.getItem('theme'); } catch (e) {}
-            var explicit = (t === 'dark' || t === 'light');
-            if (!explicit) {
-                t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            }
-            document.documentElement.setAttribute('data-theme', t);
-            document.documentElement.setAttribute('data-theme-source', explicit ? 'user' : 'system');
-        })();
-    </script>
-    <title>Sorting Algorithms Visualizer</title>
-    <meta name="theme-color" content="#FAF8F5" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#1A1A18" media="(prefers-color-scheme: dark)">
-    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <script src="{{ url_for('static', filename='js/theme.js') }}" defer></script>
-</head>
-<body>
-    <a href="#main" class="skip-link">Skip to main content</a>
+{% extends "layout.html" %}
 
-    <!-- Header with Navigation -->
-    <header>
-        <nav aria-label="Primary">
-            <a href="{{ url_for('index') }}" class="logo">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
-                    <line x1="5" y1="19" x2="5" y2="12"></line>
-                    <line x1="12" y1="19" x2="12" y2="5"></line>
-                    <line x1="19" y1="19" x2="19" y2="9"></line>
-                </svg>
-                Algorithm Visualizer
-            </a>
-            <div class="nav-links">
-                <a href="{{ url_for('index') }}" class="nav-link">Home</a>
-                <a href="{{ url_for('sorting_page') }}" class="nav-link active" aria-current="page">Sorting</a>
-                <a href="{{ url_for('graph_page') }}" class="nav-link">Graph</a>
-            </div>
-            <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch to dark mode" title="Switch to dark mode" aria-pressed="false">
-                <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-                    <circle cx="12" cy="12" r="4.2"></circle>
-                    <line x1="12" y1="2" x2="12" y2="4.6"></line>
-                    <line x1="12" y1="19.4" x2="12" y2="22"></line>
-                    <line x1="2" y1="12" x2="4.6" y2="12"></line>
-                    <line x1="19.4" y1="12" x2="22" y2="12"></line>
-                    <line x1="4.9" y1="4.9" x2="6.8" y2="6.8"></line>
-                    <line x1="17.2" y1="17.2" x2="19.1" y2="19.1"></line>
-                    <line x1="4.9" y1="19.1" x2="6.8" y2="17.2"></line>
-                    <line x1="17.2" y1="6.8" x2="19.1" y2="4.9"></line>
-                </svg>
-                <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M20.5 14.3A8.5 8.5 0 0 1 9.7 3.5a8.5 8.5 0 1 0 10.8 10.8z"></path>
-                </svg>
-            </button>
-        </nav>
-    </header>
+{% block title %}Sorting Algorithms Visualizer{% endblock %}
+
+{% block content %}
 
     <main class="container" id="main">
         <h1>Sorting Algorithm Visualizer</h1>
@@ -216,16 +156,9 @@
             </div>
         </div>
     </main>
+{% endblock %}
 
-    <footer class="site-footer">
-        <div class="footer-inner">
-            <span>Algorithm Visualizer</span>
-            <nav class="footer-links" aria-label="Footer">
-                <a href="{{ url_for('static', filename='privacy.html') }}">Privacy Policy</a>
-                <a href="{{ url_for('static', filename='terms.html') }}">Terms and Conditions</a>
-            </nav>
-        </div>
-    </footer>
+{% block page_js %}
 
     <script>
         // Toggle between random and manual input
@@ -448,5 +381,4 @@
         });
         {% endif %}
     </script>
-</body>
-</html>
+{% endblock %}
