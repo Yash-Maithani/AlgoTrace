@@ -131,21 +131,67 @@ section, 16px between paragraph and heading.
 
 ## 5. Type scale
 
-Fira Sans for interface text, Fira Code for code, numbers and matrices. This pairing is
-already in the stylesheet and is confirmed by the ui-ux-pro-max typography dataset as the
-dashboard and data visualization pairing. It does not change.
+Three families, each with one job.
 
-| Token | Size | Line height | Use |
-| --- | --- | --- | --- |
-| `--text-xs` | 12px | 1.4 | legend keys, axis labels, table captions |
-| `--text-sm` | 14px | 1.5 | control labels, helper text, code |
-| `--text-base` | 16px | 1.6 | body, inputs (never smaller on mobile) |
-| `--text-lg` | 18px | 1.5 | panel titles, Learn tab headings |
-| `--text-xl` | 20px | 1.4 | section headings |
-| `--text-2xl` | 24px | 1.3 | page heading |
-| `--text-3xl` | 32px | 1.2 | home hero only |
+| Family | Role |
+| --- | --- |
+| **Space Grotesk** | Display. The home hero and page level headings only. |
+| **Fira Sans** | Every other piece of interface text: body, labels, buttons, panel titles. |
+| **Fira Code** | Code, numbers, matrices, edge weights, anything in a column that must line up. |
+
+Fira Sans and Fira Code are unchanged and are confirmed by the ui-ux-pro-max typography
+dataset as its dashboard and data visualization pairing.
+
+**On choosing Space Grotesk.** The typography dataset returned no verified match for a
+technical teaching tool. Its display suggestions were all editorial and luxury pairings
+(Playfair Display, Libre Bodoni), which are the wrong register for a site that teaches
+beginners to read code. So this is a deliberate choice rather than a dataset result, and
+the reasoning is:
+
+- It was drawn as the display counterpart to Space Mono, so it has a real kinship with
+  monospace. On a site where code and data are first class content, the headings and the
+  code share a family resemblance instead of ignoring each other.
+- Its character is in the details, the single storey `g`, the flat sided `a`, the slightly
+  condensed caps. Those read as personality at 64px where a neutral geometric sans would
+  look like every other landing page, and they stay quiet at 24px.
+- It is a variable font, weight 300 to 700, so it costs one file.
+- It is a grotesque, like Fira Sans, so the two do not fight.
+
+**Where the display font is allowed.** The hero, and `h1` and `h2` on reading pages. Never
+in a workspace panel, never on a control, never below 20px. Workspace headings stay Fira
+Sans so the dense side of the product reads as an instrument, not a poster.
+
+### Scale
+
+| Token | Size | Line height | Family | Use |
+| --- | --- | --- | --- | --- |
+| `--text-xs` | 12px | 1.4 | Sans | legend keys, axis labels, table captions |
+| `--text-sm` | 14px | 1.5 | Sans / Code | control labels, helper text, code |
+| `--text-base` | 16px | 1.6 | Sans | body, inputs (never smaller on mobile) |
+| `--text-lg` | 18px | 1.5 | Sans | panel titles, Learn tab headings |
+| `--text-xl` | 20px | 1.4 | Sans | workspace section headings |
+| `--text-2xl` | 24px | 1.3 | Display | page heading (`h1`) |
+| `--text-3xl` | 32px | 1.2 | Display | reading page section headings |
+| `--text-hero` | fluid, see below | 1.05 | Display | home hero only |
+
+`--text-hero` is `clamp(2rem, 1.25rem + 3.5vw, 4rem)`, which resolves to:
+
+| Viewport | Hero size |
+| --- | --- |
+| 375px | 33px |
+| 768px | 47px |
+| 1024px | 56px |
+| 1280px and above | 64px (capped) |
+
+So the hero sits in the 48 to 64px band across desktop and steps down to a readable 33px
+on a phone without a media query. Line height tightens to 1.05 at hero size, because 1.2
+leaves a visible gap between two lines of 64px type.
 
 Weights: 400 body, 500 labels, 600 headings and buttons, 700 hero only.
+
+**Loading cost.** This adds one variable font file to the existing Google Fonts request.
+Request only `wght 300..700`, keep `display=swap`, and keep the two existing preconnect
+hints. Do not add a separate stylesheet request for it.
 
 Every number that changes during a run uses `font-variant-numeric: tabular-nums`: step
 counter, comparison and swap counts, distance matrices, edge weights, complexity figures.
@@ -244,15 +290,78 @@ Modest 6px radius. No pills. One primary action per panel. Press feedback is
 ### `/` Home
 
 ```
-HERO            heading, one sentence, two buttons: Start learning, Browse algorithms
+HERO            display heading, one sentence, two buttons: Start learning, Browse algorithms
                 right side: a live 8 bar sort running the real bubble sort
-WHAT YOU GET    three cards: see it run, read why, understand the cost
-TRACKS          two wide tiles: Sorting and Searching, Graphs
+ONE STEP, READ  the annotated step band (below)
+THREE WAYS
+TRACKS          three tiles: Sorting, Searching, Graphs
 START HERE      the suggested beginner order as a numbered list, first item emphasised
 ```
 
 The hero visualization runs the real algorithm on 8 bars, not a decorative loop. Under
 reduced motion it renders the sorted end state and does not animate.
+
+#### The annotated step band
+
+This replaces a generic three card feature row. A feature row would say "see it run, read
+why, understand the cost", which is marketing. The band shows the same claim by doing it:
+one real step from a real bubble sort, frozen, with the three readings a learner gets on
+every step of this site lined up underneath it.
+
+```
++----------------------------------------------------------------------+
+|  One step, read three ways                                            |
+|                                                                       |
+|   +--------------------------------------------------------------+   |
+|   |   [17] [32] [11] [45] [9]      bars, 32 and 11 highlighted    |   |  stage strip
+|   |         ^^^^  ^^^^              as "comparing"                |   |
+|   +--------------------------------------------------------------+   |
+|                                                                       |
+|   +------------------+  +------------------+  +------------------+   |
+|   | EXPLAIN          |  | CODE             |  | COST             |   |
+|   |                  |  |                  |  |                  |   |
+|   | 32 is bigger     |  | if arr[j] >      |  | 4 comparisons    |   |
+|   | than 11, so      |  |    arr[j+1]:     |  | so far           |   |
+|   | they swap.       |  |   swap them      |  |                  |   |
+|   |                  |  |                  |  | Bubble sort      |   |
+|   | Bubble sort      |  | the matching     |  | always does      |   |
+|   | walks the list   |  | line marked      |  | n(n-1)/2 = 10    |   |
+|   | and fixes any    |  | with a left      |  | for n = 5        |   |
+|   | pair that is     |  | rule and a       |  |                  |   |
+|   | out of order.    |  | wash             |  | [tiny growth     |   |
+|   |                  |  |                  |  |  chart, n=5]     |   |
+|   +------------------+  +------------------+  +------------------+   |
+|                                                                       |
+|   This is what every step looks like.  ->  Open the sorting workspace |
++----------------------------------------------------------------------+
+```
+
+Rules for the band:
+
+- **The values are real.** The array, the highlighted pair, the comparison count and the
+  code line all come from an actual bubble sort run on `[17, 32, 11, 45, 9]`, step 4. If
+  the array changes, every number in the band changes with it. Nothing here is a
+  screenshot or a hand written sample.
+- The three columns are the same three Learn panel tabs a learner will use on every
+  workspace, in the same order, with the same headings. The home page is teaching the
+  interface, not advertising it.
+- The highlighted bars use the real `comparing` state colour, so the legend a learner
+  meets later is already familiar.
+- The cost column states the honest figure for the code in this repository: bubble sort
+  here has no early exit, so it always performs n(n-1)/2 comparisons. That matches
+  REBUILD_PLAN section "Complexity facts".
+- Layout: three equal columns at 1024px and up, stacked in the same order below that. The
+  stage strip is full width at every size.
+- Motion: the band is static by default. The bars do not loop. One optional affordance is
+  a single "play this step" control that advances to the next step once and stops, which
+  is off under reduced motion.
+
+#### Track tiles
+
+Three tiles, equal weight, in the suggested learning order: **Sorting**, **Searching**,
+**Graphs**. Each tile carries its section accent on a top rule, a one line description, a
+count of algorithms, and links straight into the workspace. Three columns at 1024px and
+up, one column below.
 
 ### `/learn` Algorithm index
 
