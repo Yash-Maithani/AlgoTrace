@@ -77,33 +77,11 @@ def test_summary_fields_are_unchanged(client, row):
             % (row['endpoint'], key, row['case']))
 
 
-@pytest.mark.parametrize('row', ORDER_SENSITIVE, ids=ident)
-def test_order_sensitive_case_is_only_reordered(client, row):
-    """run_dijkstra picks the next node with min() over a set.
-
-    When two unvisited nodes tie on distance, the winner depends on set
-    iteration order, which Python varies between processes through
-    PYTHONHASHSEED. This was true at 4a1cec8 and before; Phase 4b neither
-    introduced it nor changed it. So for a tied graph the exact order is not
-    something a test can pin, but everything else still is: the same number of
-    steps, the same kinds in the same proportions, and the same answer.
-    """
-    _, payload = post(client, row)
-
-    actual, expected = payload['steps'], row['steps']
-    assert len(actual) == len(expected)
-
-    def kinds(steps):
-        counts = {}
-        for step in steps:
-            counts[step[0]] = counts.get(step[0], 0) + 1
-        return counts
-
-    assert kinds(actual) == kinds(expected)
-    assert actual[-1][0] == 'final'
-    assert actual[-1][1] == expected[-1][1], 'the distances must still agree'
-    assert sorted(s[1] for s in actual if s[0] == 'visit') == \
-           sorted(s[1] for s in expected if s[0] == 'visit')
+def test_no_response_is_order_sensitive_any_more():
+    """Every row is now compared exactly, including the tied Dijkstra graph."""
+    assert ORDER_SENSITIVE == [], (
+        'the baseline still marks rows as order sensitive: %s'
+        % [ident(r) for r in ORDER_SENSITIVE])
 
 
 # ---------------------------------------------------------------------------
@@ -163,25 +141,14 @@ def test_meta_indices_name_real_nodes(client, row):
                 % (row['endpoint'], row['case'], position, node))
 
 
-# A pre-existing bug, present at 4a1cec8 and before. run_dijkstra puts raw
-# float("inf") into the distances map on its final step, and jsonify writes that
-# as a bare Infinity token, which JSON.parse rejects. The page therefore reports
-# "Error running algorithm" for any graph with an unreachable node. app.py already
-# has the _wire helper that solves this for run_floyd_warshall and
-# run_bellman_ford; run_dijkstra was never changed to use it.
-#
-# Fixing it would alter the step array, which Phase 4b is not allowed to do, so
-# it is recorded here instead. strict=True means this test fails loudly once
-# somebody does fix it, as a reminder to re-record the baseline.
-KNOWN_INFINITY_BUG = {('/run_dijkstra', 'disconnected')}
-
-
 @pytest.mark.parametrize('row', RESPONSES, ids=ident)
 def test_response_is_json_safe(client, row):
-    """No bare Infinity may reach the page; JSON.parse rejects it."""
-    if (row['endpoint'], row['case']) in KNOWN_INFINITY_BUG:
-        pytest.xfail('run_dijkstra sends raw infinity for unreachable nodes')
+    """No bare Infinity may reach the page; JSON.parse rejects it.
 
+    run_dijkstra used to send raw float("inf") for an unreachable node, which
+    made the whole response unparseable and broke Dijkstra on any disconnected
+    graph. It now uses the same _wire helper as the other endpoints.
+    """
     response, _ = post(client, row)
     body = response.get_data(as_text=True)
 
@@ -191,21 +158,51 @@ def test_response_is_json_safe(client, row):
     assert 'NaN' not in body
 
 
-def test_the_infinity_bug_is_still_exactly_where_we_think_it_is(client):
-    """Pin the known bug so its blast radius cannot grow unnoticed.
+def test_unreachable_distances_travel_as_the_infinity_label(client):
+    """The wire form the templates already compare against."""
+    graph = {'A': {'B': 3}, 'B': {'A': 3}, 'C': {'D': 1}, 'D': {'C': 1}, 'E': {}}
+    payload = client.post('/run_dijkstra',
+                          json={'graph': graph, 'start': 'A'}).get_json()
 
-    If another endpoint starts leaking a bare Infinity, or run_dijkstra starts
-    leaking it on a graph where everything is reachable, this fails.
+    final = payload['steps'][-1]
+    assert final[0] == 'final'
+    assert final[1] == {'A': 0, 'B': 3, 'C': '\u221e', 'D': '\u221e', 'E': '\u221e'}
+
+
+def test_tie_breaking_follows_input_order(client):
+    """A tie is resolved by the order the nodes arrived in, not by set order.
+
+    Three nodes all one apart means B and C tie after A is settled. Feeding
+    the same graph with the keys in each order must settle them in that order,
+    which is only true if the choice reads the input rather than a set.
     """
-    leaking = set()
-    for row in RESPONSES:
-        response = client.post(row['endpoint'], json=row['request'])
-        if 'Infinity' in response.get_data(as_text=True):
-            leaking.add((row['endpoint'], row['case']))
+    forward = {'A': {'B': 1, 'C': 1}, 'B': {'A': 1, 'C': 1}, 'C': {'A': 1, 'B': 1}}
+    backward = {'A': {'C': 1, 'B': 1}, 'C': {'A': 1, 'B': 1}, 'B': {'A': 1, 'C': 1}}
 
-    assert leaking == KNOWN_INFINITY_BUG, (
-        'the set of responses leaking a bare Infinity changed: %s'
-        % sorted(leaking ^ KNOWN_INFINITY_BUG))
+    def visits(graph):
+        # Posted as a raw body on purpose. The test client serialises a json=
+        # argument through the app provider, which sorts keys, and that would
+        # erase the very ordering this test is about. A browser sends the
+        # object in the order the page built it.
+        body = json.dumps({'graph': graph, 'start': 'A'}, sort_keys=False)
+        payload = client.post('/run_dijkstra', data=body,
+                              content_type='application/json').get_json()
+        return [step[1] for step in payload['steps'] if step[0] == 'visit']
+
+    assert visits(forward) == ['A', 'B', 'C']
+    assert visits(backward) == ['A', 'C', 'B']
+
+
+@pytest.mark.parametrize('run', range(5))
+def test_dijkstra_is_repeatable_within_a_process(client, run):
+    """The same request must give the same steps every time it is made."""
+    graph = {'A': {'B': 1, 'C': 1}, 'B': {'A': 1, 'C': 1}, 'C': {'A': 1, 'B': 1}}
+    first = client.post('/run_dijkstra',
+                        json={'graph': graph, 'start': 'A'}).get_json()['steps']
+    again = client.post('/run_dijkstra',
+                        json={'graph': graph, 'start': 'A'}).get_json()['steps']
+
+    assert first == again
 
 
 @pytest.mark.parametrize('endpoint', ENDPOINTS)

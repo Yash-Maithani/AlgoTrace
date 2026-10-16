@@ -444,6 +444,86 @@ nav {
     font-weight: 600;
 }
 
+/* --- Narrow screens: one header row and a menu ---------------------------
+   The header must stay a single row at 375px however many items the nav
+   grows to, so below the breakpoint the links leave the row entirely and
+   come back as a list under it. The panel is a column, so Searching and Big
+   O cost it height rather than width when they land.
+
+   The open state lives in aria-expanded on the button, which is the state a
+   screen reader reads anyway, and the sibling selector styles from it. No
+   second source of truth, and no class for JS to keep in step.
+
+   900px, not 768px, because the finished nav is six items plus the logo and
+   two buttons, which needs about 770px before it wraps. */
+
+.nav-toggle {
+    display: none;
+    width: var(--target);
+    height: var(--target);
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background-color: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    cursor: pointer;
+}
+
+.nav-toggle:hover {
+    background-color: var(--sunken);
+}
+
+/* Show the icon for what pressing the button will do. */
+.nav-toggle .icon-close,
+.nav-toggle[aria-expanded="true"] .icon-bars {
+    display: none;
+}
+
+.nav-toggle[aria-expanded="true"] .icon-close {
+    display: block;
+}
+
+@media (max-width: 900px) {
+    nav {
+        flex-wrap: wrap;
+    }
+
+    .nav-toggle {
+        display: inline-flex;
+    }
+
+    /* Source order is logo, menu button, links, theme toggle. On the row we
+       want logo, theme toggle, menu button, so only the two buttons move. */
+    .logo         { order: 1; }
+    .theme-toggle { order: 2; }
+    .nav-toggle   { order: 3; }
+
+    .nav-links {
+        order: 4;
+        display: none;
+        flex-basis: 100%;
+        flex-direction: column;
+        gap: 0;
+        margin-top: var(--space-2);
+        padding-top: var(--space-2);
+        border-top: 1px solid var(--border);
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+
+    .nav-toggle[aria-expanded="true"] ~ .nav-links {
+        display: flex;
+    }
+
+    .nav-links .nav-link {
+        width: 100%;
+        border-radius: var(--radius-sm);
+    }
+}
+
 /* ==========================================================================
    THEME TOGGLE
    Square-cornered icon button. Both icons sit in the DOM and CSS picks one
@@ -536,11 +616,16 @@ h1 {
     text-wrap: balance;
 }
 
-/* Reading pages opt their section headings into the display family. Workspace
-   panels deliberately do not, so the dense side stays an instrument. */
+/* Reading pages opt their headings into the display family, and take one step
+   up the scale so the page title outranks the sections under it. Workspace
+   panels deliberately do neither, so the dense side stays an instrument. */
+.reading h1 {
+    font-size: var(--text-3xl);
+}
+
 .reading h2 {
     font-family: var(--font-display);
-    font-size: var(--text-3xl);
+    font-size: var(--text-2xl);
     letter-spacing: -0.01em;
 }
 

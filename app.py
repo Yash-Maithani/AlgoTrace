@@ -505,11 +505,18 @@ def run_dijkstra():
         distances = {node: float('infinity') for node in graph}
         distances[start] = 0
         previous = {node: None for node in graph}
+        # node_order fixes the tie-break: min() returns the first smallest it
+        # meets, so walking the nodes in the order they arrived makes the
+        # choice depend on the input. Selecting straight from the set left it
+        # depending on set iteration order, which Python varies per process,
+        # so a graph with tied distances animated differently after a restart.
+        node_order = list(graph.keys())
         unvisited = set(graph.keys())
         log = StepLog()
 
         while unvisited:
-            current = min(unvisited, key=lambda node: distances[node])
+            current = min((node for node in node_order if node in unvisited),
+                          key=lambda node: distances[node])
             if distances[current] == float('infinity'):
                 break
             unvisited.remove(current)
@@ -557,7 +564,8 @@ def run_dijkstra():
             if path and path[0] == start:
                 paths[node] = path
         reached = [n for n in graph if distances[n] != float('infinity')]
-        log.add(["final", distances, paths], "done",
+        wired = {node: _wire(value) for node, value in distances.items()}
+        log.add(["final", wired, paths], "done",
                 "Distances from %s are settled. %d of %d node%s could be "
                 "reached." % (start, len(reached), len(graph),
                               "" if len(graph) == 1 else "s"),

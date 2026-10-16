@@ -170,8 +170,8 @@ Sans so the dense side of the product reads as an instrument, not a poster.
 | `--text-base` | 16px | 1.6 | Sans | body, inputs (never smaller on mobile) |
 | `--text-lg` | 18px | 1.5 | Sans | panel titles, Learn tab headings |
 | `--text-xl` | 20px | 1.4 | Sans | workspace section headings |
-| `--text-2xl` | 24px | 1.3 | Display | page heading (`h1`) |
-| `--text-3xl` | 32px | 1.2 | Display | reading page section headings |
+| `--text-2xl` | 24px | 1.3 | Display | workspace page heading (`h1`), reading page section headings (`h2`) |
+| `--text-3xl` | 32px | 1.2 | Display | reading page heading (`h1`) |
 | `--text-hero` | fluid, see below | 1.05 | Display | home hero only |
 
 `--text-hero` is `clamp(2rem, 1.25rem + 3.5vw, 4rem)`, which resolves to:
