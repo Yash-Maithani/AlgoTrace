@@ -370,26 +370,36 @@
 
 {% block content %}
 
-    <main class="container" id="main">
-        <h1>{{ self.title() }}</h1>
-        
-        <!-- Algorithm Selection Box -->
-        <div class="algorithm-selection">
-            <h2>Choose Algorithm</h2>
-            <div class="algorithm-buttons">
-                <a href="{{ url_for('graph_page') }}?algo=bfs" class="algorithm-btn {% if algorithm == 'bfs' %}active{% endif %}">BFS</a>
-                <a href="{{ url_for('graph_page') }}?algo=dfs" class="algorithm-btn {% if algorithm == 'dfs' %}active{% endif %}">DFS</a>
-                <a href="{{ url_for('graph_page') }}?algo=dijkstra" class="algorithm-btn {% if algorithm == 'dijkstra' %}active{% endif %}">Dijkstra</a>
-                <a href="{{ url_for('graph_page') }}?algo=prim" class="algorithm-btn {% if algorithm == 'prim' %}active{% endif %}">Prim</a>
-                <a href="{{ url_for('graph_page') }}?algo=kruskal" class="algorithm-btn {% if algorithm == 'kruskal' %}active{% endif %}">Kruskal</a>
-                <a href="{{ url_for('graph_page') }}?algo=floyd_warshall" class="algorithm-btn {% if algorithm == 'floyd_warshall' %}active{% endif %}">Floyd-Warshall</a>
-                <a href="{{ url_for('graph_page') }}?algo=bellman_ford" class="algorithm-btn {% if algorithm == 'bellman_ford' %}active{% endif %}">Bellman-Ford</a>
+    <main class="workspace" id="main">
+
+        <!-- SETUP ------------------------------------------------------- -->
+        <section class="workspace-setup" aria-labelledby="setup-heading">
+            <h2 class="sr-only" id="setup-heading">Set up a run</h2>
+            <div class="panel">
+                <ul class="algo-picker" id="algo-picker">
+                    {% set graph_algos = [
+                        ('bfs', 'BFS', 'Explore one ring at a time.'),
+                        ('dfs', 'DFS', 'Follow one path to its end.'),
+                        ('dijkstra', 'Dijkstra', 'Cheapest route with weights.'),
+                        ('prim', 'Prim', 'Grow one tree by cheapest edge.'),
+                        ('kruskal', 'Kruskal', 'Take cheap edges, skip loops.'),
+                        ('floyd_warshall', 'Floyd-Warshall', 'Every pair at once.'),
+                        ('bellman_ford', 'Bellman-Ford', 'Survives negative edges.')
+                    ] %}
+                    {% for key, name, note in graph_algos %}
+                    <li>
+                        <a href="{{ url_for('graph_page') }}?algo={{ key }}"
+                           data-accent="{{ loop.index if loop.index <= 7 else 7 }}"
+                           aria-current="{{ 'true' if algorithm == key else 'false' }}">
+                            <span class="pick-name">{{ name }}</span>
+                            <span class="pick-note">{{ note }}</span>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
             </div>
-        </div>
-        
-        <div class="visualizer-container">
-            <!-- Controls Panel -->
-            <div class="controls-panel">
+
+            <div class="panel">
                 <div class="form-section">
                     <h3>Input Method</h3>
                     <div style="margin: 15px 0;">
@@ -530,8 +540,8 @@ A</pre>
                     <input type="text" id="start-node" placeholder="e.g. A">
                 </div>
                 
-                <button type="button" class="primary" onclick="visualize()">
-                    <i class="fas fa-play" aria-hidden="true"></i> Visualize Algorithm
+                <button type="button" class="btn btn-primary" id="run-button">
+                    Visualize Algorithm
                 </button>
                 
                 <!-- Demo Buttons -->
@@ -547,39 +557,70 @@ A</pre>
                 
                 <div id="graph-error" class="field-error" role="alert" style="display: none;"></div>
                 
-                <div class="animation-controls" style="margin-top: 20px;">
-                    <div id="step-display" class="step-counter" role="status" aria-live="polite">Step 0</div>
-                    
-                    <!-- Control Buttons - Graph Algorithm Controls -->
-                    <div class="control-buttons" style="display: flex; gap: 15px; margin-top: 15px; justify-content: center; align-items: center;">
-                        <button type="button" class="control-btn play-btn" id="play-pause" onclick="playSteps()" title="Play Animation" aria-label="Play animation">
-                            <i class="fas fa-play" aria-hidden="true"></i>
-                        </button>
-                        <button type="button" class="control-btn pause-btn" id="pause-button" onclick="pauseSteps()" title="Pause Animation" aria-label="Pause animation">
-                            <i class="fas fa-pause" aria-hidden="true"></i>
-                        </button>
-                        <button type="button" class="control-btn reset-btn" id="reset-button" onclick="resetSteps()" title="Reset Animation" aria-label="Reset animation">
-                            <i class="fas fa-redo" aria-hidden="true"></i>
-                        </button>
-                    </div>
-                </div>
-                
                 {% block algorithm_specific_controls %}{% endblock %}
             </div>
+        </section>
 
-            <!-- Visualization Area -->
-            <div class="visualization-area">
-                <ul class="legend" aria-label="Graph colour key">
+        <!-- STAGE, CONTROL BAR, LEGEND ---------------------------------- -->
+        <section class="workspace-stage-col" aria-labelledby="stage-heading">
+            <h2 class="sr-only" id="stage-heading">Visualization</h2>
+
+            <div class="stage" id="stage">
+
+                <div id="graph-container" class="graph-container"></div>
+            </div>
+
+            <div class="control-bar" role="group" aria-label="Playback">
+                <div class="transport">
+                    <button type="button" class="transport-btn" id="step-back"
+                            aria-label="Step back" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
+                    <button type="button" class="transport-btn is-primary" id="play-pause"
+                            data-playing="false" aria-label="Play" disabled>
+                        <svg class="icon-play" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <polygon points="7 5 19 12 7 19"></polygon>
+                        </svg>
+                        <svg class="icon-pause" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <rect x="7" y="5" width="4" height="14"></rect>
+                            <rect x="13" y="5" width="4" height="14"></rect>
+                        </svg>
+                    </button>
+                    <button type="button" class="transport-btn" id="step-forward"
+                            aria-label="Step forward" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
+                    <button type="button" class="transport-btn" id="reset"
+                            aria-label="Reset to the first step" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="1 4 1 10 7 10"></polyline>
+                            <path d="M3.5 15a9 9 0 1 0 2.1-9.4L1 10"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="speed-field">
+                    <label for="speed">Speed</label>
+                    <input type="range" id="speed" class="speed-slider"
+                           min="1" max="10" value="5">
+                </div>
+
+                <div class="step-counter" id="step-counter" role="status" aria-live="polite">
+                    Step 0 of 0
+                </div>
+            </div>
+
+            <ul class="legend" aria-label="Graph colour key">
                     <li class="legend-item"><span class="legend-swatch is-node" style="--swatch: var(--unvisited-color)"></span>Unvisited</li>
                     <li class="legend-item"><span class="legend-swatch is-node" style="--swatch: var(--frontier-color)"></span>Queued or processing</li>
                     <li class="legend-item"><span class="legend-swatch is-node" style="--swatch: var(--visited-color)"></span>Visited</li>
                     <li class="legend-item"><span class="legend-swatch is-edge" style="--swatch: var(--mst-edge-color)"></span>Path or MST edge</li>
                     <li class="legend-item"><span class="legend-swatch is-node" style="--swatch: var(--ignored-color); opacity: .55"></span>Ignored</li>
-                </ul>
-
-                <div id="graph-container" class="graph-container">
-                </div>
-                
+            </ul>
                 <!-- Status Display -->
                 <div class="status-display" id="algorithm-status" style="display: none;">
                     <h4>Algorithm Status</h4>
@@ -600,9 +641,9 @@ A</pre>
                 </div>
                 
                 <div id="fw-matrix" style="margin-top: 20px; overflow-x: auto;"></div>
-            </div>
-        </div>
+        </section>
         
+        <section class="workspace-notes">
         <div class="instructions-panel">
             <h2>Instructions</h2>
             <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 15px;">
@@ -621,11 +662,14 @@ A</pre>
             </div>
         </div>
 
-        {% block extra_content %}{% endblock %}
+        </section>
+
+        <section class="workspace-notes">{% block extra_content %}{% endblock %}</section>
     </main>
 {% endblock %}
 
 {% block page_js %}
+    <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
     <script>
         let graph = {};
         let steps = [];
@@ -642,6 +686,12 @@ A</pre>
         let links = [];
         let simulation;
         let isWeightedAlgorithm = false;
+
+        /* applyStep is cumulative: it styles a node and leaves it styled, so
+           there is no way to render step n without having rendered the ones
+           before it. lastRendered tracks how far the canvas has been taken,
+           and going backwards rebuilds and replays from the start. */
+        let lastRendered = -1;
 
         // CSS handles prefers-reduced-motion everywhere it can reach, but the graph
         // animation is driven by d3, so it has to be checked here too. Read the media
@@ -805,11 +855,11 @@ A</pre>
             // Update the format guide based on the selected algorithm
             updateFormatGuide();
             
-            // Initial animation control state
-            document.getElementById('pause-button').style.opacity = '0.5';
-            
             // Initialize the graph visualization
             initializeGraphVisualization();
+
+            // Hand the transport to the shared workspace.
+            startWorkspace();
         });
         
         // Function to parse the simplified graph input format
@@ -944,56 +994,17 @@ A</pre>
             return { nodeOrder, edgeList };
         }
 
-        // Enhanced functions for animation controls with smooth transitions
-        function playSteps() {
-            document.getElementById('play-pause').style.opacity = '0.5';
-            document.getElementById('pause-button').style.opacity = '1';
-            isPaused = false;
-            
-            // Add a pulse animation to the play button
-            d3.select('#play-pause')
-                .transition()
-                .duration(dur(200))
-                .style('transform', 'scale(1.1)')
-                .transition()
-                .duration(dur(200))
-                .style('transform', 'scale(1)');
-            
-            if (currentStep >= steps.length - 1) {
-                // Reset if at the end with smooth transition
-                resetSteps(true);
-            }
-            
-            applyNextStep();
-        }
-        
-        function pauseSteps() {
-            document.getElementById('play-pause').style.opacity = '1';
-            document.getElementById('pause-button').style.opacity = '0.5';
-            isPaused = true;
-            
-            // Add a pulse animation to the pause button
-            d3.select('#pause-button')
-                .transition()
-                .duration(dur(200))
-                .style('transform', 'scale(1.1)')
-                .transition()
-                .duration(dur(200))
-                .style('transform', 'scale(1)');
-            
-            if (animationTimeout) {
-                clearTimeout(animationTimeout);
-            }
-        }
-        
         // Initialize graph visualization with fixed speed
         function initializeGraphVisualization() {
             // Set fixed speed (no user control)
             speed = 400; // Moderate speed for good visibility
         }
         
+        /* Rebuilds the canvas from the graph data and clears every per-run
+           style the steps applied. The workspace calls it before replaying,
+           and the Reset button reaches it through the same path. */
         function resetSteps(skipAnimation = false) {
-            pauseSteps();
+            if (window.Workspace && Workspace.current) Workspace.current.pause();
             
             // clearCanvas() empties nodes/links along with the SVG, but the re-render
             // at the end of this function needs that data to rebuild the graph. Hold
@@ -1012,20 +1023,7 @@ A</pre>
             nodes.forEach(n => { delete n.style; delete n.color; });
             links.forEach(l => { delete l.isInMST; delete l.kruskalState; l.color = 'var(--default-edge-color)'; });
             
-            // Add a pulse animation to the reset button unless skipping
-            if (!skipAnimation) {
-                d3.select('#reset-button')
-                    .transition()
-                    .duration(dur(200))
-                    .style('transform', 'scale(1.1)')
-                    .transition()
-                    .duration(dur(200))
-                    .style('transform', 'scale(1)');
-            }
-            
-            // Reset step counter display
-            document.getElementById('step-display').textContent = `Step ${currentStep}`;
-            
+
             // Hide result panel
             const resultPanel = document.getElementById('result-panel');
             if (resultPanel && resultPanel.style.display !== 'none') {
@@ -1064,50 +1062,12 @@ A</pre>
                 createTrackedTimeout(() => {
                     initializeGraph();
                     updateGraph();
-                    if (steps.length > 0) {
-                        applyStep(0);
+                    if (steps.length > 0 && window.Workspace && Workspace.current) {
+                        lastRendered = -1;
+                        Workspace.current.go(0);
                     }
                 }, skipAnimation ? 0 : 100);
             }
-        }
-        
-        function applyNextStep() {
-            if (isPaused || currentStep >= steps.length - 1) return;
-            
-            currentStep++;
-            applyStep(currentStep);
-            
-            // Update step counter with animation
-            const stepDisplay = document.getElementById('step-display');
-            stepDisplay.textContent = `Step ${currentStep+1}`;
-            stepDisplay.classList.add('updated');
-            setTimeout(() => stepDisplay.classList.remove('updated'), 300);
-            
-            // Calculate delay based on fixed speed setting
-            // For weighted algorithms use longer delays for better clarity
-            const algorithmType = getCurrentAlgorithm();
-            let delayFactor;
-            
-            // Custom delay factors based on algorithm type
-            if (algorithmType === 'dijkstra') {
-                delayFactor = 4.0; // Dijkstra needs more time per step
-            } else if (algorithmType === 'prim') {
-                delayFactor = 4.5; // MST algorithms
-            } else if (algorithmType === 'floyd_warshall') {
-                // Floyd-Warshall emits roughly 2n^3 steps - two per (i, j, k) triple -
-                // so at the shared pace a 5-node graph would take minutes to play.
-                delayFactor = 0.6;
-            } else if (algorithmType === 'bellman_ford') {
-                delayFactor = 1.2; // Two steps per edge per pass; still a lot of them.
-            } else {
-                delayFactor = 2.5; // BFS/DFS can be faster
-            }
-            
-            const normalizedSpeed = Math.pow(speed / 1000, 0.7);
-            const delay = delayFactor * (1000 / (normalizedSpeed + 1));
-            
-            // Schedule next step with calculated delay
-            animationTimeout = createTrackedTimeout(applyNextStep, delay);
         }
         
         // Generate a random graph with improved visuals and structure
@@ -1837,7 +1797,9 @@ A</pre>
                     // Initialize and render the graph
                     initializeGraph();
                     updateGraph();
-                    applyStep(0);
+                    // The workspace owns which step is showing from here on.
+                    lastRendered = -1;
+                    Workspace.current.load({ steps: steps });
                 })
                 .catch(error => {
                     console.error('Algorithm request failed:', error);
@@ -1847,6 +1809,82 @@ A</pre>
                 setGraphError('graph-error', 'Unexpected error: ' + error);
             }
         }
+
+        /* The shared workspace drives the transport. The page keeps its own
+           run, because visualize() has to parse the input, build the canvas
+           and choose an endpoint per algorithm before any steps exist. */
+        function startWorkspace() {
+            Workspace.start({
+                onRun: function () { visualize(); },
+
+                /* The old pacing, kept: a per-algorithm factor over the same
+                   curve, with the slider at 5 giving the speed 400 the page
+                   used to hard code. */
+                delayFor: function (sliderValue) {
+                    const algorithmType = getCurrentAlgorithm();
+                    let delayFactor;
+                    if (algorithmType === 'dijkstra') {
+                        delayFactor = 4.0;
+                    } else if (algorithmType === 'prim') {
+                        delayFactor = 4.5;
+                    } else if (algorithmType === 'floyd_warshall') {
+                        // Roughly 2n^3 steps, so it needs a shorter frame.
+                        delayFactor = 0.6;
+                    } else if (algorithmType === 'bellman_ford') {
+                        delayFactor = 1.2;
+                    } else {
+                        delayFactor = 2.5;
+                    }
+                    // The pace the page used to hard code, then scaled by the
+                    // slider: 5 reproduces it exactly, 10 is twice as fast and
+                    // 1 is five times slower.
+                    const normalizedSpeed = Math.pow(speed / 1000, 0.7);
+                    const base = delayFactor * (1000 / (normalizedSpeed + 1));
+                    return base * (5 / Math.max(sliderValue, 1));
+                },
+
+                renderStep: function (step, context) {
+                    const target = context.index;
+                    if (target <= lastRendered) {
+                        // Going backwards. Rebuild and replay, because the
+                        // styles the steps applied are cumulative.
+                        rebuildCanvas();
+                        lastRendered = -1;
+                    }
+                    for (let i = lastRendered + 1; i <= target; i++) {
+                        applyStep(i);
+                    }
+                    lastRendered = target;
+                    currentStep = target;
+                }
+            });
+        }
+
+        /* Clears every per-run style without the timers and the result panel
+           fade resetSteps does, so a replay is instant. */
+        function rebuildCanvas() {
+            const graphNodes = nodes;
+            const graphLinks = links;
+            clearCanvas();
+            nodes = graphNodes;
+            links = graphLinks;
+            nodes.forEach(n => { delete n.style; delete n.color; });
+            links.forEach(l => {
+                delete l.isInMST;
+                delete l.kruskalState;
+                l.color = 'var(--default-edge-color)';
+            });
+            fwNodeOrder = null;
+            const matrixContent = document.getElementById('matrix-content');
+            if (matrixContent) matrixContent.innerHTML = '';
+            initializeGraph();
+            updateGraph();
+        }
+
+        /* The old transport names. Inline handlers and anything else that
+           still calls them keep working; the workspace does the work. */
+        function playSteps() { if (Workspace.current) Workspace.current.play(); }
+        function pauseSteps() { if (Workspace.current) Workspace.current.pause(); }
 
         function applyStep(stepIndex) {
             if (stepIndex < 0 || stepIndex >= steps.length) return;

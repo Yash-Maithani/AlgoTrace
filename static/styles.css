@@ -2237,6 +2237,8 @@ a.logo:focus-visible,
 .workspace-stage-col { order: 1; min-width: 0; }
 .workspace-setup     { order: 2; min-width: 0; }
 .workspace-learn     { order: 3; min-width: 0; }
+/* Anything a page wants under the three columns rather than beside them. */
+.workspace-notes     { order: 4; min-width: 0; }
 
 @media (min-width: 768px) {
     .workspace { padding: 0 var(--space-6); }
@@ -2252,6 +2254,7 @@ a.logo:focus-visible,
     .workspace-setup     { order: 1; grid-column: 1 / -1; }
     .workspace-stage-col { order: 2; grid-column: 1; }
     .workspace-learn     { order: 3; grid-column: 2; grid-row: 2; }
+    .workspace-notes     { order: 4; grid-column: 1 / -1; }
 }
 
 @media (min-width: 1280px) {
@@ -2262,6 +2265,7 @@ a.logo:focus-visible,
     .workspace-setup     { order: 1; grid-column: 1; grid-row: 1; }
     .workspace-stage-col { order: 2; grid-column: 2; grid-row: 1; }
     .workspace-learn     { order: 3; grid-column: 3; grid-row: 1; }
+    .workspace-notes     { order: 4; grid-column: 1 / -1; grid-row: 2; }
 }
 
 /* --- Panels --------------------------------------------------------------- */
@@ -2496,28 +2500,40 @@ a.logo:focus-visible,
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-2) var(--space-4);
-    margin-top: var(--space-3);
+    list-style: none;
+    margin: var(--space-3) 0 0;
+    padding: var(--space-3);
+    background-color: var(--sunken);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
     font-size: var(--text-sm);
-    color: var(--text-muted);
+    color: var(--text);
 }
 
 .legend-item {
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
+    white-space: nowrap;
 }
 
 /* Shape carries meaning as well as colour: square for a cell or a bar,
-   circle for a node, short bar for an edge. */
+   circle for a node, short bar for an edge. The graph markup says which with
+   a class, the workspaces with an attribute; both are honoured so neither
+   has to be rewritten. */
 .legend-swatch {
     width: 14px;
     height: 14px;
     flex: 0 0 auto;
+    border-radius: 3px;
     border: 1px solid var(--border-strong);
     background-color: var(--swatch, var(--idle-sort));
 }
 
+.legend-swatch.is-node,
 .legend-swatch[data-shape="node"] { border-radius: 50%; }
+
+.legend-swatch.is-edge,
 .legend-swatch[data-shape="edge"] { height: 4px; width: 18px; border-radius: 2px; }
 
 /* --- Result banner -------------------------------------------------------- */

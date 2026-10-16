@@ -9,6 +9,7 @@
  *     endpoint,                 where to POST the run
  *     lessons,                  window.LESSONS, keyed by algorithm id
  *     readRequest(ui),          build the POST body, or return {field, message}
+ *     onRun(ui),                optional, take the run over and call load()
  *     renderStep(step, ctx),    draw one step on the stage
  *     renderResult(payload),    optional, the closing banner
  *     onError(payload, ui),     optional, return true if the page handled it
@@ -16,8 +17,9 @@
  *   })
  *
  * The template must provide these ids: run-button, play-pause, step-back,
- * step-forward, reset, speed, step-counter, learn-panel. An algo-picker list
- * is optional; with one, its links carry data-algorithm.
+ * step-forward, reset, speed, step-counter. An algo-picker list and a
+ * learn-panel are optional; with a picker, its links carry data-algorithm,
+ * and without a panel the Learn tabs are simply not built.
  *
  * Playback is a plain interval. The transport is pressed often, so none of
  * its buttons animates anything beyond the press feedback in CSS.
@@ -44,10 +46,16 @@
         this.counter = byId('step-counter');
 
         this.algorithm = this.firstAlgorithm();
-        this.panel = window.Teacher.mount({
-            panel: byId('learn-panel'),
-            lesson: options.lessons[this.algorithm]
-        });
+
+        // The Learn panel is optional: a page without a #learn-panel element
+        // gets the shell and the transport and nothing else.
+        var panelHost = byId('learn-panel');
+        this.panel = panelHost && window.Teacher
+            ? window.Teacher.mount({
+                panel: panelHost,
+                lesson: (options.lessons || {})[this.algorithm]
+            })
+            : null;
 
         this.bind();
         this.syncTransport();
@@ -103,7 +111,7 @@
                 link.setAttribute('aria-current',
                     link.getAttribute('data-algorithm') === name ? 'true' : 'false');
             });
-        this.panel.setLesson(this.options.lessons[name]);
+        if (this.panel) this.panel.setLesson((this.options.lessons || {})[name]);
         if (this.options.onAlgorithmChange) this.options.onAlgorithmChange(name);
     };
 
@@ -124,6 +132,14 @@
         this.clearErrors();
         var banner = byId('run-banner');
         if (banner) { banner.textContent = ''; banner.removeAttribute('data-outcome'); }
+
+        // A page that has to do more than post one body, because it builds a
+        // canvas first or picks an endpoint per algorithm, takes the run over
+        // and calls load() when it has the steps.
+        if (this.options.onRun) {
+            this.options.onRun({ algorithm: this.algorithm });
+            return;
+        }
 
         var request = this.options.readRequest({ algorithm: this.algorithm });
         if (request && request.message) {
@@ -177,7 +193,7 @@
             payload: this.payload,
             stats: function (stats) { self.lastStats = stats; }
         });
-        this.panel.showStep(step, this.lastStats);
+        if (this.panel) this.panel.showStep(step, this.lastStats);
         this.syncTransport();
     };
 
