@@ -115,3 +115,21 @@ Lesson content lives in `static/js/lessons/<algorithm>.js`: pseudocode and Pytho
 - Checked at 375px, 768px and 1440px.
 - No em dashes, emoji or banned patterns introduced (grep for them).
 - One commit, and a short note: files changed, how to check it.
+
+## Report format (end every phase with this, nothing else after it)
+
+Finish your reply with one fenced code block, under 25 lines, so the user can copy it:
+
+```
+PHASE: <number and name>
+COMMIT: <hash>
+STATUS: done | partly done | blocked
+CHANGED: <files, grouped, short>
+DECISIONS: <anything you chose that the plan did not specify>
+DEVIATIONS: <anything you did differently from the plan, and why>
+NOT DONE / ISSUES: <bugs found, things skipped, open questions>
+CHECKS: app runs Y/N | all algorithms play Y/N | pytest X passed | 375/768/1440 Y/N | banned patterns 0 Y/N
+HOW TO CHECK: <one or two lines>
+```
+
+Do not include logs, terminal output or step-by-step narration in the report.

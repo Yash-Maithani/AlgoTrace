@@ -1,0 +1,392 @@
+# DESIGN.md
+
+Design specification for the PBL2 rebuild. Written in Phase 1 of REBUILD_PLAN.md.
+
+This file contains no code. It is the reference that Phases 2 to 8 build against.
+Where it says "token", the name is the CSS custom property that already exists in
+`static/styles.css` from commit 83b8f1b.
+
+---
+
+## 1. What is wrong with the layout today
+
+Measured on the running app at 1440px, light theme, before any Phase 1 change.
+
+| Page | Grid | Document height | Problem |
+| --- | --- | --- | --- |
+| `/graph?algo=kruskal` | 375px / 751px | 2634px | Playback bar sits at y=1104, the canvas it drives starts at y=430 |
+| `/sorting` | 375px / 751px | 928px | Same two column split, no learning content anywhere |
+
+Four concrete faults, each of which this spec fixes:
+
+1. **The controls are 674px away from the thing they control.** On the graph page the
+   play, pause and reset buttons live at the bottom of the left column while the canvas
+   is in the right column. At 900px tall viewports you cannot see both at once.
+2. **Everything is wrapped in one 1200px centred white card.** A workspace is not an
+   article. The card forces a narrow stage, pushes the page to 2634px, and makes the
+   graph canvas 701px wide on a 1440px screen.
+3. **There is nowhere to teach.** No panel exists for explanation, code, or complexity,
+   which are the point of the rebuild.
+4. **Every page is a standalone HTML document** with its own head and navbar, so the
+   header, footer and theme script are copied five times.
+
+## 2. The app shell
+
+One shared shell, built in Phase 2, used by every route.
+
+```
++----------------------------------------------------------+
+| skip link (visually hidden until focused)                 |
++----------------------------------------------------------+
+| HEADER  sticky, 56px                                      |
+|  logo        Home Learn Sorting Searching Graphs Big O    |
+|                                               theme toggle|
++----------------------------------------------------------+
+|                                                           |
+|  PAGE SLOT                                                |
+|                                                           |
++----------------------------------------------------------+
+| FOOTER   credit line        Privacy   Terms               |
++----------------------------------------------------------+
+```
+
+- The header is sticky and 56px tall. Nothing else is sticky on desktop, so a focused
+  control can never be hidden behind two stacked bars.
+- Focusable elements carry `scroll-margin-top` equal to the header height plus 8px, so
+  keyboard focus is never obscured by the sticky header (WCAG 2.2, Focus Not Obscured).
+- The shell is full width. The 1200px cap applies to reading pages only, not workspaces.
+
+## 3. Layout grid
+
+Two layout families. A page is either a **reading page** or a **workspace**.
+
+### Reading pages (Home, Learn, Big O, Privacy, Terms)
+
+- 12 column grid, 24px gutter, max content width 1200px, centred.
+- Prose blocks are capped at 68 characters, which is roughly 7 of the 12 columns.
+- Side padding: 16px below 768px, 24px from 768px, 32px from 1024px.
+
+### Workspaces (Sorting, Searching, Graph)
+
+The significant change. Three columns, full width, with a hard cap so it does not
+sprawl on very wide monitors.
+
+```
+>= 1280px          SETUP          STAGE                    LEARN
+                 |<- 300px ->|<-------- 1fr -------->|<- 380px ->|
+                 
++----------------+-----------------------------------+-------------+
+| Algorithm      |  STAGE                            | Learn panel |
+| picker         |  the visualization only           |  [Explain]  |
+|                |                                   |  [Code]     |
+| Input          |                                   |  [Complexity]|
+|  size / values |                                   |  [About]    |
+|  start node    +-----------------------------------+             |
+|  demo buttons  |  CONTROL BAR  directly under it   |  tab body   |
+|                |  |< play pause >| speed  step n/m |  scrolls    |
+| Run            +-----------------------------------+  on its own |
+|                |  LEGEND  one row, wraps           |             |
++----------------+-----------------------------------+-------------+
+```
+
+- Column widths: `300px minmax(0, 1fr) 380px`, 20px gap, outer max width 1680px.
+- The stage column is a vertical stack in this fixed order: stage, control bar, legend.
+  The control bar is always the element immediately below the stage. This is the single
+  most important rule in this file.
+- The stage sizes to `min(62vh, 620px)` so the control bar stays on screen at 900px tall.
+- `minmax(0, 1fr)` on the middle column, not `1fr`, so the canvas can shrink instead of
+  forcing the page wider.
+
+### Breakpoints
+
+Four, and only these four.
+
+| Width | Layout |
+| --- | --- |
+| < 768px | One column. Order: stage, control bar, legend, setup, Learn panel. |
+| 768 to 1023px | One column, wider gutters. Setup becomes a two column form. |
+| 1024 to 1279px | Two columns: stage block left, Learn panel right at 340px. Setup moves above the stage as a horizontal strip. |
+| >= 1280px | Three columns as drawn above. |
+
+On mobile the stage comes first because it is what the page is for. The control bar is
+sticky to the bottom of the viewport only while the stage is in view, and it releases
+when the user scrolls to the Learn panel. Bottom inset uses `env(safe-area-inset-bottom)`.
+
+## 4. Spacing scale
+
+4px base. These are the only values used.
+
+| Token | Value | Used for |
+| --- | --- | --- |
+| `--space-1` | 4px | icon to label |
+| `--space-2` | 8px | inside a control |
+| `--space-3` | 12px | between controls in a group |
+| `--space-4` | 16px | between components |
+| `--space-6` | 24px | panel padding, between groups |
+| `--space-8` | 32px | between panels |
+| `--space-12` | 48px | between page sections |
+
+Vertical rhythm on reading pages: 48px between sections, 24px between blocks inside a
+section, 16px between paragraph and heading.
+
+## 5. Type scale
+
+Fira Sans for interface text, Fira Code for code, numbers and matrices. This pairing is
+already in the stylesheet and is confirmed by the ui-ux-pro-max typography dataset as the
+dashboard and data visualization pairing. It does not change.
+
+| Token | Size | Line height | Use |
+| --- | --- | --- | --- |
+| `--text-xs` | 12px | 1.4 | legend keys, axis labels, table captions |
+| `--text-sm` | 14px | 1.5 | control labels, helper text, code |
+| `--text-base` | 16px | 1.6 | body, inputs (never smaller on mobile) |
+| `--text-lg` | 18px | 1.5 | panel titles, Learn tab headings |
+| `--text-xl` | 20px | 1.4 | section headings |
+| `--text-2xl` | 24px | 1.3 | page heading |
+| `--text-3xl` | 32px | 1.2 | home hero only |
+
+Weights: 400 body, 500 labels, 600 headings and buttons, 700 hero only.
+
+Every number that changes during a run uses `font-variant-numeric: tabular-nums`: step
+counter, comparison and swap counts, distance matrices, edge weights, complexity figures.
+Without it the row jitters on every tick.
+
+Headings use `text-wrap: balance`. Long identifiers and pasted graph input use
+`overflow-wrap: anywhere`, never `word-break: break-all`.
+
+## 6. Colour
+
+**Unchanged from commit 83b8f1b.** This spec adds no colours and renames nothing.
+
+The rule that governs it stays in force: chrome may not use any hue the data uses. The
+nine state accents keep the same hue in both themes, and dark mode lightens rather than
+mutes them. Light mode uses the darker ink tier wherever a label sits on an accent, and
+`--on-state` flips the label between white and near black.
+
+New surfaces introduced by this spec map onto existing tokens:
+
+| New surface | Token |
+| --- | --- |
+| Workspace page background | `--bg` |
+| Setup column, Learn panel | `--surface` with 1px `--border` |
+| Stage well | `--sunken` |
+| Control bar | `--surface`, 1px `--border` top |
+| Active Learn tab | `--surface`, 2px `--accent` bottom rule |
+| Inactive Learn tab | transparent, `--text-muted` |
+| Current code line | `--active-wash`, 3px `--active` left rule |
+| Growth chart reference curves | `--text-muted` at 40 percent |
+| Growth chart this algorithm | `--accent` |
+
+## 7. Components
+
+### Control bar
+
+The defining component. One row, directly under the stage, in this order left to right:
+
+`step back | play or pause | step forward | reset | speed slider | step n of m`
+
+- Transport buttons are 44px circles. Round is reserved for transport and nothing else.
+- Play and pause are one button that swaps icon and label, not two buttons. The current
+  pages have separate play and pause buttons that each dim to 0.5 opacity, which reads as
+  broken rather than stateful.
+- Step back and step forward are new in this spec and required by the plan.
+- The step counter is right aligned and uses tabular figures.
+- At < 768px the bar wraps to two rows: transport on the first, speed and counter on the
+  second, and it sticks to the bottom of the viewport while the stage is in view.
+
+### Learn panel
+
+Four tabs: Explain, Code, Complexity, About. Tabs are a real tablist: arrow keys move
+between tabs, Home and End jump to first and last, and the panel is labelled by its tab.
+
+- Tab strip is 44px tall, scrolls horizontally at narrow widths rather than wrapping.
+- The body scrolls independently of the page on desktop so the stage stays in view.
+- Explain updates on every step. It must never reflow the panel: reserve two lines of
+  height so a one line and a two line explanation do not move the tabs.
+- Code shows pseudocode and Python as a sub toggle, with the current line marked by a left
+  rule and a wash, not by colour alone. Live variables sit in a small table below.
+- About and Complexity are static per algorithm and do not re-render on step changes.
+
+### Complexity block
+
+Fixed order, same on every algorithm, as specified in the plan: best, average and worst
+with a reason tied to the code; a worked example at n equals 5; auxiliary space; a "this
+run" box comparing counted work against the formula; and a growth chart.
+
+The growth chart is plain SVG, around 160px tall, plotting O(1), O(log n), O(n),
+O(n log n) and O(n squared) as faint reference curves with this algorithm's curve in
+`--accent`. It carries a text summary for screen readers and a data table alternative,
+because a chart alone is not accessible.
+
+Complexity text is derived from the actual code in this repository, not from a textbook.
+The plan lists the known divergences; re-derive the rest the same way.
+
+### Setup column
+
+Algorithm picker, then input, then the run button, in that order. The picker is a list of
+links, one per line at desktop, each carrying its own accent on a 3px left rule. This
+replaces the current wrapping row of pills, which gives every algorithm equal visual
+weight and no room for a description.
+
+### Legend
+
+One row under the control bar, wrapping. Each item is a swatch plus a label. Swatch shape
+carries meaning: circle for nodes, short bar for edges, square for sorting bars. Colour is
+never the only channel.
+
+### Buttons
+
+Modest 6px radius. No pills. One primary action per panel. Press feedback is
+`transform: scale(0.97)`, which is the only transform allowed on a button.
+
+## 8. Page wireframes
+
+### `/` Home
+
+```
+HERO            heading, one sentence, two buttons: Start learning, Browse algorithms
+                right side: a live 8 bar sort running the real bubble sort
+WHAT YOU GET    three cards: see it run, read why, understand the cost
+TRACKS          two wide tiles: Sorting and Searching, Graphs
+START HERE      the suggested beginner order as a numbered list, first item emphasised
+```
+
+The hero visualization runs the real algorithm on 8 bars, not a decorative loop. Under
+reduced motion it renders the sorted end state and does not animate.
+
+### `/learn` Algorithm index
+
+```
+INTRO           one paragraph on how to use the site
+SUGGESTED ORDER numbered, 15 items, each a row: name, one line, difficulty, time
+BY CATEGORY     Searching (2), Sorting (6), Graph (7), each a grid of cards
+```
+
+Each card: name, one sentence, best and worst time, a link to its workspace. Cards carry
+the algorithm accent on a left rule.
+
+### `/sorting`, `/searching`, `/graph` Workspaces
+
+The three column layout from section 3. Identical structure across all three, so a learner
+who understands one understands the others. Only the stage contents differ: bars, array
+cells, or a node and edge canvas.
+
+### `/big-o` guide
+
+```
+WHAT BIG O IS       plain language, no formulas above the fold
+THE COMMON CURVES   one section each for O(1), O(log n), O(n), O(n log n), O(n squared),
+                    each with a real example from this site
+GROWTH CHART        the same SVG component, interactive n slider
+COUNTING WORK       why the counter and the formula disagree, and why that is fine
+AUXILIARY SPACE     what it means, with the recursion stack as the worked case
+```
+
+### `/privacy`, `/terms`
+
+Reading pages inside the shell. Content moves unchanged from `static/`.
+
+## 9. Motion rules
+
+Applying the emil-design-eng framework. Every animation answers "why does this animate"
+before it is written.
+
+### Durations and easing
+
+| Element | Duration | Easing |
+| --- | --- | --- |
+| Button press | 120ms | `--ease-out` |
+| Tab change, tooltip | 150ms | `--ease-out` |
+| Panel or disclosure open | 200ms | `--ease-out` |
+| Stage transitions | 260ms | `--ease-out` |
+| On screen movement | 240ms | `--ease-in-out` |
+
+Curves, stronger than the CSS defaults:
+
+- `--ease-out: cubic-bezier(0.23, 1, 0.32, 1)`
+- `--ease-in-out: cubic-bezier(0.77, 0, 0.175, 1)`
+
+No UI animation exceeds 300ms. `ease-in` is never used on UI: it delays the first frame,
+which is exactly when the user is watching.
+
+### Rules
+
+1. **Never animate the step transport.** Play, pause, step forward and step back are
+   pressed repeatedly. The button gets press feedback; the step change does not get an
+   entrance animation.
+2. **The algorithm animation is content, not chrome.** It keeps its own user controlled
+   speed and is exempt from the table above.
+3. Only `transform` and `opacity` animate. Never `transition: all`.
+4. Nothing enters from `scale(0)`. Entrances start at `scale(0.96)` with `opacity: 0`.
+5. Use CSS transitions, not keyframes, for anything that can be retriggered quickly, so it
+   retargets instead of restarting.
+6. Stagger on first view only, 40ms between items, maximum 6 items. Never block
+   interaction while a stagger plays.
+7. Hover effects are wrapped in `@media (hover: hover) and (pointer: fine)` so a tap on a
+   touch device does not leave a stuck hover state.
+8. Exit is faster than enter, roughly 60 to 70 percent of the enter duration.
+
+### Reduced motion
+
+Under `prefers-reduced-motion: reduce`, movement stops and meaning survives. Nothing is
+hidden and no content disappears.
+
+- Position and scale animations are removed.
+- Colour and opacity transitions are kept, because state colour is the information this
+  project exists to show.
+- The hero sort renders its final sorted state.
+- The growth chart draws complete instead of sweeping.
+- The algorithm stage jumps between steps rather than tweening, and still recolours.
+
+## 10. Selector contract
+
+REBUILD_PLAN rule 1 requires that every id and class the page JS selects survives any
+markup move. This is that list, captured from the current templates. Phases 6 and 7 must
+keep every one of these, or update the JS in the same commit.
+
+**Ids (32).** `algorithm-status`, `array-container`, `completion-message`,
+`format-content`, `fw-matrix`, `graph-container`, `graph-input`, `header`,
+`manual-graph-input`, `manual-input`, `manualRadio`, `matrix-content`, `matrix-display`,
+`matrix-title`, `num-edges`, `num-nodes`, `pause-btn`, `pause-button`, `pauseBtn`,
+`play-btn`, `play-button`, `random-graph-input`, `random-input`, `randomRadio`,
+`reset-button`, `result-content`, `result-panel`, `speed-slider`, `speed-tooltip`,
+`start-node`, `status-content`, `step-display`.
+
+Note the duplication: `play-btn` and `play-button` and `pauseBtn` and `pause-btn` are the
+sorting and graph pages using different names for the same control. Phase 6 or 7 should
+unify them, in a commit that changes both the markup and the JS together.
+
+**Sorting bar state classes.** `bar`, `bar-value`, `comparing`, `swapping`, `pivot`,
+`sorted`, `is-visible`, `updated`.
+
+**Graph state classes set through d3 `.classed()`.** `node-visited`, `node-frontier`,
+`node-current`, `node-ignored`, `node-unvisited`, `edge-mst`, `mst-edge`,
+`edge-considering`, `edge-ignored`, `edge-default`, `shortest-path`.
+
+**Other classes the JS touches.** `link`, `edge-label`, `edge-label-bg`, `edge-pulse`,
+`node-pulse`, `matrix-updated`, `kr-verdict`, `step-updated`, `success-flash`, `temp`,
+`highlight`, `animating`.
+
+`graph_base.html` also defines about 75 global functions. Phase 7 moves teacher code to
+`static/js/teacher.js`; it must not move these, because the inline `onclick` attributes in
+the markup call them by name from the global scope.
+
+## 11. Accessibility rules
+
+- Minimum pointer target 44px. Inputs at 16px text so iOS does not zoom on focus.
+- Visible focus on every control: 3px `--focus-ring`, 2px offset, via `:focus-visible`.
+- One `h1` per page, then `h2` and `h3` with no level skipped.
+- The step counter is a polite live region. Validation errors use `role="alert"` and sit
+  next to the field they concern, and the first invalid field takes focus on submit.
+- Charts and canvases carry a text alternative. The growth chart also offers a table.
+- Colour is never the only channel: pair it with shape, a left rule, a dash pattern, or a
+  label.
+- Tablists support arrow keys, Home and End.
+- No horizontal scrolling at 375px.
+
+## 12. Out of scope for this file
+
+- Lesson copy and pseudocode, which are Phase 4.
+- The step data format, which is specified in REBUILD_PLAN.md and built in Phase 4.
+- Any colour value. The palette is fixed at commit 83b8f1b.
+- Anything about Flask routing beyond the route list already in the plan.
