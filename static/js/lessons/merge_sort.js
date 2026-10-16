@@ -1,0 +1,72 @@
+/* Lesson content for Merge Sort. Contract: static/js/lessons/README.md
+   Figures describe sorting_algorithms/merge_sort.py, which allocates
+   temporary lists and, because it compares with <, is not stable. */
+window.LESSONS = window.LESSONS || {};
+window.LESSONS.merge_sort = {
+    id: 'merge_sort',
+    name: 'Merge Sort',
+    family: 'sorting',
+
+    idea: [
+        'Split the list down the middle, again and again, until every piece holds a single value.',
+        'A single value is already sorted, so start joining pairs of pieces back together.',
+        'Merging two sorted pieces is cheap: repeatedly take whichever front value is smaller.'
+    ],
+    analogy: 'Two people each hold a sorted pile of cards. To make one sorted pile, you keep taking whichever top card is lower.',
+    whenToUse: 'When you need a guaranteed O(n log n) regardless of the input, or when the data is too big for memory and has to be merged in runs from disk.',
+    stable: false,
+
+    code: {
+        pseudocode: [
+            { id: 'split', text: 'if the piece holds more than one value:', indent: 0 },
+            { id: 'sortleft', text: 'sort the left half', indent: 1 },
+            { id: 'sortright', text: 'sort the right half', indent: 1 },
+            { id: null, text: 'merge the two halves:', indent: 1 },
+            { id: 'merge-compare', text: 'while both halves still have values:', indent: 2 },
+            { id: null, text: 'take the smaller of the two front values', indent: 3 },
+            { id: null, text: 'append whatever is left over', indent: 2 },
+            { id: 'copy-back', text: 'copy the merged run back over the piece', indent: 2 }
+        ],
+        python: [
+            { id: 'split', text: 'if end - start > 1:', indent: 0 },
+            { id: null, text: 'mid = (start + end) // 2', indent: 1 },
+            { id: 'sortleft', text: 'sort(start, mid)', indent: 1 },
+            { id: 'sortright', text: 'sort(mid, end)', indent: 1 },
+            { id: null, text: 'merge(arr[start:mid], arr[mid:end], start)', indent: 1 },
+            { id: 'merge-compare', text: 'while i < len(left) and j < len(right):', indent: 1 },
+            { id: null, text: 'if left[i] < right[j]: take left[i]', indent: 2 },
+            { id: null, text: 'else: take right[j]', indent: 2 },
+            { id: 'copy-back', text: 'arr[start_index + idx] = val', indent: 1 }
+        ]
+    },
+
+    complexity: {
+        time: {
+            best: {
+                value: 'O(n log n)',
+                reason: 'The list is always cut exactly in half, so there are always about log n levels, and every level merges all n values. The input cannot make the splitting any cheaper.'
+            },
+            average: {
+                value: 'O(n log n)',
+                reason: 'Same shape of work. Each merge of two runs costs at most one comparison per value taken.'
+            },
+            worst: {
+                value: 'O(n log n)',
+                reason: 'Even in the worst arrangement a merge costs one comparison per value, so a level is O(n) and the total is O(n log n). This is the only sort here with no bad case.'
+            }
+        },
+        worked: {
+            input: '[5, 3, 8, 1, 9]',
+            comparisons: 7,
+            note: 'n = 5. Fewer comparisons than the quadratic sorts need even at this tiny size, where they all cost 10. Note that the merge loop stops as soon as one side empties, so a run that is already in order uses fewer comparisons: [1, 3, 5, 8, 9] costs 5.'
+        },
+        space: {
+            value: 'O(n)',
+            what: 'the temporary list each merge builds, plus the two half slices it copies out, plus about log n stack frames for the recursion'
+        },
+        auxiliaryNote: 'Auxiliary space is the memory the algorithm needs on top of the input array itself.',
+        thisRun: 'Big O describes how work grows as the input grows and ignores constants. The counter shows the exact work for this one input.',
+        growth: 'nlogn',
+        divergence: 'Merge sort is usually described as stable, but this implementation is not. It compares with left[i] < right[j], so when two values are equal it takes the one from the right half first, which puts the later value ahead of the earlier one. Changing the test to <= would make it stable without changing any count.'
+    }
+};

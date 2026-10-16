@@ -1,3 +1,6 @@
+from .teacher import step
+
+
 def merge_sort(arr, draw_func, delay, stats=None):
     if stats is None:
         stats = {'swaps': 0, 'comparisons': 0}
@@ -6,7 +9,20 @@ def merge_sort(arr, draw_func, delay, stats=None):
         i = j = 0
         while i < len(left) and j < len(right):
             stats['comparisons'] += 1
-            draw_func(arr, [start_index + i, start_index + j])
+            # `compared` keeps the highlight the stage has always drawn. The
+            # right hand value actually sits at start_index + len(left) + j,
+            # which is what `indices` reports.
+            draw_func(arr, [start_index + i, start_index + j], step(
+                'compare',
+                [start_index + i, start_index + len(left) + j],
+                [left[i], right[j]],
+                'merge-compare',
+                {'i': i, 'j': j, 'start': start_index,
+                 'left_len': len(left), 'right_len': len(right)},
+                'Compare %d from the left half with %d from the right half.'
+                % (left[i], right[j]),
+                'Both halves are already sorted, so whichever of these two is '
+                'smaller is the smallest value left anywhere in the pair.'))
             if left[i] < right[j]:
                 result.append(left[i])
                 i += 1
@@ -18,7 +34,13 @@ def merge_sort(arr, draw_func, delay, stats=None):
         for idx, val in enumerate(result):
             arr[start_index + idx] = val
             stats['swaps'] += 1
-            draw_func(arr, [start_index + idx])
+            draw_func(arr, [start_index + idx], step(
+                'overwrite', [start_index + idx], [val], 'copy-back',
+                {'idx': idx, 'start': start_index, 'merged_len': len(result)},
+                'Write %d back into position %d of the array.'
+                % (val, start_index + idx),
+                'The merged run was built in a temporary list, so it has to be '
+                'copied back over the two halves it replaces.'))
             delay()
 
     def sort(start, end):
@@ -29,4 +51,8 @@ def merge_sort(arr, draw_func, delay, stats=None):
             merge(arr[start:mid], arr[mid:end], start)
 
     sort(0, len(arr))
-    draw_func(arr, ['green'] * len(arr))
+    draw_func(arr, ['green'] * len(arr), step(
+        'done', [], [], None, {'n': len(arr)},
+        'Every pair of halves has been merged back together in order.',
+        'Splitting stops at single values, which are sorted by definition, so '
+        'every merge above them produces a sorted run.'))

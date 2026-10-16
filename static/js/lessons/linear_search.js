@@ -1,0 +1,68 @@
+/* Lesson content for Linear Search. Contract: static/js/lessons/README.md
+
+   codePending: the implementation lands in Phase 5. The listing below is the
+   iterative form the plan specifies, and the counts here assume one
+   comparison each time the loop looks at a value. Phase 5 must build
+   searching_algorithms/linear_search.py to match this listing and its line
+   ids, or update this file in the same commit. */
+window.LESSONS = window.LESSONS || {};
+window.LESSONS.linear_search = {
+    id: 'linear_search',
+    name: 'Linear Search',
+    family: 'searching',
+    codePending: true,
+
+    idea: [
+        'Start at the first value and look at each one in turn.',
+        'Stop as soon as a value matches the target and report where it was.',
+        'If the end is reached without a match, the target is not in the list.'
+    ],
+    analogy: 'Looking for a friend in an unsorted queue by walking along it and checking every face until you find them.',
+    whenToUse: 'When the list is short, or when it is not sorted and you only need to search it once. Sorting a list first only pays off if you are going to search it many times.',
+    stable: null,
+
+    code: {
+        pseudocode: [
+            { id: 'loop', text: 'for each position i from the start:', indent: 0 },
+            { id: 'compare', text: 'if the value at i is the target:', indent: 1 },
+            { id: 'found', text: 'report i and stop', indent: 2 },
+            { id: 'missing', text: 'report that the target is not in the list', indent: 0 }
+        ],
+        python: [
+            { id: 'loop', text: 'for i in range(len(arr)):', indent: 0 },
+            { id: 'compare', text: 'if arr[i] == target:', indent: 1 },
+            { id: 'found', text: 'return i', indent: 2 },
+            { id: 'missing', text: 'return -1', indent: 0 }
+        ]
+    },
+
+    complexity: {
+        time: {
+            best: {
+                value: 'O(1)',
+                reason: 'If the target is the very first value, the loop compares once and returns.'
+            },
+            average: {
+                value: 'O(n)',
+                reason: 'A target that is present is equally likely to be anywhere, so on average the loop looks at about half the list, which still grows in step with n.'
+            },
+            worst: {
+                value: 'O(n)',
+                reason: 'If the target is last, or missing altogether, every one of the n values is compared before the loop can answer.'
+            }
+        },
+        worked: {
+            input: '[4, 8, 15, 16, 23], target 16',
+            comparisons: 4,
+            note: 'n = 5. The loop checks 4, 8, 15 and then 16, so it answers after 4 comparisons. Searching for 42 costs the full 5, because a linear search can only rule out a missing value by looking at everything.'
+        },
+        space: {
+            value: 'O(1)',
+            what: 'one index, whatever the list length'
+        },
+        auxiliaryNote: 'Auxiliary space is the memory the algorithm needs on top of the input array itself.',
+        thisRun: 'Big O describes how work grows as the input grows and ignores constants. The counter shows the exact work for this one input.',
+        growth: 'n',
+        divergence: null
+    }
+};

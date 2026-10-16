@@ -35,8 +35,8 @@ graph_algo_dict = {
 # Add this dictionary after sorting_algo_dict and graph_algo_dict
 sorting_algo_details = {
     "Bubble Sort": {
-        "description": "Bubble Sort repeatedly steps through the list, compares adjacent elements and swaps them if they are in the wrong order. The process is repeated until the list is sorted.",
-        "time_complexity": {"Best": "O(n)", "Average/Worst": "O(n^2)"},
+        "description": "Bubble Sort repeatedly steps through the list, compares adjacent elements and swaps them if they are in the wrong order. This implementation has no early exit, so it always makes n(n-1)/2 comparisons, even on a sorted list.",
+        "time_complexity": {"Best": "O(n^2)", "Average/Worst": "O(n^2)"},
         "space_complexity": "O(1)",
         "stable": True
     },
@@ -55,19 +55,19 @@ sorting_algo_details = {
     "Heap Sort": {
         "description": "Heap Sort builds a heap from the input data and repeatedly extracts the maximum element from the heap and rebuilds the heap.",
         "time_complexity": {"Best": "O(n log n)", "Average/Worst": "O(n log n)"},
-        "space_complexity": "O(1)",
+        "space_complexity": "O(log n)",
         "stable": False
     },
     "Merge Sort": {
         "description": "Merge Sort divides the array into halves, sorts them recursively, and then merges the sorted halves.",
         "time_complexity": {"Best": "O(n log n)", "Average/Worst": "O(n log n)"},
         "space_complexity": "O(n)",
-        "stable": True
+        "stable": False
     },
     "Quick Sort": {
-        "description": "Quick Sort picks a pivot element, partitions the array around the pivot, and recursively sorts the partitions.",
+        "description": "Quick Sort picks a pivot element, partitions the array around the pivot, and recursively sorts the partitions. This implementation always picks the last element, so an already sorted list is its worst case.",
         "time_complexity": {"Best": "O(n log n)", "Average/Worst": "O(n^2)"},
-        "space_complexity": "O(log n)",
+        "space_complexity": "O(n)",
         "stable": False
     }
 }
@@ -91,7 +91,9 @@ def _bubble_steps(values):
     steps = []
     stats = {"swaps": 0, "comparisons": 0}
 
-    def draw(array_state, compared_indices=None):
+    def draw(array_state, compared_indices=None, meta=None):
+        # The hero only needs the bars, so the teacher payload is accepted
+        # and dropped. See static/js/lessons/README.md for its shape.
         steps.append({
             "array": array_state[:],
             "compared": compared_indices[:] if compared_indices else [],
@@ -260,8 +262,16 @@ def handle_sorting():
 
     info = None
     if not error:
-        def draw(array_state, compared_indices=None):
-            steps.append({'array': array_state[:], 'compared': compared_indices[:] if compared_indices else []})
+        def draw(array_state, compared_indices=None, meta=None):
+            # array and compared drive the bars; the teacher fields in meta
+            # drive the Learn panel. Contract: static/js/lessons/README.md
+            step_data = {
+                'array': array_state[:],
+                'compared': compared_indices[:] if compared_indices else [],
+            }
+            if meta:
+                step_data.update(meta)
+            steps.append(step_data)
 
         sort_func = sorting_algo_dict[selected_algo]
         stats = {'swaps': 0, 'comparisons': 0}
