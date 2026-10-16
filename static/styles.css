@@ -64,14 +64,30 @@
     --on-accent: #FFFFFF;
     --focus-ring: #1050AE;
 
+    /* Label colour for anything painted on a saturated state accent. The
+       accents are dark in light mode and light in dark mode, so a fixed
+       white label would vanish in one of the two themes. */
+    --on-state: #FFFFFF;
+
+    /* Filled-control backgrounds. Light mode uses the darker ink tier so a
+       white label clears 4.5:1; dark mode uses the bright accent with a
+       near-black label. */
+    --done-solid: var(--done-ink);
+    --active-solid: var(--active-ink);
+    --reject-solid: var(--reject-ink);
+
     /* Graph custom properties. graph_base.html reads these by name. */
-    --visited-color: var(--done);          /* green,  matches the on-page key */
-    --frontier-color: var(--active);       /* orange, matches the on-page key */
-    --considering-color: var(--active);
+    /* Nodes carry a letter label, so in light mode they use the darker ink
+       tier: a white label needs 4.5:1 and the brighter fills only reach ~4.3.
+       Dark mode keeps the bright fills and flips the label via --on-state.
+       Bars are unaffected, their value sits outside the bar. */
+    --visited-color: var(--done-ink);      /* green,  matches the on-page key */
+    --frontier-color: var(--active-ink);   /* orange, matches the on-page key */
+    --considering-color: var(--active-ink);
     --mst-edge-color: var(--reject);       /* red,    matches the on-page key */
     --path-color: var(--reject);
-    --unvisited-color: var(--border-strong);
-    --ignored-color: var(--idle-graph);    /* ignored fades to grey, and edges dash */
+    --unvisited-color: var(--idle-graph);
+    --ignored-color: #7A756B;              /* ignored greys out, and edges dash */
     --default-edge-color: #A39C90;
     --node-stroke: #FFFFFF;
 
@@ -162,7 +178,16 @@
         --accent-hover: #93C2FF;
         --on-accent: #10100F;
         --focus-ring: #93C2FF;
+        --on-state: #10100F;
+        --done-solid: var(--done);
+        --active-solid: var(--active);
+        --reject-solid: var(--reject);
 
+        --visited-color: var(--done);
+        --frontier-color: var(--active);
+        --considering-color: var(--active);
+        --unvisited-color: var(--idle-graph);
+        --ignored-color: #8E887B;
         --default-edge-color: #6A6559;
         --node-stroke: #141413;
 
@@ -529,9 +554,9 @@ button:disabled {
 }
 
 button.primary { background-color: var(--accent); }
-button.success { background-color: var(--done); color: #FFFFFF; }
-button.warning { background-color: var(--active); color: #FFFFFF; }
-button.danger  { background-color: var(--reject); color: #FFFFFF; }
+button.success { background-color: var(--done-solid); color: var(--on-state); }
+button.warning { background-color: var(--active-solid); color: var(--on-state); }
+button.danger  { background-color: var(--reject-solid); color: var(--on-state); }
 
 button:focus-visible,
 a.logo:focus-visible,
@@ -601,9 +626,11 @@ a.logo:focus-visible,
 }
 
 .algorithm-btn.active {
-    background-color: var(--algo);
-    color: #FFFFFF;
-    border-color: var(--algo);
+    /* The ink tier keeps a white label above 4.5:1 in light mode; in dark the
+       ink tier is the bright accent and the label flips to near-black. */
+    background-color: var(--algo-ink);
+    color: var(--on-state);
+    border-color: var(--algo-ink);
 }
 
 .algorithm-buttons .algorithm-btn:nth-child(7n+1) { --algo: var(--algo-1); --algo-ink: var(--algo-1-ink); --algo-wash: var(--algo-1-wash); }
@@ -804,7 +831,7 @@ a.logo:focus-visible,
     margin: 0;
     border: none;
     border-radius: 50%;
-    color: #FFFFFF;
+    color: var(--on-state);
     cursor: pointer;
     touch-action: manipulation;
     box-shadow: var(--shadow-1);
@@ -822,9 +849,9 @@ a.logo:focus-visible,
     transform: scale(0.95);
 }
 
-.play-btn  { background-color: var(--done); }
-.pause-btn { background-color: var(--active); }
-.reset-btn { background-color: var(--reject); }
+.play-btn  { background-color: var(--done-solid); }
+.pause-btn { background-color: var(--active-solid); }
+.reset-btn { background-color: var(--reject-solid); }
 
 .speed-control {
     flex: 1 1 220px;
@@ -1020,8 +1047,8 @@ a.logo:focus-visible,
     font-weight: 600;
     text-anchor: middle;
     pointer-events: none;
-    fill: #FFFFFF;
-    text-shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+    fill: var(--on-state);
+    text-shadow: none;
 }
 
 .edge-label {

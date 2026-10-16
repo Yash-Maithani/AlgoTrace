@@ -150,8 +150,10 @@
 
         .feature-btn {
             align-self: flex-start;
-            background-color: var(--card-accent);
-            color: #FFFFFF;
+            /* Ink tier keeps a white label readable in light mode; in dark the
+               ink tier is the bright accent and --on-state flips to near-black. */
+            background-color: var(--card-ink);
+            color: var(--on-state);
             text-decoration: none;
             display: inline-flex;
             align-items: center;
