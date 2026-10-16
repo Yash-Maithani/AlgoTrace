@@ -246,15 +246,17 @@
         </div>
 
         <h2>Big O</h2>
-        <p>A guide to reading every figure on this page, arriving with the Big O page.</p>
+        <p>A guide to reading every figure on this page.</p>
         <div class="card-grid is-one">
-            <div class="algo-card is-soon" data-accent="3">
+            <a class="algo-card" data-accent="3" href="{{ url_for('big_o_page') }}">
                 <h3>How complexity works</h3>
                 <p>What the common curves mean, where each one shows up in the algorithms
                    above, and why the counter on a finished run and the formula almost
                    never agree.</p>
-                <span class="algo-soon">Coming soon</span>
-            </div>
+                <dl class="algo-facts">
+                    <dt>Covers</dt><dd>Counting, cases, curves, space</dd>
+                </dl>
+            </a>
         </div>
     </main>
 {% endblock %}

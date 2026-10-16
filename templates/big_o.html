@@ -1,0 +1,365 @@
+{% extends "layout.html" %}
+
+{% block title %}How complexity works | Algorithm Visualizer{% endblock %}
+
+{% block content %}
+    <main class="container reading" id="main">
+        <h1>How complexity works</h1>
+
+        <p class="lede">
+            Every algorithm on this site reports a Big O figure and a counted number of
+            comparisons, and the two rarely match. This page explains what each one
+            means, where they come from, and why the disagreement is not a mistake.
+        </p>
+
+        <nav class="page-toc" aria-label="On this page">
+            <ul>
+                <li><a href="#what">What Big O is</a></li>
+                <li><a href="#counting">Counting steps from code</a></li>
+                <li><a href="#cases">Best, average and worst</a></li>
+                <li><a href="#curves">The five curves</a></li>
+                <li><a href="#chart">How they grow</a></li>
+                <li><a href="#formula">The formula against the counter</a></li>
+                <li><a href="#space">Auxiliary space</a></li>
+            </ul>
+        </nav>
+
+        <!-- WHAT BIG O IS ----------------------------------------------- -->
+        <h2 id="what">What Big O is</h2>
+
+        <p>
+            Big O answers one question: when the input gets bigger, how much more work
+            does this algorithm do? Not how many seconds it takes, which depends on the
+            machine, and not how many steps exactly, which depends on the input. Just
+            the shape of the growth.
+        </p>
+
+        <p>
+            Searching a list of 1,000 names by reading them one at a time takes about
+            ten times the work of searching 100. Double the list, double the work. That
+            relationship is what O(n) says, and it stays true whether the computer is
+            fast or slow.
+        </p>
+
+        <p>
+            Because only the shape matters, constants and smaller terms are dropped. An
+            algorithm that does 3n + 50 steps is O(n): at a large enough n the 3 and the
+            50 stop mattering next to the n. This is why a Big O figure can never tell
+            you which of two O(n) algorithms is faster in practice. It is a statement
+            about scaling, not about speed.
+        </p>
+
+        <!-- COUNTING STEPS FROM CODE ------------------------------------ -->
+        <h2 id="counting">Counting steps from code</h2>
+
+        <p>
+            You do not guess a Big O figure, you read it off the loops. Here is the
+            inner loop of the bubble sort in <code>sorting_algorithms/bubble_sort.py</code>:
+        </p>
+
+        <pre class="sample"><code>for i in range(n):
+    for j in range(0, n-i-1):
+        if arr[j] &gt; arr[j+1]:
+            arr[j], arr[j+1] = arr[j+1], arr[j]</code></pre>
+
+        <p>
+            Work from the inside out. The comparison on the third line happens once per
+            turn of the inner loop. The inner loop runs <code>n-i-1</code> times. The
+            outer loop runs <code>n</code> times, with <code>i</code> climbing each time,
+            so the inner loop runs n-1 times, then n-2, then n-3, down to zero.
+        </p>
+
+        <p>Adding those up for a list of five values:</p>
+
+        <table class="count-table">
+            <caption>One pass per row, for n = 5</caption>
+            <thead>
+                <tr><th scope="col">Pass</th><th scope="col">Inner loop runs</th><th scope="col">Running total</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>1</td><td>4</td><td>4</td></tr>
+                <tr><td>2</td><td>3</td><td>7</td></tr>
+                <tr><td>3</td><td>2</td><td>9</td></tr>
+                <tr><td>4</td><td>1</td><td>10</td></tr>
+                <tr><td>5</td><td>0</td><td>10</td></tr>
+            </tbody>
+        </table>
+
+        <p>
+            Ten comparisons, which is 4 + 3 + 2 + 1. That sum has a closed form,
+            n(n-1)/2, and for n = 5 it gives 10. Multiply out and you get
+            (n squared minus n) / 2. Drop the constant and the smaller term and what is
+            left is <strong>n squared</strong>. Bubble sort is O(n squared), and you
+            arrived at it by counting, not by recognising it.
+        </p>
+
+        <p class="aside">
+            A rule of thumb that follows from this: one loop over the input is usually
+            O(n), a loop inside a loop is usually O(n squared), and halving the problem
+            each time is usually O(log n). The exceptions are worth checking by counting.
+        </p>
+
+        <!-- BEST, AVERAGE, WORST ---------------------------------------- -->
+        <h2 id="cases">Best, average and worst</h2>
+
+        <p>
+            The same algorithm can do very different amounts of work on different inputs
+            of the same size, so a single figure is not enough. Insertion sort, in
+            <code>sorting_algorithms/insertion_sort.py</code>, shows all three cases on
+            the same five values:
+        </p>
+
+        <table class="count-table">
+            <caption>Insertion sort, five values, counted by running it</caption>
+            <thead>
+                <tr><th scope="col">Input</th><th scope="col">Comparisons</th><th scope="col">Case</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><code>[1, 3, 5, 8, 9]</code></td><td>4</td><td>Best. Every value is already in place, so the inner loop breaks after one look.</td></tr>
+                <tr><td><code>[5, 3, 8, 1, 9]</code></td><td>6</td><td>A typical shuffle, which is what the average case describes.</td></tr>
+                <tr><td><code>[9, 8, 5, 3, 1]</code></td><td>10</td><td>Worst. Every value has to walk past the whole sorted run.</td></tr>
+            </tbody>
+        </table>
+
+        <p>
+            So insertion sort is O(n) at best and O(n squared) at worst. Both are true,
+            and quoting only one of them is how people end up surprised.
+        </p>
+
+        <p>
+            The worst case is usually the one that matters, because it is the promise:
+            it will never be slower than this. The best case is often a trap. Bubble sort
+            is quoted at O(n) in the best case in most textbooks, but
+            <a href="{{ url_for('sorting_page') }}?algorithm=Bubble+Sort">the one on this
+            site</a> has no early exit, so it makes the same 10 comparisons on all three
+            inputs above. Its best case really is O(n squared). The figure describes the
+            code you have, not the code the textbook has.
+        </p>
+
+        <!-- THE CURVES --------------------------------------------------- -->
+        <h2 id="curves">The five curves</h2>
+
+        <p>Almost everything you meet is one of these five.</p>
+
+        <dl class="curve-list">
+            <dt><code>O(1)</code> constant</dt>
+            <dd>
+                The work does not grow at all. Reading <code>arr[mid]</code> costs the
+                same whether the list holds ten values or ten million.
+                <span class="curve-example">On this site: looking up one array cell,
+                and the best case of
+                <a href="{{ url_for('searching_page') }}?algorithm=binary_search">binary
+                search</a> when the target is the first middle it tries.</span>
+            </dd>
+
+            <dt><code>O(log n)</code> logarithmic</dt>
+            <dd>
+                Each step throws away a fixed share of what is left, usually half, so
+                the input has to double before the work goes up by one step.
+                <span class="curve-example">On this site:
+                <a href="{{ url_for('searching_page') }}?algorithm=binary_search">binary
+                search</a>. On 1,024 sorted values it rules out a missing target in 10
+                comparisons. Linear search needs all 1,024.</span>
+            </dd>
+
+            <dt><code>O(n)</code> linear</dt>
+            <dd>
+                One pass over the input. Double the input, double the work.
+                <span class="curve-example">On this site:
+                <a href="{{ url_for('searching_page') }}?algorithm=linear_search">linear
+                search</a>, which checks every value before it can report that one is
+                missing.</span>
+            </dd>
+
+            <dt><code>O(n log n)</code> linearithmic</dt>
+            <dd>
+                A linear amount of work, repeated once per halving. This is the best
+                any sort can do when it works by comparing pairs.
+                <span class="curve-example">On this site:
+                <a href="{{ url_for('sorting_page') }}?algorithm=Merge+Sort">merge
+                sort</a> and
+                <a href="{{ url_for('sorting_page') }}?algorithm=Heap+Sort">heap
+                sort</a>, in every case.</span>
+            </dd>
+
+            <dt><code>O(n squared)</code> quadratic</dt>
+            <dd>
+                Every element is measured against every other. Fine at n = 10,
+                painful at n = 10,000.
+                <span class="curve-example">On this site:
+                <a href="{{ url_for('sorting_page') }}?algorithm=Bubble+Sort">bubble</a>,
+                <a href="{{ url_for('sorting_page') }}?algorithm=Selection+Sort">selection</a>
+                and
+                <a href="{{ url_for('sorting_page') }}?algorithm=Insertion+Sort">insertion</a>
+                sort, and
+                <a href="{{ url_for('graph_page') }}?algo=dijkstra">Dijkstra</a>, whose
+                implementation here scans every unvisited node to find the nearest.</span>
+            </dd>
+        </dl>
+
+        <!-- GROWTH CHART ------------------------------------------------- -->
+        <h2 id="chart">How they grow</h2>
+
+        <p>
+            Drag the slider to change the input size and watch the curves separate. This
+            is the same chart the Complexity tab draws in every workspace.
+        </p>
+
+        <div class="growth-explorer">
+            <div class="setup-field">
+                <label for="growth-n">Input size, n</label>
+                <input type="range" id="growth-n" class="speed-slider"
+                       min="2" max="100" value="20"
+                       aria-describedby="growth-readout">
+                <p class="setup-hint" id="growth-readout">n = 20</p>
+            </div>
+            <div class="setup-field">
+                <label class="radio-option" for="growth-log">
+                    <input type="checkbox" id="growth-log">
+                    Logarithmic vertical axis
+                </label>
+                <p class="setup-hint">
+                    On a straight axis a large n flattens the four slower curves onto
+                    the floor, which is true but hides the comparison. A log axis keeps
+                    all five readable.
+                </p>
+            </div>
+            <div class="growth" id="growth-host"></div>
+        </div>
+
+        <p class="aside">
+            At n = 10 the gap between O(n log n) and O(n squared) is small enough to
+            ignore. At n = 100 it is a factor of 15. That is the whole argument for
+            caring about complexity: the choice only starts to matter once the input is
+            big, and by then it matters a great deal.
+        </p>
+
+        <!-- FORMULA VS COUNTER ------------------------------------------- -->
+        <h2 id="formula">The formula against the counter</h2>
+
+        <p>
+            Every workspace shows a counter: the exact number of comparisons that run
+            made. The Complexity tab shows a Big O figure. They are answering different
+            questions, so they do not match, and they are not supposed to.
+        </p>
+
+        <table class="count-table">
+            <caption>Bubble sort on a reversed list, counted by running it</caption>
+            <thead>
+                <tr><th scope="col">n</th><th scope="col">Comparisons counted</th><th scope="col">n(n-1)/2</th><th scope="col">n squared</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>10</td><td>45</td><td>45</td><td>100</td></tr>
+                <tr><td>100</td><td>4,950</td><td>4,950</td><td>10,000</td></tr>
+                <tr><td>1,000</td><td>499,500</td><td>499,500</td><td>1,000,000</td></tr>
+            </tbody>
+        </table>
+
+        <p>
+            The counter matches the exact formula every time, because that is what the
+            code does. It is about half of n squared, and it stays about half however
+            large n gets. That constant factor of two is exactly what Big O throws away.
+        </p>
+
+        <p>
+            So read them as a pair. <strong>The counter tells you what this run cost.</strong>
+            <strong>Big O tells you what the next, larger run will cost relative to this
+            one.</strong> If you need to compare two algorithms on the input you actually
+            have, the counter is the honest answer. If you need to know which one survives
+            a hundred times more data, Big O is.
+        </p>
+
+        <!-- AUXILIARY SPACE ---------------------------------------------- -->
+        <h2 id="space">Auxiliary space</h2>
+
+        <p>
+            The same idea applies to memory. Auxiliary space is the memory an algorithm
+            needs <em>on top of</em> the input it was given. The input itself does not
+            count, because you had to store it either way.
+        </p>
+
+        <p>
+            Bubble sort needs two loop counters and one temporary during a swap. That is
+            three values whether the list holds ten numbers or ten million, so its
+            auxiliary space is O(1). Merge sort builds a temporary list while merging, and
+            that list grows with the input, so its auxiliary space is O(n).
+        </p>
+
+        <h3>The case people miss: the recursion stack</h3>
+
+        <p>
+            Memory is not only what you allocate. Every pending function call occupies a
+            frame on the call stack, and those frames add up. The heap sort here, in
+            <code>sorting_algorithms/heap_sort.py</code>, repairs the heap with a
+            function that calls itself:
+        </p>
+
+        <pre class="sample"><code>def heapify(arr, n, i):
+    ...
+    if largest != i:
+        arr[i], arr[largest] = arr[largest], arr[i]
+        heapify(arr, n, largest)</code></pre>
+
+        <p>
+            It sorts inside the original array and allocates nothing, which is why heap
+            sort is usually quoted at O(1) space. But each call waits for the one below
+            it to return, and the chain is as deep as the heap is tall, which is log n.
+            So the honest figure for
+            <a href="{{ url_for('sorting_page') }}?algorithm=Heap+Sort">this heap
+            sort</a> is <strong>O(log n)</strong>. Rewriting <code>heapify</code> as a
+            loop would make it O(1) without changing a single comparison.
+        </p>
+
+        <p>
+            <a href="{{ url_for('sorting_page') }}?algorithm=Quick+Sort">Quick sort</a>
+            has the same story with a worse ending. It allocates nothing either, but it
+            always picks the last element as its pivot, so on an already sorted list every
+            partition peels off one value and the recursion nests n deep. Its space here
+            is O(n), not the O(log n) usually quoted.
+        </p>
+
+        <p class="aside">
+            This is the point of deriving the figures from the code rather than copying
+            them: three of the figures on this site differ from the textbook, and in
+            every case the code is what decides.
+        </p>
+
+        <p class="next-step">
+            Every algorithm's own figures, with the reason for each, are in the
+            Complexity tab of its workspace. Start with
+            <a href="{{ url_for('learn') }}">the algorithm index</a>.
+        </p>
+    </main>
+{% endblock %}
+
+{% block page_js %}
+    <script src="{{ url_for('static', filename='js/growth.js') }}"></script>
+    <script>
+        /* The chart on this page is the shared component with a slider on it
+           and no curve singled out, since the point here is the comparison. */
+        (function () {
+            'use strict';
+
+            var slider = document.getElementById('growth-n');
+            var readout = document.getElementById('growth-readout');
+            var logToggle = document.getElementById('growth-log');
+            var host = document.getElementById('growth-host');
+            if (!slider || !host) return;
+
+            function draw() {
+                var n = Number(slider.value);
+                readout.textContent = 'n = ' + n;
+                window.Growth.render(host, {
+                    n: n,
+                    width: 520,
+                    height: 260,
+                    log: logToggle.checked
+                });
+            }
+
+            slider.addEventListener('input', draw);
+            logToggle.addEventListener('change', draw);
+            draw();
+        })();
+    </script>
+{% endblock %}

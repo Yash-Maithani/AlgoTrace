@@ -419,6 +419,12 @@ def learn():
     return render_template("learn.html")
 
 
+@app.route("/big-o")
+def big_o_page():
+    """How complexity works. Every figure on it comes from this repository."""
+    return render_template("big_o.html")
+
+
 @app.route("/privacy")
 def privacy():
     """Privacy policy, rendered inside the shared layout."""

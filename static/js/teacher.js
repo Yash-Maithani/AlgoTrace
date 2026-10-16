@@ -15,6 +15,9 @@
  *
  * Tabs are a real tablist: arrow keys move, Home and End jump to the ends,
  * and only the selected tab is in the tab order (DESIGN section 7).
+ *
+ * Requires static/js/growth.js, which draws the Complexity tab's chart and
+ * the one on /big-o from the same code.
  */
 (function () {
     'use strict';
@@ -26,15 +29,9 @@
         { id: 'about', label: 'About' }
     ];
 
-    var CURVES = {
-        '1': { label: 'O(1)', of: function () { return 1; } },
-        'logn': { label: 'O(log n)', of: function (n) { return Math.log2(n + 1); } },
-        'n': { label: 'O(n)', of: function (n) { return n; } },
-        'nlogn': { label: 'O(n log n)', of: function (n) { return n * Math.log2(n + 1); } },
-        'n2': { label: 'O(n squared)', of: function (n) { return n * n; } }
-    };
-
-    var ORDER = ['1', 'logn', 'n', 'nlogn', 'n2'];
+    /* The curves and the chart live in static/js/growth.js, because /big-o
+       draws the same picture with a slider on it. */
+    var CURVES = window.Growth.CURVES;
 
     function el(tag, className, text) {
         var node = document.createElement(tag);
@@ -265,6 +262,16 @@
             body.appendChild(el('p', 'divergence', c.divergence));
         }
 
+        /* The longer explanation of what these figures mean lives on one
+           page rather than being repeated in fifteen lessons. */
+        var more = el('p', 'complexity-more');
+        var link = el('a', null, 'How complexity works');
+        link.href = '/big-o';
+        more.appendChild(link);
+        more.appendChild(document.createTextNode(
+            ' explains counting, the three cases and auxiliary space.'));
+        body.appendChild(more);
+
         this.renderThisRun(null);
     };
 
@@ -299,72 +306,12 @@
         this.renderGrowth(stats.n);
     };
 
-    /* Plain SVG, no library. Reference curves sit behind this algorithm's own
-       curve, and a table carries the same numbers for anyone who cannot see
-       the picture (DESIGN section 7). */
     Panel.prototype.renderGrowth = function (n) {
         if (!this.growthBox || !this.lesson) return;
-        clear(this.growthBox);
-
-        var mine = this.lesson.complexity.growth;
-        var maxN = Math.max(n || 0, 10);
-        var width = 260;
-        var height = 160;
-        var pad = 24;
-
-        var highest = 0;
-        ORDER.forEach(function (key) {
-            highest = Math.max(highest, CURVES[key].of(maxN));
+        window.Growth.render(this.growthBox, {
+            n: n,
+            highlight: this.lesson.complexity.growth
         });
-        if (highest <= 0) highest = 1;
-
-        var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
-        svg.setAttribute('class', 'growth-chart');
-        svg.setAttribute('role', 'img');
-        svg.setAttribute('aria-label',
-            'Growth of ' + CURVES[mine].label + ' compared with the other common curves, ' +
-            'for inputs up to ' + maxN + '.');
-
-        function path(key) {
-            var points = [];
-            for (var x = 1; x <= maxN; x++) {
-                var px = pad + ((x - 1) / Math.max(maxN - 1, 1)) * (width - pad * 2);
-                var py = height - pad - (CURVES[key].of(x) / highest) * (height - pad * 2);
-                points.push((x === 1 ? 'M' : 'L') + px.toFixed(1) + ' ' + py.toFixed(1));
-            }
-            var node = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            node.setAttribute('d', points.join(' '));
-            node.setAttribute('fill', 'none');
-            node.setAttribute('class', key === mine ? 'growth-mine' : 'growth-ref');
-            return node;
-        }
-
-        ORDER.forEach(function (key) { if (key !== mine) svg.appendChild(path(key)); });
-        svg.appendChild(path(mine));
-        this.growthBox.appendChild(svg);
-
-        var caption = el('p', 'growth-caption');
-        caption.appendChild(document.createTextNode('This algorithm is '));
-        caption.appendChild(el('strong', null, CURVES[mine].label));
-        caption.appendChild(document.createTextNode('. The faint lines are the others, for n up to ' + maxN + '.'));
-        this.growthBox.appendChild(caption);
-
-        var details = el('details', 'growth-data');
-        details.appendChild(el('summary', null, 'The same numbers as a table'));
-        var table = el('table', 'var-table');
-        var head = el('tr');
-        head.appendChild(el('th', null, 'Curve'));
-        head.appendChild(el('th', null, 'At n = ' + maxN));
-        table.appendChild(head);
-        ORDER.forEach(function (key) {
-            var tr = el('tr');
-            tr.appendChild(el('td', null, CURVES[key].label + (key === mine ? ' (this one)' : '')));
-            tr.appendChild(el('td', null, String(Math.round(CURVES[key].of(maxN) * 10) / 10)));
-            table.appendChild(tr);
-        });
-        details.appendChild(table);
-        this.growthBox.appendChild(details);
     };
 
     Panel.prototype.highlight = function (lineId) {
