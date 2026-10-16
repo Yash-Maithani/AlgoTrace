@@ -2,407 +2,269 @@
 
 {% block title %}Algorithm Visualizer | Interactive Learning Platform{% endblock %}
 
-{% block page_css %}
-    <style>
-        /* Page specific only. Colour, type, spacing, radius, elevation and
-           motion come from the tokens in styles.css. */
-
-        html { scroll-behavior: smooth; }
-
-        .main { min-height: calc(100dvh - 80px); }
-
-        /* Hero ------------------------------------------------------------ */
-
-        .hero {
-            padding: var(--space-12) 0 var(--space-8);
-            text-align: center;
-            background-color: var(--sunken);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .hero-content { max-width: 760px; margin: 0 auto; }
-
-        /* Hero type comes from the shared --text-hero token so the scale lives
-           in one place. Family and line height arrive with .hero-title. */
-        .hero h1 {
-            margin-bottom: var(--space-4);
-            color: var(--text);
-        }
-
-        .hero-subtitle {
-            font-size: clamp(1rem, 2.5vw, 1.2rem);
-            color: var(--text-muted);
-            margin: 0 auto var(--space-6);
-            max-width: 62ch;
-        }
-
-        /* The one piece of colour in the hero: a row of the nine state hues,
-           which is also a preview of what the visualisers use. */
-        .hue-rule {
-            display: flex;
-            gap: 4px;
-            justify-content: center;
-            margin: 0 auto var(--space-6);
-            max-width: 260px;
-        }
-
-        .hue-rule span {
-            height: 6px;
-            flex: 1 1 0;
-            border-radius: 2px;
-            background-color: var(--hue);
-        }
-
-        .team-info {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--space-2);
-            background-color: var(--surface);
-            padding: var(--space-2) var(--space-4);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-weight: 500;
-            color: var(--text);
-            box-shadow: var(--shadow-1);
-        }
-
-        .team-info svg { flex: 0 0 auto; color: var(--queued-ink); }
-
-        /* Sections -------------------------------------------------------- */
-
-        .features, .algorithms { padding: var(--space-12) 0; }
-
-        .algorithms {
-            background-color: var(--sunken);
-            border-top: 1px solid var(--border);
-        }
-
-        .section-title {
-            text-align: center;
-            font-size: clamp(1.5rem, 4vw, 2rem);
-            font-weight: 700;
-            color: var(--text);
-            margin-bottom: var(--space-8);
-            text-wrap: balance;
-        }
-
-        /* Feature cards --------------------------------------------------- */
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: var(--space-6);
-        }
-
-        .feature-card {
-            background-color: var(--surface);
-            border: 1px solid var(--border);
-            border-top: 4px solid var(--card-accent);
-            border-radius: var(--radius-md);
-            padding: var(--space-8);
-            box-shadow: var(--shadow-1);
-            display: flex;
-            flex-direction: column;
-            transition: box-shadow var(--dur-base) var(--ease-out),
-                        border-color var(--dur-base) var(--ease-out);
-        }
-
-        .feature-card:hover {
-            box-shadow: var(--shadow-2);
-            border-color: var(--card-accent);
-        }
-
-        .feature-card:nth-child(1) { --card-accent: var(--idle-sort); --card-ink: var(--idle-sort-ink); --card-wash: var(--idle-sort-wash); }
-        .feature-card:nth-child(2) { --card-accent: var(--pivot); --card-ink: var(--pivot-ink); --card-wash: var(--pivot-wash); }
-
-        .feature-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: var(--radius-sm);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: var(--space-4);
-            background-color: var(--card-wash);
-            color: var(--card-ink);
-        }
-
-        .feature-title {
-            font-size: var(--text-xl);
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: var(--space-3);
-        }
-
-        .feature-description {
-            color: var(--text-muted);
-            margin-bottom: var(--space-6);
-            flex: 1 1 auto;
-        }
-
-        .feature-btn {
-            align-self: flex-start;
-            /* Ink tier keeps a white label readable in light mode; in dark the
-               ink tier is the bright accent and --on-state flips to near-black. */
-            background-color: var(--card-ink);
-            color: var(--on-state);
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: var(--space-2);
-            padding: var(--space-3) var(--space-6);
-            min-height: var(--target);
-            border-radius: var(--radius-sm);
-            font-weight: 600;
-            touch-action: manipulation;
-            transition: filter var(--dur-fast) var(--ease-out),
-                        transform var(--dur-fast) var(--ease-out);
-        }
-
-        .feature-btn:hover { filter: brightness(1.1); }
-        .feature-btn:active { transform: translateY(1px); }
-
-        .feature-btn:focus-visible {
-            outline: 3px solid var(--focus-ring);
-            outline-offset: 2px;
-        }
-
-        .feature-btn svg { transition: transform var(--dur-fast) var(--ease-out); }
-        .feature-btn:hover svg { transform: translateX(3px); }
-
-        /* Algorithm index -------------------------------------------------- */
-
-        .algorithms-container {
-            background-color: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: var(--space-8);
-            box-shadow: var(--shadow-1);
-        }
-
-        .algorithm-category + .algorithm-category { margin-top: var(--space-8); }
-
-        .category-title {
-            font-size: var(--text-lg);
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: var(--space-4);
-            display: flex;
-            align-items: center;
-            gap: var(--space-3);
-        }
-
-        .category-title::before {
-            content: '';
-            width: 4px;
-            height: 20px;
-            border-radius: 2px;
-            background-color: var(--cat-accent, var(--queued));
-        }
-
-        .algorithm-category:nth-child(1) { --cat-accent: var(--idle-sort); }
-        .algorithm-category:nth-child(2) { --cat-accent: var(--pivot); }
-
-        .algorithm-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: var(--space-2);
-        }
-
-        .algorithm-grid .algorithm-btn { justify-content: center; text-align: center; }
-
-        /* Loading state --------------------------------------------------- */
-
-        .loading {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid currentColor;
-            border-top-color: transparent;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Responsive ------------------------------------------------------- */
-
-        @media (max-width: 768px) {
-            .hero { padding: var(--space-8) 0; }
-            .features-grid { grid-template-columns: 1fr; }
-        }
-
-        @media (max-width: 480px) {
-            .hero, .features, .algorithms { padding: var(--space-8) 0; }
-            .feature-card, .algorithms-container { padding: var(--space-4); }
-            .algorithm-grid { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .feature-btn:active,
-            .feature-btn:hover svg { transform: none; }
-            .loading { animation-duration: 3s; }
-        }
-    </style>
-{% endblock %}
-
 {% block content %}
-
-    <!-- Main Content -->
     <main class="main" id="main">
-        <!-- Hero Section -->
+
+        <!-- Hero -->
         <section class="hero">
-            <div class="wrap">
-                <div class="hero-content">
-                    <h1 class="hero-title reveal">Interactive Algorithm Visualizer</h1>
-                    <p class="hero-subtitle reveal">
-                        Explore, learn, and understand algorithms through beautiful, interactive visualizations.
-                        Master sorting and graph algorithms with step-by-step guidance and real-time analysis.
+            <div class="wrap hero-grid">
+                <div class="hero-copy">
+                    <h1 class="hero-title">Interactive Algorithm Visualizer</h1>
+                    <p class="hero-subtitle">
+                        Watch an algorithm run one step at a time, read why it made each move,
+                        and see what it costs.
                     </p>
-                    <div class="hue-rule reveal" aria-hidden="true">
-                        <span style="--hue: var(--idle-sort)"></span>
-                        <span style="--hue: var(--queued)"></span>
-                        <span style="--hue: var(--active)"></span>
-                        <span style="--hue: var(--done)"></span>
-                        <span style="--hue: var(--select)"></span>
-                        <span style="--hue: var(--reject)"></span>
-                        <span style="--hue: var(--current)"></span>
-                        <span style="--hue: var(--pivot)"></span>
+                    <div class="hero-actions">
+                        <a href="{{ url_for('learn') }}" class="btn btn-primary">Start learning</a>
+                        <a href="{{ url_for('sorting_page') }}" class="btn btn-secondary">Browse algorithms</a>
                     </div>
-                    <div class="team-info reveal">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="9" cy="7" r="4"></circle>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                        </svg>
-                        <span>Team Tri Logic: Yash Maithani</span>
+                </div>
+
+                <!-- The real bubble sort, generated server side by the same
+                     function the sorting page uses. -->
+                <figure class="hero-demo" aria-labelledby="hero-demo-caption">
+                    <div class="hero-bars" id="hero-bars">
+                        {% for value in hero_start %}
+                        <span class="hero-bar" style="--v: {{ value }}"><i>{{ value }}</i></span>
+                        {% endfor %}
                     </div>
+                    <figcaption class="hero-demo-foot">
+                        <span id="hero-demo-caption">Bubble sort, {{ hero_start|length }} values,
+                            {{ hero_comparisons }} comparisons</span>
+                        <button type="button" class="btn btn-ghost btn-sm" id="hero-replay">Replay</button>
+                    </figcaption>
+                </figure>
+            </div>
+        </section>
+
+        <!-- One step, read three ways -->
+        <section class="band reveal-group">
+            <div class="wrap">
+                <h2 class="section-title">One step, read three ways</h2>
+                <p class="section-lead">
+                    This is a real step from a real bubble sort on
+                    <code>{{ band.array|join(', ') }}</code>. Every workspace on this site
+                    gives you the same three readings on every step.
+                </p>
+
+                <div class="band-stage" aria-hidden="true">
+                    {% for value in band.array %}
+                    <span class="band-cell {% if loop.index0 == band.left or loop.index0 == band.right %}is-comparing{% endif %}">{{ value }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="band-cols">
+                    <article class="band-col reveal">
+                        <h3>Explain</h3>
+                        <p class="band-lead">
+                            {{ band.left_value }} is
+                            {% if band.swaps %}bigger than{% else %}not bigger than{% endif %}
+                            {{ band.right_value }}, so they
+                            {% if band.swaps %}swap{% else %}stay put{% endif %}.
+                        </p>
+                        <p>Bubble sort walks the list and fixes any neighbouring pair that is
+                           out of order, then starts again.</p>
+                    </article>
+
+                    <article class="band-col reveal">
+                        <h3>Code</h3>
+                        <pre class="band-code"><code>for j in range(0, n-i-1):
+<mark>    if arr[j] &gt; arr[j+1]:</mark>
+        arr[j], arr[j+1] = arr[j+1], arr[j]</code></pre>
+                        <p>The marked line is the comparison you are watching.</p>
+                    </article>
+
+                    <article class="band-col reveal">
+                        <h3>Cost</h3>
+                        <p class="band-stat">
+                            <strong>{{ band.comparisons }}</strong> of
+                            <strong>{{ band.total_comparisons }}</strong> comparisons
+                        </p>
+                        <p>This bubble sort has no early exit, so it always performs
+                           n(n-1)/2 comparisons. For n = {{ band.n }} that is
+                           {{ band.total_comparisons }}, whatever the input looks like.</p>
+                    </article>
                 </div>
             </div>
         </section>
 
-        <!-- Feature Cards Section -->
-        <section class="features">
+        <!-- Tracks -->
+        <section class="tracks reveal-group">
             <div class="wrap">
-                <h2 class="section-title">Choose Your Learning Path</h2>
-                <div class="features-grid">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
-                                <line x1="4" y1="19" x2="4" y2="11"></line>
-                                <line x1="10" y1="19" x2="10" y2="5"></line>
-                                <line x1="16" y1="19" x2="16" y2="9"></line>
-                                <line x1="22" y1="19" x2="22" y2="14"></line>
-                            </svg>
-                        </div>
-                        <h3 class="feature-title">Sorting Visualizer</h3>
-                        <p class="feature-description">
-                            Watch sorting algorithms come to life with animated visualizations.
-                            Understand time complexity, space complexity, and algorithm behavior
-                            through interactive step-by-step execution.
-                        </p>
-                        <a href="{{ url_for('sorting_page') }}" class="feature-btn">
-                            Explore Sorting
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline>
-                            </svg>
-                        </a>
+                <h2 class="section-title">Pick a track</h2>
+                <div class="track-grid">
+                    <a href="{{ url_for('sorting_page') }}" class="track-tile reveal" data-track="sorting">
+                        <span class="track-art" aria-hidden="true">
+                            <span style="--v: 40"></span><span style="--v: 70"></span>
+                            <span style="--v: 25"></span><span style="--v: 90"></span>
+                            <span style="--v: 55"></span>
+                        </span>
+                        <h3>Sorting</h3>
+                        <p>Six ways to put a list in order, from bubble sort to heap sort.</p>
+                        <span class="track-meta">6 algorithms</span>
+                    </a>
+
+                    <div class="track-tile is-soon reveal" data-track="searching">
+                        <span class="track-art" aria-hidden="true">
+                            <span class="dot"></span><span class="dot"></span>
+                            <span class="dot is-hit"></span><span class="dot"></span>
+                            <span class="dot"></span>
+                        </span>
+                        <h3>Searching</h3>
+                        <p>Linear and binary search, and why a sorted list changes everything.</p>
+                        <span class="track-meta">Coming soon</span>
                     </div>
 
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
-                                <circle cx="12" cy="5" r="2.5"></circle>
-                                <circle cx="5" cy="18" r="2.5"></circle>
-                                <circle cx="19" cy="18" r="2.5"></circle>
-                                <line x1="10.5" y1="7" x2="6.5" y2="15.8"></line>
-                                <line x1="13.5" y1="7" x2="17.5" y2="15.8"></line>
-                                <line x1="7.5" y1="18" x2="16.5" y2="18"></line>
+                    <a href="{{ url_for('graph_page') }}" class="track-tile reveal" data-track="graphs">
+                        <span class="track-art" aria-hidden="true">
+                            <svg viewBox="0 0 80 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                                <line x1="16" y1="34" x2="40" y2="14"></line>
+                                <line x1="40" y1="14" x2="64" y2="34"></line>
+                                <line x1="16" y1="34" x2="64" y2="34"></line>
+                                <circle cx="16" cy="34" r="6" fill="currentColor" stroke="none"></circle>
+                                <circle cx="40" cy="14" r="6" fill="currentColor" stroke="none"></circle>
+                                <circle cx="64" cy="34" r="6" fill="currentColor" stroke="none"></circle>
                             </svg>
-                        </div>
-                        <h3 class="feature-title">Graph Visualizer</h3>
-                        <p class="feature-description">
-                            Discover the power of graph algorithms with dynamic network visualizations.
-                            Trace paths, find shortest routes, and explore tree structures with
-                            comprehensive algorithm analysis.
-                        </p>
-                        <a href="{{ url_for('graph_page') }}" class="feature-btn">
-                            Explore Graphs
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline>
-                            </svg>
-                        </a>
-                    </div>
+                        </span>
+                        <h3>Graphs</h3>
+                        <p>Traversals, shortest paths and spanning trees on a live network.</p>
+                        <span class="track-meta">7 algorithms</span>
+                    </a>
                 </div>
             </div>
         </section>
 
-        <!-- Algorithms Section -->
-        <section class="algorithms">
+        <!-- Start here -->
+        <section class="start-here reveal-group">
             <div class="wrap">
-                <h2 class="section-title">Available Algorithms</h2>
-                <div class="algorithms-container">
-                    <div class="algorithm-category">
-                        <h3 class="category-title">Sorting Algorithms</h3>
-                        <div class="algorithm-grid algorithm-buttons">
-                            <a href="{{ url_for('sorting_page', algorithm='Bubble Sort') }}" class="algorithm-btn">Bubble Sort</a>
-                            <a href="{{ url_for('sorting_page', algorithm='Selection Sort') }}" class="algorithm-btn">Selection Sort</a>
-                            <a href="{{ url_for('sorting_page', algorithm='Insertion Sort') }}" class="algorithm-btn">Insertion Sort</a>
-                            <a href="{{ url_for('sorting_page', algorithm='Merge Sort') }}" class="algorithm-btn">Merge Sort</a>
-                            <a href="{{ url_for('sorting_page', algorithm='Quick Sort') }}" class="algorithm-btn">Quick Sort</a>
-                            <a href="{{ url_for('sorting_page', algorithm='Heap Sort') }}" class="algorithm-btn">Heap Sort</a>
-                        </div>
-                    </div>
-
-                    <div class="algorithm-category">
-                        <h3 class="category-title">Graph Algorithms</h3>
-                        <div class="algorithm-grid algorithm-buttons">
-                            <a href="{{ url_for('graph_page', algo='dfs') }}" class="algorithm-btn">Depth-First Search</a>
-                            <a href="{{ url_for('graph_page', algo='bfs') }}" class="algorithm-btn">Breadth-First Search</a>
-                            <a href="{{ url_for('graph_page', algo='prim') }}" class="algorithm-btn">Prim's MST</a>
-                            <a href="{{ url_for('graph_page', algo='dijkstra') }}" class="algorithm-btn">Dijkstra's Path</a>
-                        </div>
-                    </div>
-                </div>
+                <h2 class="section-title">Start here</h2>
+                <p class="section-lead">If you are new to this, work down the list.
+                   Each one builds on the one above it.</p>
+                <ol class="start-list">
+                    <li class="is-first"><a href="{{ url_for('sorting_page') }}?algorithm=Bubble+Sort">Bubble Sort</a>
+                        <span>The simplest one to read. Start here.</span></li>
+                    <li><a href="{{ url_for('sorting_page') }}?algorithm=Selection+Sort">Selection Sort</a>
+                        <span>Find the smallest, put it in place, repeat.</span></li>
+                    <li><a href="{{ url_for('sorting_page') }}?algorithm=Insertion+Sort">Insertion Sort</a>
+                        <span>The one you already use to sort playing cards.</span></li>
+                    <li><a href="{{ url_for('sorting_page') }}?algorithm=Merge+Sort">Merge Sort</a>
+                        <span>Split the list, sort the halves, merge them back.</span></li>
+                    <li><a href="{{ url_for('graph_page') }}?algo=bfs">Breadth-First Search</a>
+                        <span>Explore a network one ring at a time.</span></li>
+                    <li><a href="{{ url_for('graph_page') }}?algo=dijkstra">Dijkstra's Algorithm</a>
+                        <span>The shortest route when the roads have lengths.</span></li>
+                </ol>
+                <p class="start-more"><a href="{{ url_for('learn') }}">See all 15 in order</a></p>
             </div>
         </section>
     </main>
 {% endblock %}
 
 {% block page_js %}
+    <script>
+        (function () {
+            'use strict';
+
+            var bars = Array.prototype.slice.call(
+                document.querySelectorAll('#hero-bars .hero-bar'));
+            if (!bars.length) return;
+
+            /* Real steps from the real bubble_sort, rendered by the server. */
+            var steps = {{ hero_steps|tojson }};
+            var sortedValues = {{ hero_sorted|tojson }};
+            var replay = document.getElementById('hero-replay');
+            var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+            var timer = null;
+
+            function paint(values, compared) {
+                for (var i = 0; i < bars.length; i++) {
+                    var bar = bars[i];
+                    bar.style.setProperty('--v', values[i]);
+                    bar.firstChild.textContent = values[i];
+                    var active = compared && compared.indexOf(i) !== -1;
+                    bar.classList.toggle('is-comparing', !!active);
+                }
+            }
+
+            function settleSorted() {
+                paint(sortedValues, []);
+                for (var i = 0; i < bars.length; i++) {
+                    bars[i].classList.add('is-done');
+                }
+            }
+
+            function stop() {
+                if (timer) { window.clearInterval(timer); timer = null; }
+            }
+
+            function run() {
+                stop();
+                if (reduce.matches) { settleSorted(); return; }
+
+                var i = 0;
+                for (var b = 0; b < bars.length; b++) {
+                    bars[b].classList.remove('is-done');
+                }
+                timer = window.setInterval(function () {
+                    if (i >= steps.length) {
+                        stop();
+                        settleSorted();
+                        return;
+                    }
+                    var step = steps[i];
+                    var pair = step.compared.filter(function (c) {
+                        return typeof c === 'number';
+                    });
+                    paint(step.array, pair);
+                    i++;
+                }, 160);
+            }
+
+            if (replay) {
+                replay.addEventListener('click', run);
+            }
+
+            /* Reduced motion renders the finished state and never animates.
+               Changing the setting live is honoured without a reload. */
+            if (reduce.addEventListener) {
+                reduce.addEventListener('change', function () {
+                    if (reduce.matches) { stop(); settleSorted(); }
+                });
+            }
+
+            if (reduce.matches) {
+                settleSorted();
+            } else {
+                run();
+            }
+        })();
+    </script>
 
     <script>
-        // Header scroll effect
-        const header = document.getElementById('header');
+        /* Section reveal on first view. Decorative only: every section is
+           already in the DOM and readable with JavaScript off, and the
+           observer is never created under reduced motion. */
+        (function () {
+            'use strict';
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            if (!('IntersectionObserver' in window)) return;
 
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 50) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
-            }
-        });
-
-        // Smooth scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    e.preventDefault();
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
+            var groups = document.querySelectorAll('.reveal-group');
+            Array.prototype.forEach.call(groups, function (group) {
+                group.classList.add('reveal-armed');
             });
-        });
 
-        // Add loading state to buttons
-        document.querySelectorAll('.feature-btn, .algorithm-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                if (!this.disabled && this.href) {
-                    this.innerHTML = '<span class="loading"></span> Loading...';
-                    this.style.pointerEvents = 'none';
-                }
+            var io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (!entry.isIntersecting) return;
+                    entry.target.classList.add('is-revealed');
+                    io.unobserve(entry.target);
+                });
+            }, { rootMargin: '0px 0px -10% 0px', threshold: 0.1 });
+
+            Array.prototype.forEach.call(groups, function (group) {
+                io.observe(group);
             });
-        });
+        })();
     </script>
 {% endblock %}

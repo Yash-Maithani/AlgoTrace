@@ -72,6 +72,75 @@ sorting_algo_details = {
     }
 }
 
+
+# ---------------------------------------------------------------------------
+# Home page demonstration data.
+#
+# Both of these call the real bubble_sort from sorting_algorithms, the same
+# function the /sorting page uses. Nothing here reimplements an algorithm or
+# hand writes a step, so if that code changes these change with it.
+# ---------------------------------------------------------------------------
+
+HERO_ARRAY = [42, 17, 93, 8, 61, 29, 75, 36]
+BAND_ARRAY = [17, 32, 11, 45, 9]
+
+
+def _bubble_steps(values):
+    """Run the real bubble sort over `values` and collect its draw calls."""
+    data = list(values)
+    steps = []
+    stats = {"swaps": 0, "comparisons": 0}
+
+    def draw(array_state, compared_indices=None):
+        steps.append({
+            "array": array_state[:],
+            "compared": compared_indices[:] if compared_indices else [],
+        })
+
+    bubble_sort(data, draw, lambda: None, stats)
+    return steps, stats
+
+
+def _band_step(values, wanted):
+    """One frozen step for the annotated band on the home page.
+
+    Picks the first step at or after `wanted` where two elements are being
+    compared, so the band always shows a real comparison rather than the
+    final all-sorted frame.
+    """
+    steps, _ = _bubble_steps(values)
+    chosen = None
+    for index in range(min(wanted, len(steps) - 1), len(steps)):
+        step = steps[index]
+        pair = step["compared"]
+        if len(pair) == 2 and all(isinstance(i, int) for i in pair):
+            chosen = (index, step)
+            break
+    if chosen is None:
+        chosen = (0, steps[0])
+
+    index, step = chosen
+    left, right = step["compared"]
+    values_now = step["array"]
+    # Comparisons counted up to and including this step.
+    comparisons = sum(
+        1 for s in steps[: index + 1]
+        if len(s["compared"]) == 2 and all(isinstance(i, int) for i in s["compared"])
+    )
+    n = len(values)
+    return {
+        "array": values_now,
+        "left": left,
+        "right": right,
+        "left_value": values_now[left],
+        "right_value": values_now[right],
+        "swaps": values_now[left] > values_now[right],
+        "comparisons": comparisons,
+        "total_comparisons": n * (n - 1) // 2,
+        "n": n,
+    }
+
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -80,9 +149,14 @@ def index():
             return handle_sorting()
         else:
             return handle_graph()
-    # Always provide default values for all variables used in the template
+    hero_steps, hero_stats = _bubble_steps(HERO_ARRAY)
     return render_template(
-        "landing.html"
+        "landing.html",
+        hero_steps=hero_steps,
+        hero_start=HERO_ARRAY,
+        hero_sorted=sorted(HERO_ARRAY),
+        hero_comparisons=hero_stats["comparisons"],
+        band=_band_step(BAND_ARRAY, 4),
     )
 
 @app.route("/sorting", methods=["GET", "POST"])
@@ -109,6 +183,12 @@ def sorting_page():
             error="",
             info=None
         )
+
+@app.route("/learn")
+def learn():
+    """Algorithm index with a suggested beginner order."""
+    return render_template("learn.html")
+
 
 @app.route("/privacy")
 def privacy():

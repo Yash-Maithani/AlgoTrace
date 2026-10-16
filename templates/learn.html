@@ -1,0 +1,255 @@
+{% extends "layout.html" %}
+
+{% block title %}Learn | Algorithm Visualizer{% endblock %}
+
+{% block content %}
+    <main class="container reading" id="main">
+        <h1>Every algorithm, in a sensible order</h1>
+
+        <p class="lede">
+            Each algorithm has its own workspace: a visualization you can step through,
+            a plain explanation of the current step, the matching line of code, and what
+            the whole thing costs. The complexity figures below describe the code in this
+            project, which is not always the figure a textbook gives. Where they differ,
+            the reason is noted.
+        </p>
+
+        <h2>Suggested order</h2>
+        <p>Work down the list. Each one assumes the idea above it.</p>
+
+        <ol class="order-list">
+            <li class="is-next">
+                <span class="order-name">Linear Search</span>
+                <span class="order-note">Check every item until you find it.</span>
+                <span class="order-tag">Coming soon</span>
+            </li>
+            <li>
+                <span class="order-name">Binary Search</span>
+                <span class="order-note">Halve a sorted list over and over.</span>
+                <span class="order-tag">Coming soon</span>
+            </li>
+            <li><a class="order-name" href="{{ url_for('sorting_page') }}?algorithm=Bubble+Sort">Bubble Sort</a>
+                <span class="order-note">Swap neighbours until nothing is out of order.</span>
+                <span class="order-tag">O(n&sup2;)</span></li>
+            <li><a class="order-name" href="{{ url_for('sorting_page') }}?algorithm=Selection+Sort">Selection Sort</a>
+                <span class="order-note">Find the smallest, place it, repeat.</span>
+                <span class="order-tag">O(n&sup2;)</span></li>
+            <li><a class="order-name" href="{{ url_for('sorting_page') }}?algorithm=Insertion+Sort">Insertion Sort</a>
+                <span class="order-note">Slide each value back into a sorted prefix.</span>
+                <span class="order-tag">O(n&sup2;)</span></li>
+            <li><a class="order-name" href="{{ url_for('sorting_page') }}?algorithm=Merge+Sort">Merge Sort</a>
+                <span class="order-note">Split, sort the halves, merge them back.</span>
+                <span class="order-tag">O(n log n)</span></li>
+            <li><a class="order-name" href="{{ url_for('sorting_page') }}?algorithm=Quick+Sort">Quick Sort</a>
+                <span class="order-note">Partition around a pivot, then recurse.</span>
+                <span class="order-tag">O(n log n)</span></li>
+            <li><a class="order-name" href="{{ url_for('sorting_page') }}?algorithm=Heap+Sort">Heap Sort</a>
+                <span class="order-note">Build a heap, pull the largest off the top.</span>
+                <span class="order-tag">O(n log n)</span></li>
+            <li><a class="order-name" href="{{ url_for('graph_page') }}?algo=bfs">Breadth-First Search</a>
+                <span class="order-note">Explore a network one ring at a time.</span>
+                <span class="order-tag">O(V&middot;E)</span></li>
+            <li><a class="order-name" href="{{ url_for('graph_page') }}?algo=dfs">Depth-First Search</a>
+                <span class="order-note">Follow one path as far as it goes, then back up.</span>
+                <span class="order-tag">O(V&middot;E)</span></li>
+            <li><a class="order-name" href="{{ url_for('graph_page') }}?algo=dijkstra">Dijkstra's Algorithm</a>
+                <span class="order-note">Cheapest route when edges have lengths.</span>
+                <span class="order-tag">O(V&sup2;)</span></li>
+            <li><a class="order-name" href="{{ url_for('graph_page') }}?algo=prim">Prim's Algorithm</a>
+                <span class="order-note">Grow one tree outward by the cheapest edge.</span>
+                <span class="order-tag">O(E log E)</span></li>
+            <li><a class="order-name" href="{{ url_for('graph_page') }}?algo=kruskal">Kruskal's Algorithm</a>
+                <span class="order-note">Take cheap edges that do not close a loop.</span>
+                <span class="order-tag">O(E log E)</span></li>
+            <li><a class="order-name" href="{{ url_for('graph_page') }}?algo=bellman_ford">Bellman-Ford</a>
+                <span class="order-note">Shortest paths that survive negative edges.</span>
+                <span class="order-tag">O(V&middot;E)</span></li>
+            <li><a class="order-name" href="{{ url_for('graph_page') }}?algo=floyd_warshall">Floyd-Warshall</a>
+                <span class="order-note">Shortest path between every pair at once.</span>
+                <span class="order-tag">O(V&sup3;)</span></li>
+        </ol>
+
+        <h2>Searching</h2>
+        <p>Two algorithms, arriving with the searching workspace.</p>
+        <div class="card-grid">
+            <div class="algo-card is-soon" data-accent="1">
+                <h3>Linear Search</h3>
+                <p>Walk the list from the start and stop at the first match.</p>
+                <dl class="algo-facts">
+                    <dt>Time</dt><dd>Coming soon</dd>
+                    <dt>Space</dt><dd>Coming soon</dd>
+                </dl>
+                <span class="algo-soon">Coming soon</span>
+            </div>
+            <div class="algo-card is-soon" data-accent="2">
+                <h3>Binary Search</h3>
+                <p>Halve the remaining range on every comparison. Needs a sorted list.</p>
+                <dl class="algo-facts">
+                    <dt>Time</dt><dd>Coming soon</dd>
+                    <dt>Space</dt><dd>Coming soon</dd>
+                </dl>
+                <span class="algo-soon">Coming soon</span>
+            </div>
+        </div>
+
+        <h2>Sorting</h2>
+        <p>Six algorithms. All figures below describe the implementations in
+           <code>sorting_algorithms/</code>.</p>
+        <div class="card-grid">
+            <a class="algo-card" data-accent="1" href="{{ url_for('sorting_page') }}?algorithm=Bubble+Sort">
+                <h3>Bubble Sort</h3>
+                <p>Compare each neighbouring pair and swap them if they are out of order.</p>
+                <dl class="algo-facts">
+                    <dt>Best</dt><dd>O(n&sup2;)</dd>
+                    <dt>Worst</dt><dd>O(n&sup2;)</dd>
+                    <dt>Space</dt><dd>O(1)</dd>
+                </dl>
+                <p class="algo-note">No early exit, so even a sorted list costs n(n-1)/2
+                   comparisons. The textbook O(n) best case needs a swapped flag.</p>
+            </a>
+            <a class="algo-card" data-accent="2" href="{{ url_for('sorting_page') }}?algorithm=Selection+Sort">
+                <h3>Selection Sort</h3>
+                <p>Scan for the smallest remaining value and move it into place.</p>
+                <dl class="algo-facts">
+                    <dt>Best</dt><dd>O(n&sup2;)</dd>
+                    <dt>Worst</dt><dd>O(n&sup2;)</dd>
+                    <dt>Space</dt><dd>O(1)</dd>
+                </dl>
+                <p class="algo-note">The inner scan never stops early, so the comparison
+                   count does not depend on the input at all.</p>
+            </a>
+            <a class="algo-card" data-accent="3" href="{{ url_for('sorting_page') }}?algorithm=Insertion+Sort">
+                <h3>Insertion Sort</h3>
+                <p>Take the next value and slide it back until it sits in order.</p>
+                <dl class="algo-facts">
+                    <dt>Best</dt><dd>O(n)</dd>
+                    <dt>Worst</dt><dd>O(n&sup2;)</dd>
+                    <dt>Space</dt><dd>O(1)</dd>
+                </dl>
+                <p class="algo-note">This one does break out of the inner loop early, so an
+                   already sorted list really is linear here.</p>
+            </a>
+            <a class="algo-card" data-accent="4" href="{{ url_for('sorting_page') }}?algorithm=Merge+Sort">
+                <h3>Merge Sort</h3>
+                <p>Split the list in half, sort both halves, then merge them.</p>
+                <dl class="algo-facts">
+                    <dt>Best</dt><dd>O(n log n)</dd>
+                    <dt>Worst</dt><dd>O(n log n)</dd>
+                    <dt>Space</dt><dd>O(n)</dd>
+                </dl>
+                <p class="algo-note">Merging builds temporary lists, so the extra memory
+                   grows with the input rather than staying constant.</p>
+            </a>
+            <a class="algo-card" data-accent="5" href="{{ url_for('sorting_page') }}?algorithm=Quick+Sort">
+                <h3>Quick Sort</h3>
+                <p>Partition around a pivot so small values land left and large ones right.</p>
+                <dl class="algo-facts">
+                    <dt>Best</dt><dd>O(n log n)</dd>
+                    <dt>Worst</dt><dd>O(n&sup2;)</dd>
+                    <dt>Space</dt><dd>O(n)</dd>
+                </dl>
+                <p class="algo-note">The pivot is the last element, so an already sorted
+                   list is the worst case and the recursion reaches depth n.</p>
+            </a>
+            <a class="algo-card" data-accent="6" href="{{ url_for('sorting_page') }}?algorithm=Heap+Sort">
+                <h3>Heap Sort</h3>
+                <p>Build a max heap, swap the top to the end, then repair the heap.</p>
+                <dl class="algo-facts">
+                    <dt>Best</dt><dd>O(n log n)</dd>
+                    <dt>Worst</dt><dd>O(n log n)</dd>
+                    <dt>Space</dt><dd>O(log n)</dd>
+                </dl>
+                <p class="algo-note">Heapify here is recursive, so the call stack is the
+                   extra memory rather than the usual O(1).</p>
+            </a>
+        </div>
+
+        <h2>Graphs</h2>
+        <p>Seven algorithms. V is the number of nodes and E the number of edges.</p>
+        <div class="card-grid">
+            <a class="algo-card" data-accent="2" href="{{ url_for('graph_page') }}?algo=bfs">
+                <h3>Breadth-First Search</h3>
+                <p>Visit everything one step away, then everything two steps away.</p>
+                <dl class="algo-facts">
+                    <dt>Time</dt><dd>O(V&middot;E)</dd>
+                    <dt>Space</dt><dd>O(V)</dd>
+                </dl>
+                <p class="algo-note">The queue is a plain list, so taking the front is
+                   O(V) and the duplicate check scans it once per edge. With a deque and
+                   a set this would be the familiar O(V+E).</p>
+            </a>
+            <a class="algo-card" data-accent="1" href="{{ url_for('graph_page') }}?algo=dfs">
+                <h3>Depth-First Search</h3>
+                <p>Follow one branch to its end before trying the next.</p>
+                <dl class="algo-facts">
+                    <dt>Time</dt><dd>O(V&middot;E)</dd>
+                    <dt>Space</dt><dd>O(V)</dd>
+                </dl>
+                <p class="algo-note">Taking from the end of the stack is cheap, but the
+                   same duplicate check scans the stack once per edge.</p>
+            </a>
+            <a class="algo-card" data-accent="5" href="{{ url_for('graph_page') }}?algo=dijkstra">
+                <h3>Dijkstra's Algorithm</h3>
+                <p>Always settle the nearest unvisited node next.</p>
+                <dl class="algo-facts">
+                    <dt>Time</dt><dd>O(V&sup2;)</dd>
+                    <dt>Space</dt><dd>O(V)</dd>
+                </dl>
+                <p class="algo-note">The next node is picked with a linear scan over every
+                   unvisited node, not a priority queue, so this is the V squared form.</p>
+            </a>
+            <a class="algo-card" data-accent="4" href="{{ url_for('graph_page') }}?algo=prim">
+                <h3>Prim's Algorithm</h3>
+                <p>Grow a single tree, always taking the cheapest edge leaving it.</p>
+                <dl class="algo-facts">
+                    <dt>Time</dt><dd>O(E log E)</dd>
+                    <dt>Space</dt><dd>O(V + E)</dd>
+                </dl>
+                <p class="algo-note">Uses a real heap, so every edge costs a log E push
+                   and pop.</p>
+            </a>
+            <a class="algo-card" data-accent="7" href="{{ url_for('graph_page') }}?algo=kruskal">
+                <h3>Kruskal's Algorithm</h3>
+                <p>Sort every edge, then take the cheap ones that do not close a loop.</p>
+                <dl class="algo-facts">
+                    <dt>Time</dt><dd>O(E log E)</dd>
+                    <dt>Space</dt><dd>O(V + E)</dd>
+                </dl>
+                <p class="algo-note">The sort dominates. Union-Find uses path halving and
+                   union by rank, so the cycle check is nearly constant.</p>
+            </a>
+            <a class="algo-card" data-accent="6" href="{{ url_for('graph_page') }}?algo=bellman_ford">
+                <h3>Bellman-Ford</h3>
+                <p>Relax every edge repeatedly until nothing improves.</p>
+                <dl class="algo-facts">
+                    <dt>Time</dt><dd>O(V&middot;E)</dd>
+                    <dt>Space</dt><dd>O(V)</dd>
+                </dl>
+                <p class="algo-note">Stops early when a pass changes nothing, then makes
+                   one extra pass to detect a negative cycle.</p>
+            </a>
+            <a class="algo-card" data-accent="3" href="{{ url_for('graph_page') }}?algo=floyd_warshall">
+                <h3>Floyd-Warshall</h3>
+                <p>Ask, for every pair, whether going via some third node is shorter.</p>
+                <dl class="algo-facts">
+                    <dt>Time</dt><dd>O(V&sup3;)</dd>
+                    <dt>Space</dt><dd>O(V&sup2;)</dd>
+                </dl>
+                <p class="algo-note">Three nested loops over every node, and a full
+                   distance matrix held in memory.</p>
+            </a>
+        </div>
+
+        <h2>Big O</h2>
+        <p>A guide to reading every figure on this page, arriving with the Big O page.</p>
+        <div class="card-grid is-one">
+            <div class="algo-card is-soon" data-accent="3">
+                <h3>How complexity works</h3>
+                <p>What the common curves mean, where each one shows up in the algorithms
+                   above, and why the counter on a finished run and the formula almost
+                   never agree.</p>
+                <span class="algo-soon">Coming soon</span>
+            </div>
+        </div>
+    </main>
+{% endblock %}
