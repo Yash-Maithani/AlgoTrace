@@ -10,6 +10,9 @@
  *     lessons,                  window.LESSONS, keyed by algorithm id
  *     readRequest(ui),          build the POST body, or return {field, message}
  *     onRun(ui),                optional, take the run over and call load()
+ *     algorithm,                optional, the id shown when the picker navigates
+ *     metaFor(step, i, body),   optional, where the teacher payload lives when
+ *                               it is not the step itself
  *     renderStep(step, ctx),    draw one step on the stage
  *     renderResult(payload),    optional, the closing banner
  *     onError(payload, ui),     optional, return true if the page handled it
@@ -45,7 +48,9 @@
         this.speed = byId('speed');
         this.counter = byId('step-counter');
 
-        this.algorithm = this.firstAlgorithm();
+        // A page whose picker is a set of links to other pages, rather than an
+        // in place switch, names the algorithm it is showing instead.
+        this.algorithm = options.algorithm || this.firstAlgorithm();
 
         // The Learn panel is optional: a page without a #learn-panel element
         // gets the shell and the transport and nothing else.
@@ -193,7 +198,12 @@
             payload: this.payload,
             stats: function (stats) { self.lastStats = stats; }
         });
-        if (this.panel) this.panel.showStep(step, this.lastStats);
+        if (this.panel) {
+            var meta = this.options.metaFor
+                ? this.options.metaFor(step, this.index, this.payload)
+                : step;
+            this.panel.showStep(meta, this.lastStats);
+        }
         this.syncTransport();
     };
 

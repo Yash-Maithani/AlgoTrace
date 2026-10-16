@@ -1,4 +1,8 @@
-"""Phase 7A: the graph page in the workspace layout, driven by workspace.js.
+"""Phase 7A and 7B: the graph page in the workspace, with its Learn panel.
+
+This module spells out the escaped forms the banned pattern check hunts, so
+it carries the pragma: banned-check: documents-the-patterns
+
 
 Part A is layout and controls only, so there is deliberately no Learn panel
 yet. The endpoints and their step arrays are covered by test_graph_parity.py
@@ -62,12 +66,14 @@ def test_transport_contract_ids_present(client, algo, element_id):
     assert 'id="%s"' % element_id in body
 
 
-def test_no_learn_panel_in_part_a(client):
-    """Part A is layout and controls. The Learn panel lands in part B."""
-    body = client.get('/graph?algo=bfs').get_data(as_text=True)
+@pytest.mark.parametrize('algo', ALGORITHMS)
+def test_learn_panel_is_wired(client, algo):
+    """Part B: the panel, teacher.js and this algorithm's own lesson."""
+    body = client.get('/graph?algo=%s' % algo).get_data(as_text=True)
 
-    assert 'id="learn-panel"' not in body
-    assert 'teacher.js' not in body
+    assert 'id="learn-panel"' in body
+    assert 'teacher.js' in body
+    assert 'lessons/%s.js' % algo in body, 'the lesson for %s is not loaded' % algo
 
 
 def test_workspace_tolerates_a_missing_learn_panel():
@@ -76,9 +82,8 @@ def test_workspace_tolerates_a_missing_learn_panel():
         source = fh.read()
 
     assert 'panelHost && window.Teacher' in source
-    for guarded in ('if (this.panel) this.panel.setLesson',
-                    'if (this.panel) this.panel.showStep'):
-        assert guarded in source, 'unguarded panel use: %s' % guarded
+    assert 'if (this.panel) this.panel.setLesson' in source
+    assert 'if (this.panel) {' in source, 'the showStep call is unguarded'
 
 
 # ---------------------------------------------------------------------------
@@ -158,3 +163,66 @@ def test_legend_markup_and_styling_survive(client):
     assert '.legend-swatch.is-edge' in css, 'the edge swatch shape is unstyled'
     assert re.search(r'\.legend \{[^}]*background-color: var\(--sunken\)', css), (
         'the legend lost its panel styling')
+
+
+def test_graph_status_lines_use_icons_not_emoji(template):
+    """Phase 7B replaced the escaped emoji with inline SVG."""
+    assert 'STATUS_ICON' in template
+    for icon in ('table', 'pass', 'compare', 'better', 'same', 'summary',
+                 'done', 'warning'):
+        assert 'STATUS_ICON.%s' % icon in template, '%s icon unused' % icon
+
+
+def test_repository_has_no_banned_patterns():
+    """Runs the check REBUILD_PLAN's definition of done names.
+
+    It decodes escapes and entities before looking, which a grep cannot do,
+    and which is how six emoji and an em dash survived six phases here.
+    """
+    import subprocess
+
+    checker = os.path.join(ROOT, 'tools', 'check_banned_patterns.py')
+    assert os.path.isfile(checker), 'the banned pattern check is missing'
+
+    result = subprocess.run([sys.executable, '-I', checker, ROOT],
+                            capture_output=True, text=True, encoding='utf-8')
+
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+BS = chr(92)
+
+
+@pytest.mark.parametrize('written,kind', [
+    (BS + 'u2014', 'em dash'),
+    (BS + 'u{1F680}', 'emoji'),
+    (BS + 'uD83D' + BS + 'uDE80', 'emoji'),
+    ('&mdash;', 'em dash'),
+    ('&#8212;', 'em dash'),
+    ('&#x2014;', 'em dash'),
+])
+def test_the_check_catches_every_escaped_form(tmp_path, written, kind):
+    """The forms that slipped past a plain grep for six phases."""
+    sys.path.insert(0, os.path.join(ROOT, 'tools'))
+    import importlib
+    checker = importlib.import_module('check_banned_patterns')
+
+    sample = tmp_path / 'sample.js'
+    sample.write_text('const label = `%s ready`;' % written, encoding='utf-8')
+
+    hits = checker.problems_in(str(sample))
+
+    assert hits, '%s written as %s was not caught' % (kind, written)
+    assert any(kind in found[1] for found in hits), hits
+
+
+@pytest.mark.parametrize('written', [BS + 'u221E', BS + 'u2192', '&amp;', '&lt;'])
+def test_the_check_allows_the_typography_we_use(tmp_path, written):
+    sys.path.insert(0, os.path.join(ROOT, 'tools'))
+    import importlib
+    checker = importlib.import_module('check_banned_patterns')
+
+    sample = tmp_path / 'sample.js'
+    sample.write_text('const label = `a %s b`;' % written, encoding='utf-8')
+
+    assert checker.problems_in(str(sample)) == []

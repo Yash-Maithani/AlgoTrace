@@ -2533,6 +2533,15 @@ a.logo:focus-visible,
 .legend-swatch.is-node,
 .legend-swatch[data-shape="node"] { border-radius: 50%; }
 
+/* The small icons that head a status line, in place of the emoji they used
+   to carry. They sit on the text baseline and take its colour. */
+.status-icon {
+    flex: 0 0 auto;
+    vertical-align: -2px;
+    margin-right: var(--space-1);
+    color: var(--text-muted);
+}
+
 .legend-swatch.is-edge,
 .legend-swatch[data-shape="edge"] { height: 4px; width: 18px; border-radius: 2px; }
 

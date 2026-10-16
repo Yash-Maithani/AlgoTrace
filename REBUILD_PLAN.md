@@ -113,7 +113,19 @@ Lesson content lives in `static/js/lessons/<algorithm>.js`: pseudocode and Pytho
 - App runs, every existing algorithm plays start to finish in both themes.
 - `pytest` passes.
 - Checked at 375px, 768px and 1440px.
-- No em dashes, emoji or banned patterns introduced (grep for them).
+- No em dashes, emoji or banned patterns introduced. Run
+  `python tools/check_banned_patterns.py .`, which must exit 0.
+  A plain grep is not enough: it misses the escaped forms, and this project has
+  shipped all of them. The check decodes before it looks, so it catches:
+  - JavaScript escapes, `\u2014` and `\u{1F680}`
+  - surrogate pairs, `\uD83D\uDE80` being one emoji
+  - HTML entities, `&mdash;`, `&#8212;` and `&#x2014;`
+  It allows the typography the project does use: the infinity label, the arrow in
+  a path, curly quotes, and the times, minus and degree signs.
+  Three documents predate the rule and are reported separately without failing the
+  check: README.md, DESIGN_SYSTEM.md and REDESIGN_PLAN.md.
+  A file that has to spell these patterns out, as the lines above do, carries the
+  marker `banned-check: documents-the-patterns` once and is skipped.
 - One commit, and a short note: files changed, how to check it.
 
 ## Report format (end every phase with this, nothing else after it)

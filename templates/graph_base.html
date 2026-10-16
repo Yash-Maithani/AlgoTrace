@@ -496,7 +496,7 @@ D C 6</pre>
                                     <p><strong>For Bellman-Ford:</strong><br>
                                     First line: [number of nodes] [number of edges]<br>
                                     Next lines: [source] [target] [weight] for each edge<br>
-                                    Last line: [start node] &mdash; negative weights allowed</p>
+                                    Last line: [start node]. Negative weights allowed</p>
                                     <pre>Example:
 5 6
 A B 6
@@ -642,6 +642,12 @@ A</pre>
                 
                 <div id="fw-matrix" style="margin-top: 20px; overflow-x: auto;"></div>
         </section>
+
+        <!-- LEARN PANEL -------------------------------------------------- -->
+        <section class="workspace-learn" aria-labelledby="learn-heading">
+            <h2 class="sr-only" id="learn-heading">Learn</h2>
+            <div class="learn-panel" id="learn-panel"></div>
+        </section>
         
         <section class="workspace-notes">
         <div class="instructions-panel">
@@ -669,6 +675,8 @@ A</pre>
 {% endblock %}
 
 {% block page_js %}
+    <script src="{{ url_for('static', filename='js/lessons/' + algorithm + '.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/teacher.js') }}"></script>
     <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
     <script>
         let graph = {};
@@ -1817,6 +1825,21 @@ A</pre>
             Workspace.start({
                 onRun: function () { visualize(); },
 
+                /* The picker here is a set of links to other pages, so the
+                   algorithm is named rather than read off a switch. */
+                algorithm: '{{ algorithm }}',
+                lessons: window.LESSONS,
+
+                /* A graph step is a typed array; its teacher payload travels
+                   in the parallel meta list, as README section 4 describes.
+                   The one synthesised step, bellman-ford's closing summary,
+                   has no meta of its own, so the page describes it here. */
+                metaFor: function (step, index) {
+                    const meta = stepMeta[index];
+                    if (meta) return meta;
+                    return summaryMeta(step);
+                },
+
                 /* The old pacing, kept: a per-algorithm factor over the same
                    curve, with the slider at 5 giving the speed 400 the page
                    used to hard code. */
@@ -1845,6 +1868,9 @@ A</pre>
 
                 renderStep: function (step, context) {
                     const target = context.index;
+                    // V is the input size for every graph algorithm, so that
+                    // is what the growth chart and the this run box read.
+                    context.stats({ n: nodes.length, edges: links.length });
                     if (target <= lastRendered) {
                         // Going backwards. Rebuild and replay, because the
                         // styles the steps applied are cumulative.
@@ -1858,6 +1884,34 @@ A</pre>
                     currentStep = target;
                 }
             });
+        }
+
+        /* /run_bellman_ford ends its steps on `iteration_complete` and sends
+           its verdict alongside, so the page turns that verdict into a
+           closing step. Nothing describes it, so the description is built
+           here rather than leaving the panel on the previous step. */
+        function summaryMeta(step) {
+            const hasCycle = step && step[2] === true;
+            const passes = step && step[3];
+            return {
+                action: 'done',
+                indices: [],
+                values: [],
+                line: null,
+                vars: { passes: passes, negative_cycle: !!hasCycle },
+                explain: {
+                    beginner: hasCycle
+                        ? 'A distance still improves after ' + passes +
+                          ' passes, so this graph holds a negative cycle.'
+                        : 'Every distance settled after ' + passes +
+                          ' pass' + (passes === 1 ? '' : 'es') + '.',
+                    why: hasCycle
+                        ? 'Going round a cycle whose weights sum below zero '
+                          + 'always costs less, so no shortest path exists.'
+                        : 'A pass that changes nothing means no path can grow '
+                          + 'any further, so the answer is final.'
+                }
+            };
         }
 
         /* Clears every per-run style without the timers and the result panel
@@ -2754,62 +2808,100 @@ A</pre>
             }
         }
         
+        /* Status icons. These replace the emoji the status lines used to
+           carry: same meaning at a glance, drawn in the project's own style,
+           and they take currentColor so they follow the theme. */
+        const STATUS_ICON = (() => {
+            const wrap = (body) =>
+                `<svg class="status-icon" width="15" height="15" viewBox="0 0 24 24" ` +
+                `fill="none" stroke="currentColor" stroke-width="2" ` +
+                `stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
+            return {
+                // A fresh table of distances.
+                table: wrap('<rect x="3" y="3" width="18" height="18" rx="2"/>' +
+                            '<line x1="3" y1="9" x2="21" y2="9"/>' +
+                            '<line x1="9" y1="3" x2="9" y2="21"/>'),
+                // A pass starting or in progress.
+                pass: wrap('<polyline points="21 4 21 10 15 10"/>' +
+                           '<path d="M20 14a8 8 0 1 1-2.3-5.7L21 10"/>'),
+                // Two values being compared.
+                compare: wrap('<circle cx="11" cy="11" r="7"/>' +
+                              '<line x1="16.5" y1="16.5" x2="21" y2="21"/>'),
+                // Something improved.
+                better: wrap('<polyline points="20 6 9 17 4 12"/>'),
+                // Nothing changed.
+                same: wrap('<circle cx="12" cy="12" r="8"/>'),
+                // A pass finished, here is the tally.
+                summary: wrap('<rect x="4" y="3" width="16" height="18" rx="2"/>' +
+                              '<line x1="8" y1="9" x2="16" y2="9"/>' +
+                              '<line x1="8" y1="13" x2="16" y2="13"/>' +
+                              '<line x1="8" y1="17" x2="13" y2="17"/>'),
+                // The whole run is done.
+                done: wrap('<circle cx="12" cy="12" r="9"/>' +
+                           '<polyline points="8.5 12 11 14.5 15.5 9.5"/>'),
+                // No answer exists.
+                warning: wrap('<path d="M12 3.5 22 20H2z"/>' +
+                              '<line x1="12" y1="10" x2="12" y2="14"/>' +
+                              '<line x1="12" y1="17" x2="12" y2="17"/>')
+            };
+        })();
+
         function getFloydWarshallStatus(action, params) {
             switch (action) {
                 case 'init':
-                    return `\u{1F680} <strong>Initialized distance matrix</strong><br>
+                    return `${STATUS_ICON.table} <strong>Initialized distance matrix</strong><br>
                            <small>Direct edge weights where an edge exists, \u221E everywhere else.</small>`;
                 case 'start_iteration':
-                    return `\u{1F504} <strong>Pass ${params[0] + 1} \u2014 intermediate node <span style="color:var(--considering-color);">${params[1]}</span></strong><br>
+                    return `${STATUS_ICON.pass} <strong>Pass ${params[0] + 1}, intermediate node <span style="color:var(--considering-color);">${params[1]}</span></strong><br>
                            <small>Every pair is now retested allowing ${params[1]} as a waypoint.</small>`;
                 case 'consider_path': {
                     const [i, j, k, current, toK, fromK, viaK] = params;
-                    return `\u{1F50D} <strong>${i} \u2192 ${j}</strong>: compare current <strong>${current}</strong>
+                    return `${STATUS_ICON.compare} <strong>${i} \u2192 ${j}</strong>: compare current <strong>${current}</strong>
                            against <strong>${viaK}</strong> via ${k}<br>
                            <small>${i} \u2192 ${k} = ${toK}, ${k} \u2192 ${j} = ${fromK}</small>`;
                 }
                 case 'no_path_via_k':
-                    return `\u26AA <strong>${params[0]} \u2192 ${params[1]}</strong>: no route through ${params[2]}<br>
+                    return `${STATUS_ICON.same} <strong>${params[0]} \u2192 ${params[1]}</strong>: no route through ${params[2]}<br>
                            <small>One of the two legs is still \u221E, so there is nothing to compare.</small>`;
                 case 'update_distance':
-                    return `\u2705 <strong>Shorter path found:</strong> ${params[0]} \u2192 ${params[1]} = <span style="font-weight:bold; color:var(--visited-color);">${params[3]}</span><br>
+                    return `${STATUS_ICON.better} <strong>Shorter path found:</strong> ${params[0]} \u2192 ${params[1]} = <span style="font-weight:bold; color:var(--visited-color);">${params[3]}</span><br>
                            <small>Routing through ${params[2]} beats the previous distance.</small>`;
                 case 'no_update':
-                    return `\u26AA <strong>No update:</strong> ${params[0]} \u2192 ${params[1]} stays at ${params[3]}<br>
+                    return `${STATUS_ICON.same} <strong>No update:</strong> ${params[0]} \u2192 ${params[1]} stays at ${params[3]}<br>
                            <small>Going via ${params[2]} is no shorter.</small>`;
                 case 'iteration_complete':
-                    return `\u{1F4CB} <strong>Pass ${params[0] + 1} complete</strong> (intermediate ${params[1]})<br>
+                    return `${STATUS_ICON.summary} <strong>Pass ${params[0] + 1} complete</strong> (intermediate ${params[1]})<br>
                            <small>${params[3]} ${params[3] === 1 ? 'distance was' : 'distances were'} improved in this pass.</small>`;
                 case 'final':
-                    return `\u{1F389} <strong>Floyd-Warshall complete!</strong><br>
+                    return `${STATUS_ICON.done} <strong>Floyd-Warshall complete!</strong><br>
                            <small>All-pairs shortest paths have been computed.</small>`;
                 default:
-                    return `\u{1F504} Processing Floyd-Warshall algorithm...`;
+                    return `${STATUS_ICON.pass} Processing Floyd-Warshall algorithm...`;
             }
         }
         
         function getBellmanFordStatus(action, params) {
             switch (action) {
                 case 'check_edge':
-                    return `\u{1F50D} <strong>Checking edge:</strong> ${params[0]} \u2192 ${params[1]} (weight ${params[2]})<br>
+                    return `${STATUS_ICON.compare} <strong>Checking edge:</strong> ${params[0]} \u2192 ${params[1]} (weight ${params[2]})<br>
                            <small>Can the distance to ${params[1]} be improved by going through ${params[0]}?</small>`;
                 case 'relax':
-                    return `\u2705 <strong>Relaxed:</strong> ${params[0]} \u2192 ${params[1]} with weight ${params[2]}<br>
+                    return `${STATUS_ICON.better} <strong>Relaxed:</strong> ${params[0]} \u2192 ${params[1]} with weight ${params[2]}<br>
                            <small>New distance to ${params[1]} is <span style="font-weight:bold; color:var(--visited-color);">${params[3][params[1]]}</span> (pass ${params[4]}).</small>`;
                 case 'no_relax':
-                    return `\u26AA <strong>No relaxation:</strong> ${params[0]} \u2192 ${params[1]} (weight ${params[2]})<br>
+                    return `${STATUS_ICON.same} <strong>No relaxation:</strong> ${params[0]} \u2192 ${params[1]} (weight ${params[2]})<br>
                            <small>The existing distance to ${params[1]} is already at least as short.</small>`;
                 case 'iteration_complete':
-                    return `\u{1F4CB} <strong>Pass ${params[0]} complete</strong><br>
+                    return `${STATUS_ICON.summary} <strong>Pass ${params[0]} complete</strong><br>
                            <small>Every edge has been examined once more.</small>`;
                 case 'final':
                     return params[1]
-                        ? `\u26A0\uFE0F <strong>Negative cycle detected!</strong><br>
+                        ? `${STATUS_ICON.warning} <strong>Negative cycle detected!</strong><br>
                            <small style="color:var(--ignored-color);">A distance still improves after ${params[2]} passes, so no shortest path exists.</small>`
-                        : `\u{1F389} <strong>Bellman-Ford complete!</strong><br>
+                        : `${STATUS_ICON.done} <strong>Bellman-Ford complete!</strong><br>
                            <small>Shortest paths settled after ${params[2]} ${params[2] === 1 ? 'pass' : 'passes'}; no negative cycle.</small>`;
                 default:
-                    return `\u{1F504} Processing Bellman-Ford algorithm...`;
+                    return `${STATUS_ICON.pass} Processing Bellman-Ford algorithm...`;
             }
         }
         
