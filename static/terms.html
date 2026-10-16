@@ -3,11 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        /* Resolves the theme before first paint so there is no flash of the
+           wrong colours. Stored choice wins; otherwise follow the system. */
+        (function () {
+            var t = null;
+            try { t = localStorage.getItem('theme'); } catch (e) {}
+            var explicit = (t === 'dark' || t === 'light');
+            if (!explicit) {
+                t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', t);
+            document.documentElement.setAttribute('data-theme-source', explicit ? 'user' : 'system');
+        })();
+    </script>
     <title>Terms and Conditions | Algorithm Visualizer</title>
     <meta name="theme-color" content="#FAF8F5" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#1A1A18" media="(prefers-color-scheme: dark)">
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/js/theme.js" defer></script>
 </head>
 <body>
     <a href="#main" class="skip-link">Skip to main content</a>
@@ -27,6 +42,22 @@
                 <a href="/sorting" class="nav-link">Sorting</a>
                 <a href="/graph" class="nav-link">Graph</a>
             </div>
+            <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch to dark mode" title="Switch to dark mode" aria-pressed="false">
+                <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="4.2"></circle>
+                    <line x1="12" y1="2" x2="12" y2="4.6"></line>
+                    <line x1="12" y1="19.4" x2="12" y2="22"></line>
+                    <line x1="2" y1="12" x2="4.6" y2="12"></line>
+                    <line x1="19.4" y1="12" x2="22" y2="12"></line>
+                    <line x1="4.9" y1="4.9" x2="6.8" y2="6.8"></line>
+                    <line x1="17.2" y1="17.2" x2="19.1" y2="19.1"></line>
+                    <line x1="4.9" y1="19.1" x2="6.8" y2="17.2"></line>
+                    <line x1="17.2" y1="6.8" x2="19.1" y2="4.9"></line>
+                </svg>
+                <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20.5 14.3A8.5 8.5 0 0 1 9.7 3.5a8.5 8.5 0 1 0 10.8 10.8z"></path>
+                </svg>
+            </button>
         </nav>
     </header>
 

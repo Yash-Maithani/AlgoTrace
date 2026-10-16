@@ -134,6 +134,11 @@
     --icon-chart: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Cline x1='5' y1='19' x2='5' y2='12'/%3E%3Cline x1='12' y1='19' x2='12' y2='5'/%3E%3Cline x1='19' y1='19' x2='19' y2='9'/%3E%3C/svg%3E");
 }
 
+/* Dark tokens.
+   Declared twice on purpose and the two copies must stay identical:
+   the media query is the no-JavaScript fallback, while the attribute rule
+   is what the toggle drives. The head script always resolves a value, so
+   anyone with JavaScript is served by the attribute rule. */
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
         color-scheme: dark;
@@ -195,6 +200,67 @@
         --shadow-2: 0 4px 12px rgb(0 0 0 / 0.55);
         --shadow-3: 0 12px 28px rgb(0 0 0 / 0.65);
     }
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --bg: #1A1A18;
+    --surface: #242421;
+    --sunken: #141413;
+    --border: #37352F;
+    --border-strong: #6A6559;
+    --text: #F3F0EA;
+    --text-muted: #ABA69B;
+
+    --idle-sort: #2FD4C4;
+    --idle-graph: #A8A294;
+    --queued: #64A6FF;
+    --active: #FBA53C;
+    --reject: #FF6F62;
+    --pivot: #C98CF0;
+    --current: #F56FA8;
+    --done: #4ADE7F;
+    --select: #FB8E3C;
+
+    --idle-sort-ink: #2FD4C4;
+    --active-ink: #FBA53C;
+    --done-ink: #4ADE7F;
+    --select-ink: #FB8E3C;
+    --queued-ink: #64A6FF;
+    --reject-ink: #FF6F62;
+    --pivot-ink: #C98CF0;
+    --current-ink: #F56FA8;
+
+    --idle-sort-wash: #0E2F2C;
+    --queued-wash: #13263D;
+    --active-wash: #352413;
+    --done-wash: #11301D;
+    --reject-wash: #381A17;
+    --pivot-wash: #2C1838;
+    --current-wash: #371623;
+    --select-wash: #35220F;
+
+    --accent: #64A6FF;
+    --accent-hover: #93C2FF;
+    --on-accent: #10100F;
+    --focus-ring: #93C2FF;
+    --on-state: #10100F;
+    --done-solid: var(--done);
+    --active-solid: var(--active);
+    --reject-solid: var(--reject);
+
+    --visited-color: var(--done);
+    --frontier-color: var(--active);
+    --considering-color: var(--active);
+    --unvisited-color: var(--idle-graph);
+    --ignored-color: #8E887B;
+    --default-edge-color: #6A6559;
+    --node-stroke: #141413;
+
+    --shadow-1: 0 1px 2px rgb(0 0 0 / 0.5);
+    --shadow-2: 0 4px 12px rgb(0 0 0 / 0.55);
+    --shadow-3: 0 12px 28px rgb(0 0 0 / 0.65);
 }
 
 /* Algorithm accents. Seven slots, assigned per page so every button in a
@@ -370,6 +436,84 @@ nav {
     background-color: var(--queued-wash);
     color: var(--queued-ink);
     font-weight: 600;
+}
+
+/* ==========================================================================
+   THEME TOGGLE
+   Square-cornered icon button. Both icons sit in the DOM and CSS picks one
+   from data-theme, so the right icon is already painted before theme.js runs.
+   ========================================================================== */
+
+.theme-toggle {
+    width: var(--target);
+    height: var(--target);
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    background-color: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    box-shadow: none;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background-color var(--dur-fast) var(--ease-out),
+                border-color var(--dur-fast) var(--ease-out);
+}
+
+.theme-toggle:hover {
+    background-color: var(--sunken);
+    border-color: var(--accent);
+    box-shadow: none;
+}
+
+.theme-toggle:focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+}
+
+/* Show the icon for the theme the button switches TO. */
+.theme-toggle .icon-sun { display: none; }
+.theme-toggle .icon-moon { display: block; }
+
+:root[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+:root[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+
+/* Fallback for the brief moment before the head script runs, and for anyone
+   with JavaScript off. */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .theme-toggle .icon-sun { display: block; }
+    :root:not([data-theme="light"]) .theme-toggle .icon-moon { display: none; }
+}
+
+/* The cross-fade is applied only while switching, so it never slows down
+   ordinary hover and focus feedback. theme.js removes the class after 240ms
+   and does not add it at all under prefers-reduced-motion. */
+:root.theme-switching,
+:root.theme-switching body,
+:root.theme-switching header,
+:root.theme-switching .container,
+:root.theme-switching .controls-panel,
+:root.theme-switching .visualization-area,
+:root.theme-switching .algorithm-selection,
+:root.theme-switching .algorithm-info,
+:root.theme-switching .algorithm-btn,
+:root.theme-switching .legend,
+:root.theme-switching .animation-controls,
+:root.theme-switching .graph-container,
+:root.theme-switching .status-display,
+:root.theme-switching .status-current,
+:root.theme-switching .site-footer,
+:root.theme-switching .theme-toggle,
+:root.theme-switching input,
+:root.theme-switching textarea,
+:root.theme-switching select {
+    transition: background-color 200ms var(--ease-out),
+                color 200ms var(--ease-out),
+                border-color 200ms var(--ease-out);
 }
 
 /* ==========================================================================
@@ -1329,6 +1473,11 @@ a.logo:focus-visible,
 
     .reveal {
         animation: none;
+    }
+
+    :root.theme-switching,
+    :root.theme-switching * {
+        transition: none !important;
     }
 
     .node.visited,
