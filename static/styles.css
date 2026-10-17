@@ -2942,6 +2942,13 @@ a.logo:focus-visible,
 .pointer-high { color: var(--pivot-ink); }
 
 
+/* The old per algorithm panels no longer quote complexity; this points at
+   the tab that owns it. Quiet, because it is a signpost, not content. */
+.panel-complexity-note {
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+}
+
 /* ==========================================================================
    BIG O PAGE
    Reading page furniture: the jump list, the counted tables, the curve

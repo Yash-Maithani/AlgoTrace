@@ -63,6 +63,8 @@ window.LESSONS.selection_sort = {
         auxiliaryNote: 'Auxiliary space is the memory the algorithm needs on top of the input array itself.',
         thisRun: 'Big O describes how work grows as the input grows and ignores constants. The counter shows the exact work for this one input.',
         growth: 'n2',
+        growthBasis: null,
+        growthNote: null,
         divergence: 'None on time. Note that this version is not stable: swapping a distant smallest value into place can jump one equal value over another, so [2, 2, 1] finishes with the two 2s in the opposite order.'
     }
 };

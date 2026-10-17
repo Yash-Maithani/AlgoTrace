@@ -85,14 +85,25 @@ window.LESSONS.bubble_sort = { /* the object below */ };
 | `complexity.space` | `{value, what}` | `what` names the memory, for example "the recursion stack" |
 | `complexity.auxiliaryNote` | string | the fixed explanation of what auxiliary means |
 | `complexity.thisRun` | string | the fixed sentence for the "this run" box |
-| `complexity.growth` | string | which curve to draw: `1`, `logn`, `n`, `nlogn` or `n2` |
+| `complexity.growth` | string or null | which reference curve has this algorithm's shape: `1`, `logn`, `n`, `nlogn`, `n2` or `n3`. `null` when the figure needs two numbers at once, such as `O(V times E)`, because no curve on an axis of one variable is that figure |
+| `complexity.growthBasis` | string or null | what `n` on the axis stands for when the figure is written in another letter, for example `'V, the number of nodes'`. `null` when the figure is already in `n` |
+| `complexity.growthNote` | string or null | why no curve fits. Required when `growth` is null, forbidden otherwise, and it must name the figure it is explaining |
+| `complexity.countsNote` | string or null | an explanation of a counter the learner will find surprising, shown under the "this run" box |
 | `complexity.divergence` | string or null | how this implementation differs from the textbook figure |
 | `stable` | boolean or null | whether equal values keep their original order. `null` where it does not apply, as for a search |
 | `codePending` | boolean | present and `true` only while the lesson ships ahead of its implementation. The listing is then the form the later phase must build, and that phase either matches it or updates the lesson in the same commit |
+| `countLabel` | string | what the second counter is called, when it is not `swaps`. Merge sort sets `writes`, because it never exchanges a pair: it copies a merged run back over the array, so every value in the run is written whether or not it moved. A lesson that sets this must also explain it in `complexity.countsNote` |
 
 The two code listings show the algorithm, not the plumbing. The `draw` and `stats`
 calls that exist in the Python file are instrumentation for the visualization and are
 left out of the listing, because a learner reading the Code tab is not reading them.
+
+**The lesson is the single source of truth for complexity.** Nothing else may state a
+figure for the algorithm. The Complexity tab prints `complexity.time.worst.value`
+verbatim in its caption, its "this run" row and the chart's accessible name, and the
+curve named by `growth` is only ever offered as the shape that figure has, never as the
+figure itself. The old per algorithm panels under the graph workspace used to carry
+their own copy; four of the seven contradicted the tab, so they now carry none.
 
 `complexity.auxiliaryNote` and `complexity.thisRun` are the same wording on every
 algorithm, so the learner reads one explanation rather than six paraphrases:

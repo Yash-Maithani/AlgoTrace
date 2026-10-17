@@ -64,6 +64,8 @@ window.LESSONS.prim = {
         auxiliaryNote: 'Auxiliary space is the memory the algorithm needs on top of the input array itself.',
         thisRun: 'Big O describes how work grows as the input grows and ignores constants. The counter shows the exact work for this one input.',
         growth: 'nlogn',
+        growthBasis: 'E, the number of edges',
+        growthNote: null,
         divergence: 'Prim is sometimes quoted at O(E log V), which comes from a heap that holds at most one entry per node and updates keys in place. This endpoint pushes a separate entry for every edge, so the heap holds up to E items and the honest figure is O(E log E). Since E is at most V squared, log E is at most 2 log V, so the two differ by a constant factor rather than a different shape.'
     }
 };

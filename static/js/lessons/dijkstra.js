@@ -61,6 +61,8 @@ window.LESSONS.dijkstra = {
         auxiliaryNote: 'Auxiliary space is the memory the algorithm needs on top of the input array itself.',
         thisRun: 'Big O describes how work grows as the input grows and ignores constants. The counter shows the exact work for this one input.',
         growth: 'n2',
+        growthBasis: 'V, the number of nodes',
+        growthNote: null,
         divergence: 'Dijkstra is usually quoted at O((V + E) log V), which assumes a binary heap hands back the nearest node in log time. This endpoint uses min() over a set instead, a plain linear scan, so it is the O(V squared) form. That is actually the better choice on a dense graph, where E approaches V squared anyway. There is a second consequence: when two nodes tie on distance, min() breaks the tie by set iteration order, which Python varies between runs, so a tied graph can animate in a different order after a restart.'
     }
 };

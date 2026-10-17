@@ -67,6 +67,8 @@ window.LESSONS.insertion_sort = {
         auxiliaryNote: 'Auxiliary space is the memory the algorithm needs on top of the input array itself.',
         thisRun: 'Big O describes how work grows as the input grows and ignores constants. The counter shows the exact work for this one input.',
         growth: 'n2',
+        growthBasis: null,
+        growthNote: null,
         divergence: 'None. Compare it with bubble sort on this site: both are O(n squared) in the worst case, but insertion sort stops its inner loop as soon as it meets a smaller value, and bubble sort does not.'
     }
 };

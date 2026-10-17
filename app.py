@@ -1024,16 +1024,26 @@ def run_kruskal():
                         variables={"tree_edges": len(mst_edges),
                                    "needed": spanning_total})
 
+        # n-1 edges spans every node, so anything short of that is a forest
+        # of one tree per component rather than a single spanning tree.
+        spans_everything = len(mst_edges) == spanning_total
+        result_name = ("minimum spanning tree" if spans_everything
+                       else "minimum spanning forest")
         log.add(["final", mst_edges, sum(e[2] for e in mst_edges)], "done",
-                "%d edge%s chosen, weighing %s in total."
+                "%d edge%s chosen, weighing %s in total: a %s."
                 % (len(mst_edges), "" if len(mst_edges) == 1 else "s",
-                   sum(e[2] for e in mst_edges)),
-                "Fewer than n-1 edges means the graph was disconnected, so "
-                "this is a spanning forest rather than a single tree.",
+                   sum(e[2] for e in mst_edges), result_name),
+                ("Every node is connected by %d edges, which is n-1, so this "
+                 "is one tree." % spanning_total) if spans_everything else
+                ("Only %d of the %d edges a spanning tree needs could be "
+                 "added, so the graph is disconnected and this is a forest "
+                 "of one tree per connected piece."
+                 % (len(mst_edges), spanning_total)),
                 indices=list(nodes),
                 values=[sum(e[2] for e in mst_edges)], line=None,
                 variables={"tree_edges": len(mst_edges),
-                           "needed": spanning_total})
+                           "needed": spanning_total,
+                           "spans_everything": spans_everything})
         return jsonify(log.payload())
     except Exception as e:
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500

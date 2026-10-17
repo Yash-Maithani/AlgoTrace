@@ -1966,8 +1966,8 @@ A</pre>
             
             console.log(`Applying step ${stepIndex}: ${action}`, params);
             
-            // Update status display
-            updateStatusDisplay(step, currentAlgo);
+            // Where the run has got to. One line, from the step's own meta.
+            updateStatusDisplay(stepIndex);
             
             // Apply algorithm-specific visualization
             switch (currentAlgo) {
@@ -1996,37 +1996,44 @@ A</pre>
             // Let the individual step functions handle the color updates
         }
         
-        function updateStatusDisplay(step, algorithm) {
-            const statusDisplay = document.getElementById('algorithm-status');
+        /* Where the run has got to, in one line. The detail belongs to the
+           Learn panel, and the finishing line is that panel's own sentence
+           rather than a second one written here, so the two cannot drift
+           apart or contradict each other on an awkward graph. */
+        const ALGORITHM_NAME = {
+            bfs: 'Breadth-first search',
+            dfs: 'Depth-first search',
+            dijkstra: "Dijkstra's algorithm",
+            prim: "Prim's algorithm",
+            kruskal: "Kruskal's algorithm",
+            floyd_warshall: 'Floyd-Warshall',
+            bellman_ford: 'Bellman-Ford'
+        };
+
+        function updateStatusDisplay(stepIndex) {
             const statusContent = document.getElementById('status-content');
-            statusDisplay.style.display = 'block';
-            
-            const [action, ...params] = step;
-            let statusText = '';
-            
-            switch (algorithm) {
-                case 'kruskal':
-                    statusText = getKruskalStatus(action, params);
-                    break;
-                case 'prim':
-                    statusText = getPrimStatus(action, params);
-                    break;
-                case 'dijkstra':
-                    statusText = getDijkstraStatus(action, params);
-                    break;
-                case 'floyd_warshall':
-                    statusText = getFloydWarshallStatus(action, params);
-                    break;
-                case 'bellman_ford':
-                    statusText = getBellmanFordStatus(action, params);
-                    break;
-                case 'bfs':
-                case 'dfs':
-                    statusText = getTraversalStatus(action, params, algorithm);
-                    break;
+            document.getElementById('algorithm-status').style.display = 'block';
+
+            const name = ALGORITHM_NAME[getCurrentAlgorithm()] || 'The algorithm';
+            const total = steps.length;
+            const finished = stepIndex >= total - 1;
+            const meta = stepMeta[stepIndex];
+
+            const state = document.createElement('p');
+            state.className = 'status-state';
+            state.textContent = finished
+                ? name + ' finished.'
+                : name + ' running, step ' + (stepIndex + 1) + ' of ' + total + '.';
+
+            statusContent.innerHTML = '';
+            statusContent.appendChild(state);
+
+            if (finished && meta && meta.explain && meta.explain.beginner) {
+                const result = document.createElement('p');
+                result.className = 'status-result';
+                result.textContent = meta.explain.beginner;
+                statusContent.appendChild(result);
             }
-            
-            statusContent.innerHTML = `<div class="status-current">${statusText}</div>`;
         }
         
         function applyKruskalStep(action, params, stepIndex) {
@@ -2175,7 +2182,9 @@ A</pre>
             if (state === 'accepted') {
                 row.style.background = 'var(--done-wash)';
                 if (verdict) {
-                    verdict.textContent = 'in MST';
+                    // 'taken', not 'in MST': on a disconnected graph the
+                    // result is a spanning forest, and this column is per edge.
+                    verdict.textContent = 'taken';
                     verdict.style.color = 'var(--visited-color)';
                     verdict.style.fontWeight = 'bold';
                 }
@@ -2206,7 +2215,6 @@ A</pre>
                             .duration(dur(500))
                             .attr('r', isWeightedAlgorithm ? 35 : 24);
                     }
-                    updateStatusDisplay(['start', params[0]], 'prim');
                     break;
                     
                 case 'add_frontier':
@@ -2217,7 +2225,6 @@ A</pre>
                             applyNodeStyle(node, 'frontier');
                         }
                     });
-                    updateStatusDisplay(['add_frontier', params], 'prim');
                     break;
                     
                 case 'consider_edge':
@@ -2225,7 +2232,6 @@ A</pre>
                     const [u, v, weight] = params;
                     resetEdgeStyles(); // Clear previous edge highlighting
                     highlightEdge(u, v, 'considering');
-                    updateStatusDisplay(['consider_edge', u, v, weight], 'prim');
                     break;
                     
                 case 'add_edge':
@@ -2247,7 +2253,6 @@ A</pre>
                     }
                     
                     highlightEdge(source, target, 'mst');
-                    updateStatusDisplay(['add_edge', source, target, edgeWeight], 'prim');
                     
                     // Update frontier: add neighbors of newly visited node
                     setTimeout(() => {
@@ -2266,7 +2271,6 @@ A</pre>
                     // Highlight edge that connects to already visited node (ignored)
                     const [ignoreU, ignoreV, ignoreWeight] = params;
                     highlightEdge(ignoreU, ignoreV, 'ignored');
-                    updateStatusDisplay(['ignore_edge', ignoreU, ignoreV, ignoreWeight], 'prim');
                     break;
                     
                 case 'final':
@@ -2293,7 +2297,6 @@ A</pre>
                         }, index * 150);
                     });
                     
-                    updateStatusDisplay(['final', mstEdges, totalWeight], 'prim');
                     
                     // Show final results
                     setTimeout(() => {
@@ -2756,198 +2759,6 @@ A</pre>
         }
         
         // Enhanced status text generators for each algorithm
-        function getKruskalStatus(action, params) {
-            switch (action) {
-                case 'sort_edges':
-                    const sortedEdges = params[0];
-                    return `<strong>Step 1:</strong> Sorted all edges by weight in ascending order<br>
-                           <small>Edges: ${sortedEdges.map(e => `${e[0]}-${e[1]} (${e[2]})`).join(', ')}</small>`;
-                case 'consider_edge':
-                    return `<strong>Considering edge:</strong> ${params[0]}-${params[1]} with weight <span style="font-weight:bold; color:var(--considering-color);">${params[2]}</span><br>
-                           <small>Checking if this edge creates a cycle using Union-Find…</small>`;
-                case 'add_edge':
-                    return `<strong>Added to MST:</strong> ${params[0]}-${params[1]} (weight: <span style="font-weight:bold; color:var(--visited-color);">${params[2]}</span>)<br>
-                           <small>This edge connects different components without creating a cycle.</small>`;
-                case 'reject_edge':
-                    return `<strong>Rejected edge:</strong> ${params[0]}-${params[1]} (weight: ${params[2]})<br>
-                           <small style="color:var(--ignored-color);">This edge would create a cycle in the MST.</small>`;
-                case 'final':
-                    const totalEdges = params[0].length;
-                    return `<strong>Kruskal's MST Complete!</strong><br>
-                           <small>Found ${totalEdges} edges with total weight: <span style="font-weight:bold; color:var(--visited-color);">${params[1]}</span></small>`;
-                default:
-                    return ` Processing Kruskal's algorithm…`;
-            }
-        }
-        
-        function getPrimStatus(action, params) {
-            switch (action) {
-                case 'start':
-                    return `<strong>Starting Prim's algorithm</strong> from node <span style="font-weight:bold; color:var(--visited-color);">${params[0]}</span><br>
-                           <small>This node is now part of the growing MST.</small>`;
-                case 'add_frontier':
-                    return `<strong>Updated frontier:</strong> ${params.join(', ')}<br>
-                           <small style="color:var(--considering-color);">These nodes are now candidates to be added to the MST.</small>`;
-                case 'consider_edge':
-                    return `<strong>Considering edge:</strong> ${params[0]}-${params[1]} with weight <span style="font-weight:bold; color:var(--considering-color);">${params[2]}</span><br>
-                           <small>This is the minimum weight edge connecting MST to a new node.</small>`;
-                case 'add_edge':
-                    return `<strong>Added to MST:</strong> ${params[0]}-${params[1]} (weight: <span style="font-weight:bold; color:var(--visited-color);">${params[2]}</span>)<br>
-                           <small>Node ${params[1]} is now connected to the MST.</small>`;
-                case 'ignore_edge':
-                    return `<strong>Ignored edge:</strong> ${params[0]}-${params[1]} (weight: ${params[2]})<br>
-                           <small style="color:var(--ignored-color);">This edge connects to an already visited node.</small>`;
-                case 'final':
-                    const totalEdges = params[0].length;
-                    return `<strong>Prim's MST Complete!</strong><br>
-                           <small>Found ${totalEdges} edges with total weight: <span style="font-weight:bold; color:var(--visited-color);">${params[1]}</span></small>`;
-                default:
-                    return ` Processing Prim's algorithm…`;
-            }
-        }
-        
-        function getDijkstraStatus(action, params) {
-            switch (action) {
-                case 'start':
-                    return `<strong>Starting Dijkstra's algorithm</strong> from node <span style="font-weight:bold; color:var(--visited-color);">${params[0]}</span><br>
-                           <small>Distance to start node is 0.</small>`;
-                case 'update':
-                    const via = params[2] ? ` (via ${params[2]})` : '';
-                    return `<strong>Updated distance</strong> to <span style="font-weight:bold; color:var(--considering-color);">${params[0]}</span>: ${params[1]}${via}<br>
-                           <small>Found a shorter path to this node.</small>`;
-                case 'visit':
-                    return `<strong>Visited node:</strong> <span style="font-weight:bold; color:var(--visited-color);">${params[0]}</span> with final distance <span style="font-weight:bold;">${params[1]}</span><br>
-                           <small>This is the shortest possible distance to this node.</small>`;
-                case 'final':
-                    return `<strong>Dijkstra's algorithm complete!</strong><br>
-                           <small>All shortest paths from the start node have been found.</small>`;
-                default:
-                    return ` Processing Dijkstra's algorithm…`;
-            }
-        }
-        
-        /* Status icons. These replace the emoji the status lines used to
-           carry: same meaning at a glance, drawn in the project's own style,
-           and they take currentColor so they follow the theme. */
-        const STATUS_ICON = (() => {
-            const wrap = (body) =>
-                `<svg class="status-icon" width="15" height="15" viewBox="0 0 24 24" ` +
-                `fill="none" stroke="currentColor" stroke-width="2" ` +
-                `stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
-            return {
-                // A fresh table of distances.
-                table: wrap('<rect x="3" y="3" width="18" height="18" rx="2"/>' +
-                            '<line x1="3" y1="9" x2="21" y2="9"/>' +
-                            '<line x1="9" y1="3" x2="9" y2="21"/>'),
-                // A pass starting or in progress.
-                pass: wrap('<polyline points="21 4 21 10 15 10"/>' +
-                           '<path d="M20 14a8 8 0 1 1-2.3-5.7L21 10"/>'),
-                // Two values being compared.
-                compare: wrap('<circle cx="11" cy="11" r="7"/>' +
-                              '<line x1="16.5" y1="16.5" x2="21" y2="21"/>'),
-                // Something improved.
-                better: wrap('<polyline points="20 6 9 17 4 12"/>'),
-                // Nothing changed.
-                same: wrap('<circle cx="12" cy="12" r="8"/>'),
-                // A pass finished, here is the tally.
-                summary: wrap('<rect x="4" y="3" width="16" height="18" rx="2"/>' +
-                              '<line x1="8" y1="9" x2="16" y2="9"/>' +
-                              '<line x1="8" y1="13" x2="16" y2="13"/>' +
-                              '<line x1="8" y1="17" x2="13" y2="17"/>'),
-                // The whole run is done.
-                done: wrap('<circle cx="12" cy="12" r="9"/>' +
-                           '<polyline points="8.5 12 11 14.5 15.5 9.5"/>'),
-                // No answer exists.
-                warning: wrap('<path d="M12 3.5 22 20H2z"/>' +
-                              '<line x1="12" y1="10" x2="12" y2="14"/>' +
-                              '<line x1="12" y1="17" x2="12" y2="17"/>')
-            };
-        })();
-
-        function getFloydWarshallStatus(action, params) {
-            switch (action) {
-                case 'init':
-                    return `${STATUS_ICON.table} <strong>Initialized distance matrix</strong><br>
-                           <small>Direct edge weights where an edge exists, \u221E everywhere else.</small>`;
-                case 'start_iteration':
-                    return `${STATUS_ICON.pass} <strong>Pass ${params[0] + 1}, intermediate node <span style="color:var(--considering-color);">${params[1]}</span></strong><br>
-                           <small>Every pair is now retested allowing ${params[1]} as a waypoint.</small>`;
-                case 'consider_path': {
-                    const [i, j, k, current, toK, fromK, viaK] = params;
-                    return `${STATUS_ICON.compare} <strong>${i} \u2192 ${j}</strong>: compare current <strong>${current}</strong>
-                           against <strong>${viaK}</strong> via ${k}<br>
-                           <small>${i} \u2192 ${k} = ${toK}, ${k} \u2192 ${j} = ${fromK}</small>`;
-                }
-                case 'no_path_via_k':
-                    return `${STATUS_ICON.same} <strong>${params[0]} \u2192 ${params[1]}</strong>: no route through ${params[2]}<br>
-                           <small>One of the two legs is still \u221E, so there is nothing to compare.</small>`;
-                case 'update_distance':
-                    return `${STATUS_ICON.better} <strong>Shorter path found:</strong> ${params[0]} \u2192 ${params[1]} = <span style="font-weight:bold; color:var(--visited-color);">${params[3]}</span><br>
-                           <small>Routing through ${params[2]} beats the previous distance.</small>`;
-                case 'no_update':
-                    return `${STATUS_ICON.same} <strong>No update:</strong> ${params[0]} \u2192 ${params[1]} stays at ${params[3]}<br>
-                           <small>Going via ${params[2]} is no shorter.</small>`;
-                case 'iteration_complete':
-                    return `${STATUS_ICON.summary} <strong>Pass ${params[0] + 1} complete</strong> (intermediate ${params[1]})<br>
-                           <small>${params[3]} ${params[3] === 1 ? 'distance was' : 'distances were'} improved in this pass.</small>`;
-                case 'final':
-                    return `${STATUS_ICON.done} <strong>Floyd-Warshall complete!</strong><br>
-                           <small>All-pairs shortest paths have been computed.</small>`;
-                default:
-                    return `${STATUS_ICON.pass} Processing Floyd-Warshall algorithm…`;
-            }
-        }
-        
-        function getBellmanFordStatus(action, params) {
-            switch (action) {
-                case 'check_edge':
-                    return `${STATUS_ICON.compare} <strong>Checking edge:</strong> ${params[0]} \u2192 ${params[1]} (weight ${params[2]})<br>
-                           <small>Can the distance to ${params[1]} be improved by going through ${params[0]}?</small>`;
-                case 'relax':
-                    return `${STATUS_ICON.better} <strong>Relaxed:</strong> ${params[0]} \u2192 ${params[1]} with weight ${params[2]}<br>
-                           <small>New distance to ${params[1]} is <span style="font-weight:bold; color:var(--visited-color);">${params[3][params[1]]}</span> (pass ${params[4]}).</small>`;
-                case 'no_relax':
-                    return `${STATUS_ICON.same} <strong>No relaxation:</strong> ${params[0]} \u2192 ${params[1]} (weight ${params[2]})<br>
-                           <small>The existing distance to ${params[1]} is already at least as short.</small>`;
-                case 'iteration_complete':
-                    return `${STATUS_ICON.summary} <strong>Pass ${params[0]} complete</strong><br>
-                           <small>Every edge has been examined once more.</small>`;
-                case 'final':
-                    return params[1]
-                        ? `${STATUS_ICON.warning} <strong>Negative cycle detected!</strong><br>
-                           <small style="color:var(--ignored-color);">A distance still improves after ${params[2]} passes, so no shortest path exists.</small>`
-                        : `${STATUS_ICON.done} <strong>Bellman-Ford complete!</strong><br>
-                           <small>Shortest paths settled after ${params[2]} ${params[2] === 1 ? 'pass' : 'passes'}; no negative cycle.</small>`;
-                default:
-                    return `${STATUS_ICON.pass} Processing Bellman-Ford algorithm…`;
-            }
-        }
-        
-        function getTraversalStatus(action, params, algorithm) {
-            const algoName = algorithm.toUpperCase();
-            const structure = algorithm === 'bfs' ? 'queue' : 'stack';
-            
-            switch (action) {
-                case 'start':
-                    return `<strong>Starting ${algoName}</strong> from node <span style="font-weight:bold; color:var(--visited-color);">${params[0]}</span><br>
-                           <small>Added to ${structure} and marked as visited.</small>`;
-                case 'queue':
-                    return `<strong>Added to queue:</strong> <span style="font-weight:bold; color:var(--considering-color);">${params[0]}</span><br>
-                           <small>Node will be processed in FIFO order (breadth-first).</small>`;
-                case 'stack':
-                    return `<strong>Added to stack:</strong> <span style="font-weight:bold; color:var(--considering-color);">${params[0]}</span><br>
-                           <small>Node will be processed in LIFO order (depth-first).</small>`;
-                case 'visit':
-                    return `<strong>Visited node:</strong> <span style="font-weight:bold; color:var(--visited-color);">${params[0]}</span><br>
-                           <small>Exploring neighbors and adding unvisited ones to ${structure}.</small>`;
-                case 'final':
-                    return `<strong>${algoName} traversal complete!</strong><br>
-                           <small>Visited path: <span style="font-weight:bold;">${params[0].join(' → ')}</span></small>`;
-                default:
-                    return ` Processing ${algoName}…`;
-            }
-        }
-        
         // Function to display results in the result panel
         function displayResults(action, params, algorithm) {
             const resultPanel = document.getElementById('result-panel');
@@ -2998,7 +2809,17 @@ A</pre>
             } else if (algorithm === 'kruskal') {
                 // Kruskal: [result_edges, total_weight]
                 const [resultEdges, totalWeight] = params;
-                content += '<h4>Minimum Spanning Tree:</h4>';
+                /* n-1 edges spans every node. Fewer means the graph came
+                   apart, and what was built is a forest, not a tree. */
+                const spansEverything = resultEdges.length === nodes.length - 1;
+                const resultName = spansEverything
+                    ? 'Minimum spanning tree'
+                    : 'Minimum spanning forest';
+                content += `<h4>${resultName}:</h4>`;
+                if (!spansEverything) {
+                    content += `<p>The graph is disconnected, so this is one tree
+                                per connected piece rather than a single tree.</p>`;
+                }
                 content += '<table style="width:100%; border-collapse:collapse; margin-top:10px;">';
                 content += '<tr style="background:var(--sunken);"><th style="padding:8px; text-align:left; border:1px solid var(--border);">Edge</th><th style="padding:8px; text-align:center; border:1px solid var(--border);">Weight</th></tr>';
                 
@@ -3009,7 +2830,7 @@ A</pre>
                     </tr>`;
                 }
                 content += '</table>';
-                content += `<div style="margin-top:15px; padding:10px; background:var(--done-wash); border-radius:5px;"><strong>Total MST Weight:</strong> ${totalWeight}</div>`;
+                content += `<div style="margin-top:15px; padding:10px; background:var(--done-wash); border-radius:5px;"><strong>Total weight:</strong> ${totalWeight}</div>`;
                 
                 // Add visualization enhancement for MST
                 for (const [u, v, w] of resultEdges) {

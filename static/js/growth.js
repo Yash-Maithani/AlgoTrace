@@ -4,13 +4,17 @@
  * talked about, and a table carries the same numbers for anyone who cannot
  * see the picture, because a chart on its own is not accessible.
  *
- *   Growth.CURVES          the five curves, by key
- *   Growth.ORDER           the order they are drawn and listed in
+ *   Growth.CURVES          every curve this can draw, by key
+ *   Growth.ORDER           the five reference curves, in the order drawn
  *   Growth.render(host, o) draw into host; o is
- *                          {n, highlight, width, height, log}
+ *                          {n, highlight, label, basis, note, width, height, log}
  *
- * Nothing here knows which algorithm is being described. The caller says
- * which curve to highlight and for what input size.
+ * Nothing here knows which algorithm is being described. The caller passes
+ * the figure to show (`label`), which curve has that shape (`highlight`, or
+ * null when none does), what the axis letter stands for when it is not n
+ * (`basis`), and the sentence to use when no curve fits (`note`). Every one
+ * of those comes from the algorithm's own lesson file, which is the single
+ * source of truth for its complexity.
  */
 (function () {
     'use strict';
@@ -20,7 +24,11 @@
         'logn': { label: 'O(log n)', of: function (n) { return Math.log2(n + 1); } },
         'n': { label: 'O(n)', of: function (n) { return n; } },
         'nlogn': { label: 'O(n log n)', of: function (n) { return n * Math.log2(n + 1); } },
-        'n2': { label: 'O(n squared)', of: function (n) { return n * n; } }
+        'n2': { label: 'O(n squared)', of: function (n) { return n * n; } },
+        /* Not a reference curve: /big-o teaches five, and this one is only
+           drawn when an algorithm actually has that shape. Floyd-Warshall
+           does. */
+        'n3': { label: 'O(n cubed)', of: function (n) { return n * n * n; } }
     };
 
     var ORDER = ['1', 'logn', 'n', 'nlogn', 'n2'];
@@ -42,10 +50,46 @@
         return Math.round(value * 10) / 10;
     }
 
+    /* The curves to draw: the five references, plus the highlighted one when
+       it is not already among them. */
+    function drawn(highlight) {
+        var keys = ORDER.slice();
+        if (highlight && keys.indexOf(highlight) === -1) keys.push(highlight);
+        return keys;
+    }
+
+    /* What the caption and the aria-label say. The figure always comes from
+       the caller; this only decides how it relates to the curve drawn. */
+    function describe(options, n) {
+        var highlight = options.highlight;
+        var curve = highlight ? CURVES[highlight] : null;
+        var label = options.label || (curve ? curve.label : null);
+        var upTo = ' for n up to ' + n + '.';
+
+        if (!label) {
+            return 'The five common growth curves,' + upTo;
+        }
+        if (!curve) {
+            var note = options.note ||
+                (label + ' is not one of the curves below.');
+            return note + ' They are drawn for comparison,' + upTo;
+        }
+        if (label === curve.label) {
+            return 'This algorithm is ' + label + '. The faint lines are the others,' + upTo;
+        }
+        /* Same shape, different letter: Dijkstra is O(V squared), which is the
+           O(n squared) curve with n standing for the number of nodes. Saying
+           so is the difference between a comparison and a wrong figure. */
+        return 'This algorithm is ' + label + ', which is the ' + curve.label +
+            ' curve with n standing for ' + (options.basis || 'the input size') +
+            '. The faint lines are the others,' + upTo;
+    }
+
     function render(host, options) {
         if (!host) return;
         options = options || {};
-        var highlight = options.highlight;
+        var highlight = options.highlight && CURVES[options.highlight]
+            ? options.highlight : null;
         var n = Math.max(options.n || 0, 10);
         var width = options.width || 260;
         var height = options.height || 160;
@@ -53,31 +97,31 @@
 
         clear(host);
 
-        /* On a linear axis a big n flattens the four slower curves onto the
-           floor, because n squared dwarfs them. True, but it hides exactly
-           the comparison this chart is for, so the caller can ask for a log
-           axis instead, which keeps every curve readable and still shows
-           which one climbs fastest. */
+        /* On a linear axis a big n flattens the slower curves onto the
+           floor, because the fastest growing one dwarfs them. True, but it
+           hides exactly the comparison this chart is for, so the caller can
+           ask for a log axis instead, which keeps every curve readable and
+           still shows which one climbs fastest. */
         var log = !!options.log;
         var scale = log
             ? function (value) { return Math.log10(value + 1); }
             : function (value) { return value; };
 
+        var keys = drawn(highlight);
         var highest = 0;
-        ORDER.forEach(function (key) {
+        keys.forEach(function (key) {
             highest = Math.max(highest, scale(CURVES[key].of(n)));
         });
         if (highest <= 0) highest = 1;
+
+        var sentence = describe(options, n);
+        var axisNote = log ? ' The vertical axis is logarithmic.' : '';
 
         var svg = document.createElementNS(SVG_NS, 'svg');
         svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
         svg.setAttribute('class', 'growth-chart');
         svg.setAttribute('role', 'img');
-        var axisNote = log ? ' The vertical axis is logarithmic.' : '';
-        svg.setAttribute('aria-label', highlight
-            ? 'Growth of ' + CURVES[highlight].label + ' compared with the other '
-              + 'common curves, for inputs up to ' + n + '.' + axisNote
-            : 'The five common growth curves, for inputs up to ' + n + '.' + axisNote);
+        svg.setAttribute('aria-label', sentence + axisNote);
 
         function path(key) {
             var points = [];
@@ -94,20 +138,11 @@
             return node;
         }
 
-        ORDER.forEach(function (key) { if (key !== highlight) svg.appendChild(path(key)); });
+        keys.forEach(function (key) { if (key !== highlight) svg.appendChild(path(key)); });
         if (highlight) svg.appendChild(path(highlight));
         host.appendChild(svg);
 
-        var caption = el('p', 'growth-caption');
-        if (highlight) {
-            caption.appendChild(document.createTextNode('This algorithm is '));
-            caption.appendChild(el('strong', null, CURVES[highlight].label));
-            caption.appendChild(document.createTextNode(
-                '. The faint lines are the others, for n up to ' + n + '.'));
-        } else {
-            caption.textContent = 'All five curves, for n up to ' + n +
-                '. The steeper the line, the worse it scales.' + axisNote;
-        }
+        var caption = el('p', 'growth-caption', sentence + axisNote);
         host.appendChild(caption);
 
         var details = el('details', 'growth-data');
@@ -117,7 +152,7 @@
         head.appendChild(el('th', null, 'Curve'));
         head.appendChild(el('th', null, 'At n = ' + n));
         table.appendChild(head);
-        ORDER.forEach(function (key) {
+        keys.forEach(function (key) {
             var row = el('tr');
             row.appendChild(el('td', null,
                 CURVES[key].label + (key === highlight ? ' (this one)' : '')));

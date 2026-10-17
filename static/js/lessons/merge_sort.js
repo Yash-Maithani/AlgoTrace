@@ -16,6 +16,10 @@ window.LESSONS.merge_sort = {
     whenToUse: 'When you need a guaranteed O(n log n) regardless of the input, or when the data is too big for memory and has to be merged in runs from disk.',
     stable: false,
 
+    /* Merge sort never exchanges a pair of values, so the counter beside the
+       comparisons counts writes, not swaps. See complexity.countsNote. */
+    countLabel: 'writes',
+
     code: {
         pseudocode: [
             { id: 'split', text: 'if the piece holds more than one value:', indent: 0 },
@@ -58,7 +62,7 @@ window.LESSONS.merge_sort = {
         worked: {
             input: '[5, 3, 8, 1, 9]',
             comparisons: 7,
-            note: 'n = 5. Fewer comparisons than the quadratic sorts need even at this tiny size, where they all cost 10. Note that the merge loop stops as soon as one side empties, so a run that is already in order uses fewer comparisons: [1, 3, 5, 8, 9] costs 5.'
+            note: 'n = 5. Fewer comparisons than the quadratic sorts need even at this tiny size, where they all cost 10. Note that the merge loop stops as soon as one side empties, so a run that is already in order uses fewer comparisons: [1, 3, 5, 8, 9] costs 5. The write count does not fall the same way, because the copy back writes every value either way: both of those inputs cost 12 writes.'
         },
         space: {
             value: 'O(n)',
@@ -66,7 +70,10 @@ window.LESSONS.merge_sort = {
         },
         auxiliaryNote: 'Auxiliary space is the memory the algorithm needs on top of the input array itself.',
         thisRun: 'Big O describes how work grows as the input grows and ignores constants. The counter shows the exact work for this one input.',
+        countsNote: 'The second counter says writes, not swaps, because merge sort never exchanges a pair of values. It builds the merged run in a temporary list and then copies the whole run back over the array, so every value in the run is written whether or not it moved. That is why an already sorted list still reports writes: the copy back happens either way.',
         growth: 'nlogn',
+        growthBasis: null,
+        growthNote: null,
         divergence: 'Merge sort is usually described as stable, but this implementation is not. It compares with left[i] < right[j], so when two values are equal it takes the one from the right half first, which puts the later value ahead of the earlier one. Changing the test to <= would make it stable without changing any count.'
     }
 };

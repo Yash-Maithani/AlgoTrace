@@ -14,7 +14,9 @@ const FIXED_THIS_RUN =
     'Big O describes how work grows as the input grows and ignores constants. ' +
     'The counter shows the exact work for this one input.';
 
-const GROWTH_KEYS = ['1', 'logn', 'n', 'nlogn', 'n2'];
+// null is allowed: a figure in two variables, such as O(V times E), is
+// not any single curve, and claiming one would be a different figure.
+const GROWTH_KEYS = ['1', 'logn', 'n', 'nlogn', 'n2', 'n3', null];
 const FAMILIES = ['sorting', 'searching', 'graph'];
 
 global.window = {};
@@ -82,7 +84,8 @@ Object.keys(lessons).sort().forEach(function (key) {
             complain(file, 'complexity.time.' + band + ' needs a value and a reason');
         }
     });
-    ['worked', 'space', 'auxiliaryNote', 'thisRun', 'growth'].forEach(function (field) {
+    ['worked', 'space', 'auxiliaryNote', 'thisRun', 'growth',
+     'growthBasis', 'growthNote'].forEach(function (field) {
         if (!(field in c)) complain(file, 'complexity is missing ' + field);
     });
     if (c.worked && typeof c.worked.comparisons !== 'number') {
@@ -92,6 +95,18 @@ Object.keys(lessons).sort().forEach(function (key) {
         complain(file, 'complexity.space must name what the memory is');
     }
     if (GROWTH_KEYS.indexOf(c.growth) === -1) complain(file, 'growth must be one of ' + GROWTH_KEYS.join(', '));
+    if (c.growth === null && !c.growthNote) {
+        complain(file, 'growth is null, so growthNote must say why no curve fits');
+    }
+    if (c.growth !== null && c.growthNote) {
+        complain(file, 'growthNote belongs only on a lesson with no curve');
+    }
+    if ('countLabel' in lesson && typeof lesson.countLabel !== 'string') {
+        complain(file, 'countLabel must be a string');
+    }
+    if ('countLabel' in lesson && !c.countsNote) {
+        complain(file, 'a renamed counter must be explained in complexity.countsNote');
+    }
     if (c.auxiliaryNote !== FIXED_AUXILIARY) complain(file, 'auxiliaryNote must use the shared wording');
     if (c.thisRun !== FIXED_THIS_RUN) complain(file, 'thisRun must use the shared wording');
 });

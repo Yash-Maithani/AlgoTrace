@@ -33,6 +33,26 @@
        draws the same picture with a slider on it. */
     var CURVES = window.Growth.CURVES;
 
+    /* What the counted-moves row is called. Most sorts swap pairs; merge
+       sort copies a merged run back over the array, so every element is
+       written whether or not it moved. Counting those as swaps made the one
+       sort that never swaps look like the most swap heavy on the site. */
+    function countLabel(lesson) {
+        var label = lesson && lesson.countLabel ? lesson.countLabel : 'swaps';
+        return label.charAt(0).toUpperCase() + label.slice(1);
+    }
+
+    /* Which of the reported sizes the lesson's figure is written in. */
+    function axisLetter(complexity) {
+        var basis = complexity.growthBasis;
+        return basis ? basis.split(',')[0] : 'n';
+    }
+
+    function axisSize(complexity, stats) {
+        if (axisLetter(complexity) === 'E') return stats.edges;
+        return stats.n;
+    }
+
     function el(tag, className, text) {
         var node = document.createElement(tag);
         if (className) node.className = className;
@@ -258,6 +278,8 @@
         this.thisRunBox = el('div', 'this-run');
         body.appendChild(this.thisRunBox);
         body.appendChild(el('p', 'aux-note', c.thisRun));
+        /* Where a counter needs explaining, the lesson says so beside it. */
+        if (c.countsNote) body.appendChild(el('p', 'aux-note', c.countsNote));
 
         body.appendChild(el('h3', null, 'How the work grows'));
         this.growthBox = el('div', 'growth');
@@ -299,24 +321,42 @@
             table.appendChild(el('dt', null, term));
             table.appendChild(el('dd', null, String(value)));
         }
-        row('Input size', stats.n);
+        /* A graph reports both of its sizes, because its figure may be
+           written in either. Anything else has one. */
+        if (stats.edges === undefined) {
+            row('Input size', stats.n);
+        } else {
+            row('Nodes', stats.n);
+            row('Edges', stats.edges);
+        }
         if (stats.comparisons !== undefined) row('Comparisons counted', stats.comparisons);
-        if (stats.swaps !== undefined) row('Swaps counted', stats.swaps);
+        if (stats.swaps !== undefined) {
+            row(countLabel(this.lesson) + ' counted', stats.swaps);
+        }
 
-        var curve = CURVES[this.lesson.complexity.growth];
-        if (curve) {
-            row(curve.label + ' at n = ' + stats.n,
-                Math.round(curve.of(stats.n) * 10) / 10);
+        /* The figure is the lesson's own worst case. The curve only says
+           what shape that figure has, and some figures have no single
+           curve, in which case there is no row to show. */
+        var c = this.lesson.complexity;
+        var curve = CURVES[c.growth];
+        var size = axisSize(c, stats);
+        if (curve && size) {
+            row(c.time.worst.value + ' at ' + axisLetter(c) + ' = ' + size,
+                Math.round(curve.of(size) * 10) / 10);
         }
         this.thisRunBox.appendChild(table);
-        this.renderGrowth(stats.n);
+        this.renderGrowth(size || stats.n);
     };
 
     Panel.prototype.renderGrowth = function (n) {
         if (!this.growthBox || !this.lesson) return;
+        var c = this.lesson.complexity;
         window.Growth.render(this.growthBox, {
             n: n,
-            highlight: this.lesson.complexity.growth
+            highlight: c.growth,
+            label: c.time.worst.value,
+            basis: c.growthBasis,
+            note: c.growthNote
         });
     };
 

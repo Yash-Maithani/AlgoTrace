@@ -65,7 +65,9 @@ window.LESSONS.floyd_warshall = {
         },
         auxiliaryNote: 'Auxiliary space is the memory the algorithm needs on top of the input array itself.',
         thisRun: 'Big O describes how work grows as the input grows and ignores constants. The counter shows the exact work for this one input.',
-        growth: 'n2',
+        growth: 'n3',
+        growthBasis: 'V, the number of nodes',
+        growthNote: null,
         divergence: 'The time figure matches the textbook. The space does not: the usual O(V squared) counts the distance table alone, while this endpoint keeps a next-hop table of the same size so the results panel can show the actual route and not just its length. That is still O(V squared), but it is twice the memory.'
     }
 };

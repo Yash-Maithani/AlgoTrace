@@ -65,7 +65,11 @@ window.LESSONS.bellman_ford = {
         },
         auxiliaryNote: 'Auxiliary space is the memory the algorithm needs on top of the input array itself.',
         thisRun: 'Big O describes how work grows as the input grows and ignores constants. The counter shows the exact work for this one input.',
-        growth: 'n2',
+        growth: null,
+        growthBasis: null,
+        growthNote:
+            'O(V times E) depends on two numbers at once, the nodes and the ' +
+            'edges, so it is not one of the curves below.',
         divergence: 'Textbook Bellman-Ford always runs V-1 passes, giving a best case of O(V times E) as well. This version keeps a changed flag and breaks out of a quiet pass, so its best case is O(E). That is the same early exit bubble sort lacks, and here it is the difference between 20 edge checks and 40 on the worked example above.'
     }
 };

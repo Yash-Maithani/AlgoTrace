@@ -165,12 +165,33 @@ def test_legend_markup_and_styling_survive(client):
         'the legend lost its panel styling')
 
 
-def test_graph_status_lines_use_icons_not_emoji(template):
-    """Phase 7B replaced the escaped emoji with inline SVG."""
-    assert 'STATUS_ICON' in template
-    for icon in ('table', 'pass', 'compare', 'better', 'same', 'summary',
-                 'done', 'warning'):
-        assert 'STATUS_ICON.%s' % icon in template, '%s icon unused' % icon
+def test_the_status_panel_is_a_state_line(template):
+    """It used to narrate every step a second time, in its own voice.
+
+    Six generators wrote their own sentences from the raw step arrays, so on
+    a disconnected graph the panel said all shortest paths had been found
+    while the Learn panel said two of four nodes were reached. The panel now
+    reads the same meta the Learn panel reads, which makes disagreement
+    impossible rather than merely corrected.
+    """
+    for gone in ('getKruskalStatus', 'getPrimStatus', 'getDijkstraStatus',
+                 'getFloydWarshallStatus', 'getBellmanFordStatus',
+                 'getTraversalStatus', 'STATUS_ICON'):
+        assert gone not in template, '%s is back' % gone
+
+    assert 'function updateStatusDisplay(stepIndex)' in template
+    assert 'meta.explain.beginner' in template, (
+        'the finished line is no longer the Learn panel sentence')
+
+
+def test_the_status_panel_is_written_as_text_not_markup(template):
+    """Its old lines carried inline styles and bold tags of their own."""
+    start = template.index('function updateStatusDisplay(stepIndex)')
+    end = template.index('function applyKruskalStep')
+    body = template[start:end]
+
+    assert '<strong>' not in body and 'style=' not in body, (
+        'the status panel is styling itself again')
 
 
 def test_repository_has_no_banned_patterns():

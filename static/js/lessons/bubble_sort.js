@@ -60,6 +60,8 @@ window.LESSONS.bubble_sort = {
         auxiliaryNote: 'Auxiliary space is the memory the algorithm needs on top of the input array itself.',
         thisRun: 'Big O describes how work grows as the input grows and ignores constants. The counter shows the exact work for this one input.',
         growth: 'n2',
+        growthBasis: null,
+        growthNote: null,
         divergence: 'Textbooks usually give bubble sort a best case of O(n), because their version keeps a flag and stops once a pass makes no swaps. This implementation has no such flag, so its best case is O(n squared). Adding the flag would not change the worst case.'
     }
 };

@@ -70,6 +70,8 @@ window.LESSONS.binary_search = {
         auxiliaryNote: 'Auxiliary space is the memory the algorithm needs on top of the input array itself.',
         thisRun: 'Big O describes how work grows as the input grows and ignores constants. The counter shows the exact work for this one input.',
         growth: 'logn',
+        growthBasis: null,
+        growthNote: null,
         divergence: 'A recursive binary search costs O(log n) stack frames instead. This listing is the iterative form the plan calls for, so its space stays constant.'
     }
 };

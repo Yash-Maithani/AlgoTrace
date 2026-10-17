@@ -60,7 +60,11 @@ window.LESSONS.dfs = {
         },
         auxiliaryNote: 'Auxiliary space is the memory the algorithm needs on top of the input array itself.',
         thisRun: 'Big O describes how work grows as the input grows and ignores constants. The counter shows the exact work for this one input.',
-        growth: 'n2',
+        growth: null,
+        growthBasis: null,
+        growthNote:
+            'O(V times E) depends on two numbers at once, the nodes and the ' +
+            'edges, so it is not one of the curves below.',
         divergence: 'Depth-first search is usually quoted at O(V + E). Taking from the end of a list really is constant time, so unlike the queue version this endpoint pays nothing there. What costs it is the same `not in stack` membership test, a linear scan once per edge. A set alongside the stack would make it O(V + E).'
     }
 };

@@ -60,7 +60,11 @@ window.LESSONS.bfs = {
         },
         auxiliaryNote: 'Auxiliary space is the memory the algorithm needs on top of the input array itself.',
         thisRun: 'Big O describes how work grows as the input grows and ignores constants. The counter shows the exact work for this one input.',
-        growth: 'n2',
+        growth: null,
+        growthBasis: null,
+        growthNote:
+            'O(V times E) depends on two numbers at once, the nodes and the ' +
+            'edges, so it is not one of the curves below.',
         divergence: 'Breadth-first search is usually quoted at O(V + E). That assumes a deque for the queue and a set for the membership test, both of which answer in constant time. This endpoint uses a list for both, so taking from the front is O(V) and the `not in queue` check is another O(V), once per edge. Swapping in collections.deque and a set would make it the familiar O(V + E) without changing a single step it draws.'
     }
 };

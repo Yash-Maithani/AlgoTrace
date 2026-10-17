@@ -62,6 +62,8 @@ window.LESSONS.kruskal = {
         auxiliaryNote: 'Auxiliary space is the memory the algorithm needs on top of the input array itself.',
         thisRun: 'Big O describes how work grows as the input grows and ignores constants. The counter shows the exact work for this one input.',
         growth: 'nlogn',
+        growthBasis: 'E, the number of edges',
+        growthNote: null,
         divergence: 'Often written O(E log V) rather than O(E log E). The two are the same thing, because E is at most V squared and so log E is at most 2 log V. This implementation keys Union-Find on the declared node list rather than on the nodes it meets in edges, which is what lets it return a spanning forest for a disconnected graph instead of failing.'
     }
 };

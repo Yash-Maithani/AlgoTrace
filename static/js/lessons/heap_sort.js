@@ -71,6 +71,8 @@ window.LESSONS.heap_sort = {
         auxiliaryNote: 'Auxiliary space is the memory the algorithm needs on top of the input array itself.',
         thisRun: 'Big O describes how work grows as the input grows and ignores constants. The counter shows the exact work for this one input.',
         growth: 'nlogn',
+        growthBasis: null,
+        growthNote: null,
         divergence: 'Heap sort is normally quoted at O(1) space because it sorts in place. That holds for the version that repairs the heap with a loop. The heapify here calls itself, so each level of the heap adds a stack frame and the honest figure for this code is O(log n).'
     }
 };

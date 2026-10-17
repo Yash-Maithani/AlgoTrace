@@ -295,11 +295,17 @@
                 renderResult: function (payload) {
                     var banner = document.getElementById('run-banner');
                     var r = payload.result;
+                    /* Most sorts exchange pairs. Merge sort copies a merged
+                       run back over the array, so its lesson renames the
+                       counter and the banner follows it. */
+                    var lesson = window.LESSONS[LESSON_FOR[payload.algorithm]] || {};
+                    var noun = lesson.countLabel || 'swaps';
+                    var one = noun.replace(/s$/, '');
                     banner.setAttribute('data-outcome', 'found');
                     banner.textContent = payload.algorithm + ' sorted ' + r.n +
                         ' values in ' + r.comparisons + ' comparison' +
                         (r.comparisons === 1 ? '' : 's') + ' and ' + r.swaps +
-                        ' swap' + (r.swaps === 1 ? '' : 's') + '.';
+                        ' ' + (r.swaps === 1 ? one : noun) + '.';
                 },
 
                 onError: function (payload) {
