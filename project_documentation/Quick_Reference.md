@@ -1,15 +1,15 @@
 # Algorithm Visualizer - Quick Reference Guide
 
-## 🚀 Project Overview
+## Project Overview
 **Algorithm Visualizer v2.1** is an interactive Flask web application for learning algorithms through visual animations.
 
-## 📊 Key Statistics
+## Key Statistics
 - **10+ Algorithms**: 6 Sorting + 4 Graph algorithms
 - **3000+ Lines of Code**: Python, HTML, CSS, JavaScript
 - **Modern Tech Stack**: Flask, D3.js, CSS3 animations
 - **Educational Focus**: Students, educators, developers
 
-## 🎯 Main Features
+## Main Features
 
 ### Sorting Algorithms
 1. **Bubble Sort** - O(n²) - Educational favorite
@@ -37,7 +37,7 @@
 - Random graph generation
 - Step-by-step animation
 
-## 🔧 Quick Setup
+## Quick Setup
 
 ### Prerequisites
 - Python 3.8+
@@ -67,11 +67,11 @@ python app.py
 # Navigate to http://localhost:5002
 ```
 
-## 🎨 Recent Enhancements (v2.1)
+## Recent Enhancements (v2.1)
 
 ### Speed Control Enhancement
 - **Doubled speed range**: 1-200 (from 1-100)
-- **Smart tooltips**: "Slow" → "Default" → "⚡Lightning"
+- **Smart tooltips**: "Slow" → "Default" → "Lightning"
 - **Exponential scaling**: Ultra-fast 10ms animations
 - **Adaptive transitions**: Smooth high-speed performance
 
@@ -81,7 +81,7 @@ python app.py
 - **Artifact prevention**: Proper SVG element handling
 - **Button fixes**: Restored "Generate Random Graph" functionality
 
-## 🗂️ Project Structure
+## Project Structure
 ```
 PBL2/
 ├── app.py                    # Main Flask app (458 lines)
@@ -98,7 +98,7 @@ PBL2/
 └── tests/                  # Unit tests
 ```
 
-## 🌐 API Endpoints
+## API Endpoints
 - `GET /` - Landing page
 - `GET /sorting` - Sorting visualizer
 - `GET /graph?algo=bfs` - Graph algorithms
@@ -108,7 +108,7 @@ PBL2/
 - `POST /run_prim` - Execute Prim
 - `POST /generate_random_graph` - Random graph generation
 
-## 🎯 Educational Value
+## Educational Value
 
 ### Target Audience
 - **Students**: Computer science algorithm courses
@@ -122,13 +122,13 @@ PBL2/
 - **Interactive experimentation**: Custom input testing
 - **Complexity analysis**: Big O notation examples
 
-## 📈 Performance Specs
+## Performance Specs
 - **Sorting**: 5-100 elements, 60fps animations
 - **Graphs**: 2-26 nodes, up to 325 edges
 - **Speed range**: 10ms - 1200ms intervals
 - **Browser support**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
 
-## 🔮 Future Roadmap
+## Future Roadmap
 
 ### Planned Algorithms
 - **Floyd-Warshall**: All-pairs shortest paths
@@ -142,7 +142,7 @@ PBL2/
 - **User accounts**: Progress tracking
 - **PWA support**: Offline functionality
 
-## 🛠️ Technical Highlights
+## Technical Highlights
 
 ### Backend (Flask)
 - RESTful API design
@@ -162,7 +162,7 @@ PBL2/
 - Memory-conscious design
 - Cross-browser compatibility
 
-## 📋 Documentation Files
+## Documentation Files
 
 This documentation package includes:
 
@@ -172,7 +172,7 @@ This documentation package includes:
 4. **Quick_Reference.md** - This quick reference guide
 5. **generate_docs.py** - Documentation generator script
 
-## 💡 Usage Tips
+## Usage Tips
 
 ### For Students
 - Start with Bubble Sort to understand basic concepts
@@ -195,9 +195,9 @@ This documentation package includes:
 ---
 
 **Quick Links:**
-- 🌐 **Launch App**: `python app.py` → http://localhost:5002
-- 📖 **Full Docs**: Algorithm_Visualizer_Documentation.html
-- 🔧 **Setup**: Follow installation steps above
-- 🚀 **GitHub**: Ready for version control and sharing
+- **Launch App**: `python app.py` → http://localhost:5002
+- **Full Docs**: Algorithm_Visualizer_Documentation.html
+- **Setup**: Follow installation steps above
+- **GitHub**: Ready for version control and sharing
 
 **Version**: 2.1 | **Framework**: Flask | **Last Updated**: 2025

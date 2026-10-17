@@ -5,6 +5,8 @@
 {% block content %}
     <main class="workspace" id="main">
 
+        <h1 class="workspace-title">Sorting</h1>
+
         <!-- SETUP ------------------------------------------------------- -->
         <section class="workspace-setup" aria-labelledby="setup-heading">
             <div class="panel">
@@ -14,13 +16,13 @@
                         <ul class="algo-picker" id="algo-picker">
                             {% for name in sorting_algorithms %}
                             <li>
-                                <a href="#" data-algorithm="{{ name }}"
-                                   data-lesson="{{ lesson_ids[name] }}"
-                                   data-accent="{{ loop.index }}"
-                                   aria-current="{{ 'true' if name == selected_algo else 'false' }}">
+                                <button type="button" data-algorithm="{{ name }}"
+                                        data-lesson="{{ lesson_ids[name] }}"
+                                        data-accent="{{ loop.index }}"
+                                        aria-current="{{ 'true' if name == selected_algo else 'false' }}">
                                     <span class="pick-name">{{ name }}</span>
                                     <span class="pick-note">{{ pick_notes[name] }}</span>
-                                </a>
+                                </button>
                             </li>
                             {% endfor %}
                         </ul>
@@ -45,15 +47,17 @@
 
                         <div class="setup-field" id="size-field">
                             <label for="array-size">Array size</label>
-                            <input type="number" id="array-size" min="5" max="100" value="30">
-                            <p class="setup-hint">Between 5 and 100 bars.</p>
+                            <input type="number" id="array-size" min="5" max="100" value="30"
+                                   aria-describedby="size-hint">
+                            <p class="setup-hint" id="size-hint">Between 5 and 100 bars.</p>
                         </div>
 
                         <div class="setup-field" id="values-field" hidden>
                             <label for="manual-input">Values</label>
                             <input type="text" id="manual-input" autocomplete="off"
-                                   spellcheck="false" value="42, 17, 93, 8, 61, 29, 75, 36">
-                            <p class="setup-hint">Whole numbers, separated by commas.</p>
+                                   spellcheck="false" value="42, 17, 93, 8, 61, 29, 75, 36"
+                                   aria-describedby="values-hint">
+                            <p class="setup-hint" id="values-hint">Whole numbers, separated by commas.</p>
                         </div>
 
                         <div class="field-error" id="setup-error" role="alert">{{ error }}</div>
@@ -70,7 +74,8 @@
         <section class="workspace-stage-col" aria-labelledby="stage-heading">
             <h2 class="sr-only" id="stage-heading">Visualization</h2>
 
-            <div class="stage" id="stage">
+            <div class="stage" id="stage" tabindex="0"
+                 role="group" aria-labelledby="stage-heading">
                 <p class="stage-empty" id="stage-empty">
                     Choose an algorithm and an input, then run the sort.
                 </p>
@@ -121,28 +126,28 @@
                 </div>
             </div>
 
-            <div class="legend">
-                <span class="legend-item">
+            <ul class="legend" aria-label="Bar colour key">
+                <li class="legend-item">
                     <span class="legend-swatch" style="--swatch: var(--idle-sort)"></span>
                     Not yet placed
-                </span>
-                <span class="legend-item">
+                </li>
+                <li class="legend-item">
                     <span class="legend-swatch" style="--swatch: var(--active)"></span>
                     Being compared
-                </span>
-                <span class="legend-item">
+                </li>
+                <li class="legend-item">
                     <span class="legend-swatch" style="--swatch: var(--reject)"></span>
                     Swapped or written
-                </span>
-                <span class="legend-item">
+                </li>
+                <li class="legend-item">
                     <span class="legend-swatch" style="--swatch: var(--pivot)"></span>
                     Marked or placed
-                </span>
-                <span class="legend-item">
+                </li>
+                <li class="legend-item">
                     <span class="legend-swatch" style="--swatch: var(--done)"></span>
                     Sorted
-                </span>
-            </div>
+                </li>
+            </ul>
 
             <div class="run-banner" id="run-banner" role="status" aria-live="polite"></div>
         </section>

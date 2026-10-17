@@ -1,6 +1,6 @@
 # PBL2 Rebuild Plan
 
-This plan replaces REDESIGN_PLAN.md. Every coding session reads this file first and does ONE phase only.
+This plan replaced REDESIGN_PLAN.md, which has since been deleted. Every coding session reads this file first and does ONE phase only.
 
 ## Goal
 
@@ -121,9 +121,10 @@ Lesson content lives in `static/js/lessons/<algorithm>.js`: pseudocode and Pytho
   - surrogate pairs, `\uD83D\uDE80` being one emoji
   - HTML entities, `&mdash;`, `&#8212;` and `&#x2014;`
   It allows the typography the project does use: the infinity label, the arrow in
-  a path, curly quotes, and the times, minus and degree signs.
-  Three documents predate the rule and are reported separately without failing the
-  check: README.md, DESIGN_SYSTEM.md and REDESIGN_PLAN.md.
+  a path, the ellipsis, curly quotes, and the times, minus and degree signs.
+  There is no carve-out. The three documents that used to have one are gone:
+  README.md was rewritten in Phase 8B, and DESIGN_SYSTEM.md and REDESIGN_PLAN.md
+  were deleted as superseded by DESIGN.md and this plan.
   A file that has to spell these patterns out, as the lines above do, carries the
   marker `banned-check: documents-the-patterns` once and is skipped.
 - One commit, and a short note: files changed, how to check it.

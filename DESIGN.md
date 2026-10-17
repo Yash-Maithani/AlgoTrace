@@ -481,11 +481,28 @@ functions that reached for it. All three pages now name the transport the same w
 `static/js/teacher.js`; it must not move these, because the inline `onclick` attributes in
 the markup call them by name from the global scope.
 
+**The algorithm picker, settled in Phase 8B.** Two kinds of entry share one look. On the
+graph page each algorithm is its own URL, so those entries are `<a href>` and the current
+one carries `aria-current="page"`. On sorting and searching the picker swaps the algorithm
+on the page you are already on, so those entries are `<button type="button">` and the
+current one carries `aria-current="true"`. They were links to `#`, which told a screen
+reader they led somewhere and ignored the space bar. `workspace.js` finds either by
+`[data-algorithm]`, so neither page needs its own code. Do not turn them back into links.
+
 ## 11. Accessibility rules
 
 - Minimum pointer target 44px. Inputs at 16px text so iOS does not zoom on focus.
 - Visible focus on every control: 3px `--focus-ring`, 2px offset, via `:focus-visible`.
-- One `h1` per page, then `h2` and `h3` with no level skipped.
+- One `h1` per page, then `h2` and `h3` with no level skipped. On a workspace it is
+  `.workspace-title`, above the columns at every width.
+- Anything clickable is a `<button>` or an `<a>`. Never a `<span onclick>`: it cannot be
+  reached by tab, cannot be pressed by key, and announces as nothing.
+- A fill that carries text uses the label tier, not the bar tier. The nine accents are
+  sized so a light mode fill clears 3:1, which is right for a bar or a node body and
+  short of the 4.5:1 a label on top of it needs; `--active-solid`, `--done-solid` and
+  `--reject-solid` are the versions to paint text on.
+- A box that scrolls is a focus stop with a name, so a keyboard can reach what has
+  overflowed. The stage, the code listing and the worked code samples all are.
 - The step counter is a polite live region. Validation errors use `role="alert"` and sit
   next to the field they concern, and the first invalid field takes focus on submit.
 - Charts and canvases carry a text alternative. The growth chart also offers a table.

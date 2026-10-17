@@ -197,7 +197,13 @@
         });
         body.appendChild(toggle);
 
+        // The listing scrolls sideways in a narrow panel, so it is a focus
+        // stop: a scroll box no one can reach from the keyboard hides its own
+        // right hand side. Named, because an unexplained stop is worse.
         var listing = el('ol', 'code-listing');
+        listing.tabIndex = 0;
+        listing.setAttribute('aria-label',
+            (self.codeView === 'python' ? 'Python' : 'Pseudocode') + ' listing');
         lesson.code[this.codeView].forEach(function (line) {
             var item = el('li', 'code-line');
             if (line.id) item.setAttribute('data-line', line.id);

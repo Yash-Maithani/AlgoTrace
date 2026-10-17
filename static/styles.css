@@ -1700,10 +1700,11 @@ a.logo:focus-visible,
     font-variant-numeric: tabular-nums;
 }
 
-/* The same comparing colour the sorting bars use. */
+/* The comparing colour the sorting bars use, in its label tier: this cell
+   carries a number, and a label needs 4.5:1 where a bar only needs 3:1. */
 .band-cell.is-comparing {
-    background-color: var(--active);
-    border-color: var(--active);
+    background-color: var(--active-solid);
+    border-color: var(--active-solid);
     color: var(--on-state);
     font-weight: 500;
 }
@@ -2232,6 +2233,14 @@ a.logo:focus-visible,
     padding: 0 var(--space-4);
 }
 
+/* The page's own heading, above the columns at every width. */
+.workspace-title {
+    order: 0;
+    min-width: 0;
+    margin: 0;
+    font-size: var(--text-2xl);
+}
+
 /* Order below 768px: stage, control bar, legend, setup, Learn panel. The
    stage comes first because it is what the page is for. */
 .workspace-stage-col { order: 1; min-width: 0; }
@@ -2251,9 +2260,10 @@ a.logo:focus-visible,
         padding: 0 var(--space-8);
     }
     /* Setup becomes a strip above the stage, Learn panel moves alongside. */
+    .workspace-title     { grid-column: 1 / -1; grid-row: 1; }
     .workspace-setup     { order: 1; grid-column: 1 / -1; }
     .workspace-stage-col { order: 2; grid-column: 1; }
-    .workspace-learn     { order: 3; grid-column: 2; grid-row: 2; }
+    .workspace-learn     { order: 3; grid-column: 2; grid-row: 3; }
     .workspace-notes     { order: 4; grid-column: 1 / -1; }
 }
 
@@ -2262,10 +2272,11 @@ a.logo:focus-visible,
         grid-template-columns: 300px minmax(0, 1fr) 380px;
         gap: 20px;
     }
-    .workspace-setup     { order: 1; grid-column: 1; grid-row: 1; }
-    .workspace-stage-col { order: 2; grid-column: 2; grid-row: 1; }
-    .workspace-learn     { order: 3; grid-column: 3; grid-row: 1; }
-    .workspace-notes     { order: 4; grid-column: 1 / -1; grid-row: 2; }
+    .workspace-title     { grid-column: 1 / -1; grid-row: 1; }
+    .workspace-setup     { order: 1; grid-column: 1; grid-row: 2; }
+    .workspace-stage-col { order: 2; grid-column: 2; grid-row: 2; }
+    .workspace-learn     { order: 3; grid-column: 3; grid-row: 2; }
+    .workspace-notes     { order: 4; grid-column: 1 / -1; grid-row: 3; }
 }
 
 /* --- Panels --------------------------------------------------------------- */
@@ -2295,29 +2306,49 @@ a.logo:focus-visible,
     gap: var(--space-2);
 }
 
-.algo-picker a {
+/* Two kinds of entry, one look. The graph page's entries are links, because
+   each algorithm is its own URL. Sorting and searching swap the algorithm on
+   the page they are already on, so theirs are buttons: a link to "#" looks
+   like a destination to a screen reader and ignores the space bar. */
+.algo-picker a,
+.algo-picker button {
     --pick-accent: var(--border-strong);
     display: block;
+    width: 100%;
     padding: var(--space-3);
+    background-color: transparent;
     border: 1px solid var(--border);
     border-left: 3px solid var(--pick-accent);
     border-radius: var(--radius-sm);
+    text-align: left;
     text-decoration: none;
+    font: inherit;
     color: var(--text);
+    box-shadow: none;
     transition: background-color var(--dur-fast) var(--ease-out);
 }
 
-.algo-picker a[data-accent="1"] { --pick-accent: var(--algo-1); }
-.algo-picker a[data-accent="2"] { --pick-accent: var(--algo-2); }
-.algo-picker a[data-accent="3"] { --pick-accent: var(--algo-3); }
-.algo-picker a[data-accent="4"] { --pick-accent: var(--algo-4); }
-.algo-picker a[data-accent="5"] { --pick-accent: var(--algo-5); }
-.algo-picker a[data-accent="6"] { --pick-accent: var(--algo-6); }
-.algo-picker a[data-accent="7"] { --pick-accent: var(--algo-7); }
+.algo-picker a[data-accent="1"], .algo-picker button[data-accent="1"] { --pick-accent: var(--algo-1); }
+.algo-picker a[data-accent="2"], .algo-picker button[data-accent="2"] { --pick-accent: var(--algo-2); }
+.algo-picker a[data-accent="3"], .algo-picker button[data-accent="3"] { --pick-accent: var(--algo-3); }
+.algo-picker a[data-accent="4"], .algo-picker button[data-accent="4"] { --pick-accent: var(--algo-4); }
+.algo-picker a[data-accent="5"], .algo-picker button[data-accent="5"] { --pick-accent: var(--algo-5); }
+.algo-picker a[data-accent="6"], .algo-picker button[data-accent="6"] { --pick-accent: var(--algo-6); }
+.algo-picker a[data-accent="7"], .algo-picker button[data-accent="7"] { --pick-accent: var(--algo-7); }
 
-.algo-picker a:hover { background-color: var(--sunken); }
+.algo-picker a:hover,
+.algo-picker button:hover {
+    background-color: var(--sunken);
+    box-shadow: none;
+}
 
-.algo-picker a[aria-current="true"] {
+.algo-picker button:active { transform: none; }
+
+/* "page" on the graph page's links, "true" on the two pickers that choose
+   within the page. Both mean the same thing here: this is the one you are on. */
+.algo-picker a[aria-current="true"],
+.algo-picker a[aria-current="page"],
+.algo-picker button[aria-current="true"] {
     background-color: var(--queued-wash);
     border-color: var(--accent);
     border-left-color: var(--pick-accent);
@@ -2808,10 +2839,13 @@ a.logo:focus-visible,
     display: block;
 }
 
+/* Faint enough to sit behind the highlighted curve, dark enough to still
+   clear 3:1 against the panel: they are what the highlighted one is compared
+   against, so they have to be readable. */
 .growth-ref {
     stroke: var(--text-muted);
     stroke-width: 1.5;
-    opacity: 0.4;
+    opacity: 0.75;
 }
 
 .growth-mine {
@@ -2873,21 +2907,24 @@ a.logo:focus-visible,
     color: var(--text-muted);
 }
 
+/* A cell holds its value, so these fills use the label tier, the same one
+   the graph nodes use for their letters. */
 .cell[data-state="current"] .cell-box {
-    background-color: var(--active);
-    border-color: var(--active);
+    background-color: var(--active-solid);
+    border-color: var(--active-solid);
     color: var(--on-state);
 }
 
 .cell[data-state="found"] .cell-box {
-    background-color: var(--done);
-    border-color: var(--done);
+    background-color: var(--done-solid);
+    border-color: var(--done-solid);
     color: var(--on-state);
 }
 
-/* Discarded cells stay legible. They are dimmed and marked, never hidden. */
+/* Discarded cells stay legible. They are dimmed and marked, never hidden, so
+   the dimming stops where the value would drop under 4.5:1 against the stage. */
 .cell[data-state="discarded"] .cell-box {
-    opacity: 0.45;
+    opacity: 0.7;
     border-style: dashed;
 }
 

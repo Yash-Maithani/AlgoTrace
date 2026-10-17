@@ -1,278 +1,183 @@
-# Algorithm Visualizer 🎯
+# Algorithm Visualizer
 
-A comprehensive Flask-based web application for visualizing sorting and graph algorithms with interactive animations and step-by-step execution.
+A Flask site that plays an algorithm one step at a time, says in plain language
+why it made each move, and shows what the move cost.
 
-![Python](https://img.shields.io/badge/python-v3.8+-blue.svg)
-![Flask](https://img.shields.io/badge/flask-v2.3+-green.svg)
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+Fifteen algorithms across three workspaces, each with a Learn panel that
+explains the current step, highlights the line of code running, and puts the
+counted work next to the formula.
 
-## ✨ Features
+Team Tri Logic: Yash Maithani
 
-### Sorting Algorithms
+## What is on the site
 
-All six are implemented in `sorting_algorithms/` and selectable from the UI. Each was
-verified against Python's `sorted()` across 400+ randomised cases plus empty,
-single-element, duplicate, already-sorted and reverse-sorted inputs.
+| Route | Page |
+|---|---|
+| `/` | Home, with a hero that runs a real bubble sort on eight bars |
+| `/learn` | Every algorithm, grouped, in a suggested beginner order |
+| `/sorting` | Sorting workspace, six algorithms |
+| `/searching` | Searching workspace, two algorithms |
+| `/graph?algo=...` | Graph workspace, seven algorithms |
+| `/big-o` | How complexity works, with a growth chart you can drive |
+| `/privacy`, `/terms` | Legal pages |
 
-- **Bubble Sort** — adjacent comparisons and swaps
-- **Selection Sort** — repeated minimum selection
-- **Insertion Sort** — element-by-element insertion
-- **Heap Sort** — heap construction and extraction
-- **Merge Sort** — divide and conquer
-- **Quick Sort** — pivot selection and partitioning
+### Sorting
 
-### Graph Algorithms
+Bubble, Selection, Insertion, Heap, Merge and Quick, in `sorting_algorithms/`.
+Each one yields a step for every comparison, swap and write, and the page
+replays those steps rather than guessing what changed between frames.
 
-All seven now have a template, a `graph_algo_dict` entry in `app.py` and a
-server-side `/run_*` endpoint:
+### Searching
 
-- **Breadth-First Search (BFS)** — level-by-level traversal
-- **Depth-First Search (DFS)** — deep exploration paths
-- **Dijkstra's Algorithm** — shortest path finding
-- **Prim's Algorithm** — minimum spanning tree
-- **Kruskal's Algorithm** — MST via Union-Find; yields a spanning forest on disconnected input
-- **Floyd-Warshall** — all-pairs shortest paths with path reconstruction
-- **Bellman-Ford** — shortest paths over negative weights, with negative-cycle detection
+Linear and Binary (iterative), in `searching_algorithms/`. Binary search
+refuses an unsorted array instead of answering wrongly, explains why, and
+offers to sort it for you.
 
-All seven animate end to end in the browser. Every graph page is rendered from
-`templates/graph_base.html`, which holds the whole D3 visualizer and switches on
-the algorithm the route passed it; each child template contributes only its
-`{% block extra_content %}` information panel.
+### Graphs
 
-### Known Issues
+BFS, DFS, Dijkstra, Prim, Kruskal, Floyd-Warshall and Bellman-Ford, generated
+in `app.py` and drawn with D3. Dijkstra scans for its minimum linearly, Prim
+uses `heapq`, Kruskal uses union-find and returns a spanning forest when the
+graph is disconnected, and Bellman-Ford reports a negative cycle rather than
+looping on one.
 
-- `bfs.html`, `dfs.html`, `dijkstra.html` and `prim.html` each still carry a
-  complete standalone HTML document after their `{% endblock %}`. Jinja discards
-  everything outside a block, so none of it is served — the four pages work
-  because `graph_base.html` drives them, not because of those tails. They are
-  dead code and safe to delete; they were left in place because the pages render
-  correctly with or without them. `kruskal.html`, `floyd_warshall.html` and
-  `bellman_ford.html` have had theirs removed.
-- `static/js/graph-visualizer.js` is loaded by no page. It is a canvas renderer
-  that needs a `<canvas>` element `graph_base.html` never creates, and the only
-  reference to it is the `<script>` tag in the discarded tail of `bfs.html`
-  above. Wiring it in would mean running a second renderer alongside the base's
-  D3 one, so it was left unreferenced rather than revived.
-- BFS, DFS and Dijkstra never call `displayResults()` on their `final` step, so
-  those three pages animate and report the outcome in the status panel but leave
-  the result panel below the graph empty. The `bfs`, `dfs` and `dijkstra`
-  branches of `displayResults()` exist and are unused. Kruskal, Prim,
-  Floyd-Warshall and Bellman-Ford do fill it.
-- Sorting embeds every animation step into the HTML response, so large array
-  sizes produce very large pages. There is no server-side clamp.
-- `/run_prim` raises `KeyError` when given hand-written JSON in which a node
-  appears only as a neighbour and has no key of its own. `/run_bellman_ford`
-  handles that case; `/run_prim` has not been changed.
-- Several files are unreachable: no route renders `templates/base.html`,
-  `index.html`, `error.html`, `sorting_new.html` or `bellman_ford_new.html`, and
-  nothing imports `app_new.py`.
+### The Learn panel
 
-## 🚀 Quick Start
+Four tabs beside every visualization, driven by `static/js/teacher.js`:
 
-### Prerequisites
-- Python 3.8 or higher
-- pip (Python package installer)
+- **Explain**: the current step in one sentence, with the real values, plus a
+  one line reason. Updates on every step, forwards and backwards.
+- **Code**: pseudocode or Python, the running line highlighted, and the live
+  variables beside it.
+- **Complexity**: best, average and worst, each tied to a line of the code; a
+  worked example at n = 5; auxiliary space; and the count from this run beside
+  what the formula predicts for this n.
+- **About**: the idea in three sentences, an analogy, and when to reach for it.
 
-### Installation
+The complexity text describes this code, not the textbook. Bubble sort here has
+no early-exit flag, so its best case is quadratic. Quick sort takes the last
+element as its pivot, so a sorted array is its worst case. Heap sort's
+`heapify` recurses, so it carries a logarithmic stack. Merge sort allocates
+while merging and is not stable.
 
-1. **Clone or download the project**
-   ```bash
-   cd /path/to/algorithm-visualizer
-   ```
+## Running it
 
-2. **Create virtual environment**
-   ```bash
-   python -m venv venv
-   ```
-
-3. **Activate virtual environment**
-   ```bash
-   # On macOS/Linux:
-   source venv/bin/activate
-   
-   # On Windows:
-   venv\Scripts\activate
-   ```
-
-4. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-### Running the Application
-
-1. **Start the Flask server**
-   ```bash
-   python app.py
-   ```
-   or
-   ```bash
-   flask run
-   ```
-
-2. **Open your browser** and navigate to:
-   ```
-   http://localhost:5000
-   ```
-
-3. **Explore the algorithms!**
-   - Choose **Sorting** for array sorting visualizations
-   - Choose **Graph** for graph algorithm demonstrations
-
-## 🎮 How to Use
-
-### Sorting Algorithms
-
-1. **Select an Algorithm**: Choose from Bubble Sort, Quick Sort, etc.
-2. **Input Data**: 
-   - **Random Array**: Specify size (1-1000 elements)
-   - **Manual Input**: Enter comma-separated integers (e.g., `64,34,25,12,22,11,90`)
-3. **Run Visualization**: Watch the step-by-step sorting process
-4. **View Statistics**: See comparisons, swaps, and complexity information
-
-### Graph Algorithms (Prim Example)
-
-1. **Choose an Algorithm**: Append `?algo=prim` to `/graph` (or `bfs`, `dfs`, `dijkstra`)
-2. **Provide a Graph**: Paste one in the input panel, or click a Quick Demo button
-3. **Run Algorithm**: Click "Visualize Algorithm"
-4. **Step Through**: Use play, pause and reset to walk the animation
-
-## 🏗️ Project Architecture
-
-```
-📦 algorithm-visualizer/
-├── 📁 sorting_algorithms/   # The sorting implementations app.py actually uses
-│   ├── bubble_sort.py
-│   ├── selection_sort.py
-│   ├── insertion_sort.py
-│   ├── heap_sort.py
-│   ├── merge_sort.py
-│   └── quick_sort.py
-├── 📁 algorithms/           # Incomplete OOP refactor; not imported by app.py
-│   ├── base.py
-│   ├── 📁 sorting/          # bubble, quick, selection only
-│   └── 📁 graph/            # empty
-├── 📁 routes/              # Blueprints; registered only by app_new.py
-│   ├── sorting_routes.py
-│   └── graph_routes.py
-├── 📁 services/            # Service layer; imported only by routes/
-│   └── algorithm_service.py
-├── 📁 templates/
-│   ├── landing.html          # Served at /
-│   ├── sorting.html          # Served at /sorting
-│   ├── graph_base.html       # Parent of the graph pages; holds the D3 engine
-│   ├── bfs.html … bellman_ford.html  # All seven; each is an info panel over graph_base
-│   ├── base.html             # Unused; only sorting_new.html extends it
-│   └── index.html, sorting_new.html, bellman_ford_new.html, error.html
-├── 📁 static/
-│   ├── styles.css            # Main stylesheet
-│   └── 📁 js/               # common.js, graph-visualizer.js — not loaded by any live page
-├── 📁 tests/
-│   └── test_kruskal.py       # Covers /run_kruskal; needs pytest installed
-├── app.py                   # Entry point — the one in Quick Start above
-├── app_new.py               # Alternative blueprint entry point; needs flask-cors
-├── requirements.txt         # Python dependencies
-└── README.md                # This file
-```
-
-## 🔧 Technical Details
-
-### Algorithm Flow: UI → Server → Animation
-
-1. **User Input**: User selects algorithm and provides data via web interface
-2. **Frontend Processing**: JavaScript validates input and sends AJAX request
-3. **Backend Execution**: Flask routes call service layer algorithms
-4. **Step Generation**: Algorithms return visualization steps as JSON
-5. **Animation Rendering**: Frontend animates steps using Canvas/SVG
-
-### API Endpoints
-
-Routes registered by `app.py`, the entry point used in Quick Start above:
-
-| Method | Route | Purpose |
-| --- | --- | --- |
-| GET, POST | `/` | Landing page |
-| GET, POST | `/sorting` | Sorting visualizer page and run |
-| GET | `/graph` | Graph visualizer page; `?algo=` takes any of the seven keys in `graph_algo_dict` |
-| POST | `/run_bfs` | Execute BFS traversal |
-| POST | `/run_dfs` | Execute DFS traversal |
-| POST | `/run_dijkstra` | Execute Dijkstra's algorithm |
-| POST | `/run_prim` | Execute Prim's algorithm |
-| POST | `/run_kruskal` | Execute Kruskal's MST algorithm |
-| POST | `/run_floyd_warshall` | Execute Floyd-Warshall all-pairs shortest paths |
-| POST | `/run_bellman_ford` | Execute Bellman-Ford shortest paths |
-| POST | `/generate_random_graph` | Generate a connected random graph |
-
-Request bodies are not uniform. `visualize()` in `graph_base.html` picks the
-shape per algorithm:
-
-- `/run_bfs`, `/run_dfs`, `/run_dijkstra`, `/run_prim`, `/run_bellman_ford` take
-  `{"graph": {...}, "start": "A"}`, where `graph` is an adjacency object.
-- `/run_kruskal` and `/run_floyd_warshall` take
-  `{"nodes": ["A", ...], "edges": [["A", "B", 3], ...]}`.
-
-Responses are a JSON array of `[action, ...]` animation steps ending in a
-`["final", ...]` step — except `/run_bellman_ford`, which returns an object
-with `steps`, `has_negative_cycle`, `distances` and `iterations`.
-
-Unreachable distances are sent as the string `"∞"`, not a float. JSON has no
-infinity literal, and `json.dumps(float("inf"))` emits a bare `Infinity` token
-that `JSON.parse` rejects. The front end never does arithmetic on a distance it
-receives; `isUnreachable()` in `graph_base.html` is the single place that
-recognises the sentinel.
-
-The blueprint API — `/sorting/api/visualize`, `/sorting/api/algorithms`,
-`/graph/api/bfs`, `/graph/api/dfs`, `/graph/api/dijkstra` — is defined in `routes/`
-and registered only by `app_new.py`, which is **not** the entry point documented above.
-`app_new.py` also imports `flask-cors`; it is listed in `requirements.txt` but must be
-installed or the module fails to import.
-
-## 🧪 Testing
-
-Run the test suite to verify algorithm correctness:
+Python 3.11 or newer.
 
 ```bash
-# Install pytest if not already installed
-pip install pytest pytest-flask
-
-# Run all tests
-pytest tests/
-
-# Run specific test file
-pytest tests/test_kruskal.py -v
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python app.py
 ```
 
-## 🤝 Contributing
+The site is then at http://localhost:5002.
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+`python app.py` starts Flask's development server, which is for development
+only. See [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md) before putting it on the
+internet.
 
-### Adding New Algorithms
+## Tests
 
-1. **Create Algorithm Class**: Inherit from `SortingAlgorithm` or `GraphAlgorithm`
-2. **Implement Required Methods**: `visualize()`, `get_name()`, `get_description()`, etc.
-3. **Add to Service**: Register in the appropriate service class
-4. **Create Template**: Add HTML template for visualization
-5. **Write Tests**: Add test cases in the `tests/` directory
+```bash
+pytest -q
+```
 
-## 👤 Author
+1,118 tests. Most of them exist to prove that visual work did not change any
+algorithm's behaviour:
 
-**Yash Maithani**
+| File | What it holds to account |
+|---|---|
+| `test_sorting_parity.py` | Every sort's output, comparison count and swap count against a baseline recorded before the rebuild, over 17 inputs |
+| `test_graph_parity.py` | Every `/run_*` endpoint's step array, byte for byte, against its own recorded baseline, including disconnected, negative weight and negative cycle graphs |
+| `test_lessons.py` | Every lesson file has the fields the step contract requires |
+| `test_searching.py` | Found first, middle and last; not found; duplicates; size one; binary search blocked on unsorted input |
+| `test_sorting_workspace.py`, `test_graph_workspace.py` | The ids and hooks the shared workspace code depends on |
+| `test_big_o.py` | Every figure the Big O page quotes, re-derived by running the code |
+| `test_kruskal.py` | Union-find behaviour on disconnected input |
 
-## 📝 License
+Two more checks are not pytest:
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+```bash
+python tools/check_banned_patterns.py .
+node tests/validate_lessons.js
+```
 
-## 🙏 Acknowledgments
+The first enforces the project's writing rules against em dashes and emoji. It
+decodes JavaScript escapes, surrogate pairs and HTML entities before it looks,
+because a plain search over the source misses every one of those forms and this
+project has shipped all of them. The second parses every lesson file.
 
-- Algorithms inspired by classic computer science textbooks
-- Visualization techniques adapted from educational platforms
-- Flask framework for robust web development
-- D3.js and Canvas API for interactive graphics
+## How it is built
 
----
+No build step, no bundler, no frontend framework, no CDN libraries except D3 on
+the graph pages. Plain CSS, vanilla JavaScript, Jinja templates and one Flask
+file.
 
-**Built with ❤️ for computer science education and algorithm visualization**
+```
+app.py                     every route, and the seven graph algorithms
+teacher.py                 the one builder every step passes through
+sorting_algorithms/        six sorts, each yielding teacher steps
+searching_algorithms/      linear and binary search
+templates/
+  layout.html              the shell every page extends
+  landing.html             Home
+  learn.html               the algorithm index
+  sorting.html             sorting workspace
+  searching.html           searching workspace
+  big_o.html               the complexity guide
+  graph_base.html          the graph workspace and the whole D3 visualizer
+  bfs.html ... etc         seven children, each only an information panel
+  privacy.html, terms.html
+static/
+  styles.css               the whole design system, one light set and one dark
+  js/workspace.js          run, play, pause, step, reset, speed
+  js/teacher.js            the Learn panel
+  js/growth.js             the growth chart, shared by /big-o and the panel
+  js/nav.js                the narrow header menu
+  js/theme.js              the light and dark toggle
+  js/lessons/*.js          fifteen lesson files, one per algorithm
+  js/lessons/README.md     the step contract every phase follows
+tests/                     pytest suites and the two recorded baselines
+tools/check_banned_patterns.py
+DESIGN.md                  the design spec
+REBUILD_PLAN.md            the plan the rebuild followed
+LAUNCH_CHECKLIST.md        what is left before this goes live
+```
+
+### The step contract
+
+Every step carries `action`, `indices`, `values`, `line`, `vars` and
+`explain: {beginner, why}`. Sorting and searching steps keep their original
+`array` and `compared` fields alongside, so the drawing code did not have to
+change. Graph endpoints keep their typed step arrays and return a parallel
+`meta` list of the same length. `static/js/lessons/README.md` is the
+authoritative description.
+
+### Endpoints that return steps
+
+| Method | Route | Returns |
+|---|---|---|
+| POST | `/run_sort` | `{steps, meta, result}` for one sort |
+| POST | `/run_search` | `{steps, meta, result}` for one search |
+| POST | `/run_bfs`, `/run_dfs`, `/run_dijkstra`, `/run_prim`, `/run_bellman_ford` | `{steps, meta, ...}` from `{"graph": {...}, "start": "A"}` |
+| POST | `/run_kruskal`, `/run_floyd_warshall` | `{steps, meta, ...}` from `{"nodes": [...], "edges": [[u, v, w], ...]}` |
+| POST | `/generate_random_graph` | a connected random graph |
+
+Unreachable distances come back as the string for infinity, never a bare
+`Infinity`, because JSON has no infinity literal and `JSON.parse` rejects one.
+`_wire()` in `app.py` is the only place that converts, and `isUnreachable()` in
+`graph_base.html` is the only place that reads it.
+
+## Accessibility and motion
+
+Every page is keyboard operable end to end, with a visible focus ring on every
+stop. Text meets 4.5:1 in both themes, state is never carried by colour alone,
+and the colour keys name every state in words. Every animation has a
+`prefers-reduced-motion` fallback that stops the movement and keeps the state
+colours, so nothing is hidden by turning motion off. Checked at 375px, 768px
+and 1440px.
+
+## Licence
+
+None chosen yet. See [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md).

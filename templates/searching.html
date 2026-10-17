@@ -5,6 +5,8 @@
 {% block content %}
     <main class="workspace" id="main">
 
+        <h1 class="workspace-title">Searching</h1>
+
         <!-- SETUP ------------------------------------------------------- -->
         <section class="workspace-setup" aria-labelledby="setup-heading">
             <div class="panel">
@@ -14,12 +16,12 @@
                         <ul class="algo-picker" id="algo-picker">
                             {% for key, name, note in algorithms %}
                             <li>
-                                <a href="#" data-algorithm="{{ key }}"
-                                   data-accent="{{ loop.index }}"
-                                   aria-current="{{ 'true' if loop.first else 'false' }}">
+                                <button type="button" data-algorithm="{{ key }}"
+                                        data-accent="{{ loop.index }}"
+                                        aria-current="{{ 'true' if loop.first else 'false' }}">
                                     <span class="pick-name">{{ name }}</span>
                                     <span class="pick-note">{{ note }}</span>
-                                </a>
+                                </button>
                             </li>
                             {% endfor %}
                         </ul>
@@ -69,7 +71,8 @@
         <section class="workspace-stage-col" aria-labelledby="stage-heading">
             <h2 class="sr-only" id="stage-heading">Visualization</h2>
 
-            <div class="stage" id="stage">
+            <div class="stage" id="stage" tabindex="0"
+                 role="group" aria-labelledby="stage-heading">
                 <p class="stage-empty" id="stage-empty">
                     Choose an algorithm, enter some values and a target,
                     then run the search.
@@ -112,8 +115,8 @@
 
                 <div class="speed-field">
                     <label for="speed">Speed</label>
-                    <input type="range" id="speed" min="1" max="10" value="5"
-                           aria-describedby="step-counter">
+                    <input type="range" id="speed" class="speed-slider"
+                           min="1" max="10" value="5">
                 </div>
 
                 <div class="step-counter" id="step-counter" role="status" aria-live="polite">
@@ -121,24 +124,24 @@
                 </div>
             </div>
 
-            <div class="legend" id="legend">
-                <span class="legend-item">
+            <ul class="legend" id="legend" aria-label="Cell colour key">
+                <li class="legend-item">
                     <span class="legend-swatch" data-shape="cell" style="--swatch: var(--surface)"></span>
                     In the live range
-                </span>
-                <span class="legend-item">
-                    <span class="legend-swatch" data-shape="cell" style="--swatch: var(--active)"></span>
+                </li>
+                <li class="legend-item">
+                    <span class="legend-swatch" data-shape="cell" style="--swatch: var(--active-solid)"></span>
                     Being compared
-                </span>
-                <span class="legend-item">
-                    <span class="legend-swatch" data-shape="cell" style="--swatch: var(--done)"></span>
+                </li>
+                <li class="legend-item">
+                    <span class="legend-swatch" data-shape="cell" style="--swatch: var(--done-solid)"></span>
                     Found
-                </span>
-                <span class="legend-item">
+                </li>
+                <li class="legend-item">
                     <span class="legend-swatch" data-shape="cell" style="--swatch: var(--sunken)"></span>
                     Ruled out, shown dashed
-                </span>
-            </div>
+                </li>
+            </ul>
 
             <div class="run-banner" id="run-banner" role="status" aria-live="polite"></div>
         </section>

@@ -338,9 +338,6 @@
             box-shadow: var(--shadow-2);
         }
         
-        .demo-btn i {
-            font-size: 0.8rem;
-        }
         /* Reduced motion: stop the movement, keep the state colours. The
            node/edge/cell colours encode algorithm state, so only the
            `animation` and `transform` declarations are neutralised here. */
@@ -369,27 +366,34 @@
 
 {% block content %}
 
+    {% set graph_algos = [
+        ('bfs', 'BFS', 'Explore one ring at a time.'),
+        ('dfs', 'DFS', 'Follow one path to its end.'),
+        ('dijkstra', 'Dijkstra', 'Cheapest route with weights.'),
+        ('prim', 'Prim', 'Grow one tree by cheapest edge.'),
+        ('kruskal', 'Kruskal', 'Take cheap edges, skip loops.'),
+        ('floyd_warshall', 'Floyd-Warshall', 'Every pair at once.'),
+        ('bellman_ford', 'Bellman-Ford', 'Survives negative edges.')
+    ] %}
+
     <main class="workspace" id="main">
+
+        <h1 class="workspace-title">
+            {%- for key, name, note in graph_algos -%}
+                {%- if key == algorithm %}{{ name }}{% endif -%}
+            {%- endfor %} on a graph
+        </h1>
 
         <!-- SETUP ------------------------------------------------------- -->
         <section class="workspace-setup" aria-labelledby="setup-heading">
             <h2 class="sr-only" id="setup-heading">Set up a run</h2>
             <div class="panel">
                 <ul class="algo-picker" id="algo-picker">
-                    {% set graph_algos = [
-                        ('bfs', 'BFS', 'Explore one ring at a time.'),
-                        ('dfs', 'DFS', 'Follow one path to its end.'),
-                        ('dijkstra', 'Dijkstra', 'Cheapest route with weights.'),
-                        ('prim', 'Prim', 'Grow one tree by cheapest edge.'),
-                        ('kruskal', 'Kruskal', 'Take cheap edges, skip loops.'),
-                        ('floyd_warshall', 'Floyd-Warshall', 'Every pair at once.'),
-                        ('bellman_ford', 'Bellman-Ford', 'Survives negative edges.')
-                    ] %}
                     {% for key, name, note in graph_algos %}
                     <li>
                         <a href="{{ url_for('graph_page') }}?algo={{ key }}"
                            data-accent="{{ loop.index if loop.index <= 7 else 7 }}"
-                           aria-current="{{ 'true' if algorithm == key else 'false' }}">
+                           {% if algorithm == key %}aria-current="page"{% endif %}>
                             <span class="pick-name">{{ name }}</span>
                             <span class="pick-note">{{ note }}</span>
                         </a>
@@ -417,7 +421,7 @@
                         <div id="input-format-guide" class="input-format-guide">
                             <div class="format-header">
                                 <span id="current-format-title">Input Format Guide</span>
-                                <span class="format-toggle" onclick="toggleFormatGuide()" title="Show input format guide" aria-label="Show input format guide"><svg class="inline-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16.5"/><line x1="12" y1="7.5" x2="12" y2="7.5"/></svg></span>
+                                <button type="button" class="format-toggle" id="format-toggle" onclick="toggleFormatGuide()" aria-expanded="false" aria-controls="format-content" aria-label="Show the input format guide"><svg class="inline-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16.5"/><line x1="12" y1="7.5" x2="12" y2="7.5"/></svg></button>
                             </div>
                             <div class="format-content" id="format-content">
                                 <div id="unweighted-format-guide">
@@ -425,7 +429,7 @@
                                     First line: [number of nodes] [number of edges]<br>
                                     Next lines: [source] [target] for each edge<br>
                                     Last line: [start node]</p>
-                                    <pre>Example:
+                                    <pre tabindex="0" role="region" aria-label="Example input">Example:
 5 5
 A B
 A C
@@ -439,7 +443,7 @@ A</pre>
                                     First line: [number of nodes] [number of edges]<br>
                                     Next lines: [source] [target] [weight] for each edge<br>
                                     Last line: [start node]</p>
-                                    <pre>Example:
+                                    <pre tabindex="0" role="region" aria-label="Example input">Example:
 5 7
 A B 4
 A C 2
@@ -459,7 +463,7 @@ A</pre>
                                     First line: [number of nodes] [number of edges]<br>
                                     Next lines: [source] [target] [weight] for each edge<br>
                                     (No start node needed)</p>
-                                    <pre>Example:
+                                    <pre tabindex="0" role="region" aria-label="Example input">Example:
 5 7
 A B 4
 A C 2
@@ -478,7 +482,7 @@ D E 6</pre>
                                     First line: [number of nodes] [number of edges]<br>
                                     Next lines: [source] [target] [weight] for each edge<br>
                                     Negative weights allowed</p>
-                                    <pre>Example:
+                                    <pre tabindex="0" role="region" aria-label="Example input">Example:
 4 6
 A B 3
 A C 8
@@ -496,7 +500,7 @@ D C 6</pre>
                                     First line: [number of nodes] [number of edges]<br>
                                     Next lines: [source] [target] [weight] for each edge<br>
                                     Last line: [start node]. Negative weights allowed</p>
-                                    <pre>Example:
+                                    <pre tabindex="0" role="region" aria-label="Example input">Example:
 5 6
 A B 6
 A C 7
@@ -512,8 +516,13 @@ A</pre>
                                 </div>
                             </div>
                         </div>
-                        <textarea id="graph-input" rows="10" placeholder="Enter graph according to the format guide above"
-                                  aria-describedby="graph-input-error"></textarea>
+                        <label for="graph-input">Graph</label>
+                        <textarea id="graph-input" rows="10" spellcheck="false"
+                                  placeholder="Enter graph according to the format guide above"
+                                  aria-describedby="graph-input-hint graph-input-error"></textarea>
+                        <p class="setup-hint" id="graph-input-hint">
+                            One edge per line, in the shape the format guide above shows.
+                        </p>
                         <div id="graph-input-error" class="field-error" role="alert" style="display: none;"></div>
                     </div>
                     
@@ -536,7 +545,8 @@ A</pre>
                 
                 <div class="input-section">
                     <label for="start-node">Start Node:</label>
-                    <input type="text" id="start-node" placeholder="e.g. A">
+                    <input type="text" id="start-node" placeholder="e.g. A"
+                           autocomplete="off" spellcheck="false">
                 </div>
                 
                 <button type="button" class="btn btn-primary" id="run-button">
@@ -545,7 +555,7 @@ A</pre>
                 
                 <!-- Demo Buttons -->
                 <div class="demo-buttons" style="margin-top: 15px;">
-                    <h4 style="margin: 0 0 10px 0; color: var(--text);">Quick Demos:</h4>
+                    <h4 style="margin: 0 0 10px 0; color: var(--text);">Quick demos</h4>
                     <button type="button" class="demo-btn" onclick="loadMSTDemo()" title="Load a demo graph for MST algorithms">
                         <svg class="inline-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="6" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><line x1="7.2" y1="7.3" x2="9.8" y2="16.7"/><line x1="16.8" y1="7.3" x2="14.2" y2="16.7"/></svg> Load MST Demo
                     </button>
@@ -564,7 +574,8 @@ A</pre>
         <section class="workspace-stage-col" aria-labelledby="stage-heading">
             <h2 class="sr-only" id="stage-heading">Visualization</h2>
 
-            <div class="stage" id="stage">
+            <div class="stage" id="stage" tabindex="0"
+                 role="group" aria-labelledby="stage-heading">
 
                 <div id="graph-container" class="graph-container"></div>
             </div>
@@ -622,7 +633,7 @@ A</pre>
             </ul>
                 <!-- Status Display -->
                 <div class="status-display" id="algorithm-status" style="display: none;">
-                    <h4>Algorithm Status</h4>
+                    <h3>Algorithm Status</h3>
                     <div id="status-content"></div>
                 </div>
                 
@@ -630,7 +641,7 @@ A</pre>
                      here, Kruskal its weight-sorted edge queue and Bellman-Ford its
                      per-iteration distance table, so the heading is set from JS. -->
                 <div class="matrix-display" id="matrix-display" style="display: none;">
-                    <h4 id="matrix-title">Distance Matrix</h4>
+                    <h3 id="matrix-title">Distance Matrix</h3>
                     <div id="matrix-content"></div>
                 </div>
                 
@@ -804,10 +815,17 @@ A</pre>
             }
         }
         
+        /* The button's aria-expanded is the single source of truth, so the
+           first press works: reading style.display used to see "" before the
+           first toggle and treat the hidden guide as open. */
         function toggleFormatGuide() {
+            const button = document.getElementById('format-toggle');
             const content = document.getElementById('format-content');
-            const currentDisplay = content.style.display;
-            content.style.display = currentDisplay === 'none' ? 'block' : 'none';
+            const open = button.getAttribute('aria-expanded') !== 'true';
+            button.setAttribute('aria-expanded', open ? 'true' : 'false');
+            button.setAttribute('aria-label',
+                open ? 'Hide the input format guide' : 'Show the input format guide');
+            content.style.display = open ? 'block' : 'none';
         }
         
         function updateFormatGuide() {
@@ -1096,7 +1114,7 @@ A</pre>
             const nodeIds = Array.from({length: numNodes}, (_, i) => String.fromCharCode(65 + i));
             
             // Show animation for graph generation
-            document.getElementById('graph-input').value = "Generating random graph...";
+            document.getElementById('graph-input').value = "Generating random graph…";
             setTimeout(() => {
                 // Generate edges for a connected graph
                 const edges = [];
@@ -2746,7 +2764,7 @@ A</pre>
                            <small>Edges: ${sortedEdges.map(e => `${e[0]}-${e[1]} (${e[2]})`).join(', ')}</small>`;
                 case 'consider_edge':
                     return `<strong>Considering edge:</strong> ${params[0]}-${params[1]} with weight <span style="font-weight:bold; color:var(--considering-color);">${params[2]}</span><br>
-                           <small>Checking if this edge creates a cycle using Union-Find...</small>`;
+                           <small>Checking if this edge creates a cycle using Union-Find…</small>`;
                 case 'add_edge':
                     return `<strong>Added to MST:</strong> ${params[0]}-${params[1]} (weight: <span style="font-weight:bold; color:var(--visited-color);">${params[2]}</span>)<br>
                            <small>This edge connects different components without creating a cycle.</small>`;
@@ -2758,7 +2776,7 @@ A</pre>
                     return `<strong>Kruskal's MST Complete!</strong><br>
                            <small>Found ${totalEdges} edges with total weight: <span style="font-weight:bold; color:var(--visited-color);">${params[1]}</span></small>`;
                 default:
-                    return ` Processing Kruskal's algorithm...`;
+                    return ` Processing Kruskal's algorithm…`;
             }
         }
         
@@ -2784,7 +2802,7 @@ A</pre>
                     return `<strong>Prim's MST Complete!</strong><br>
                            <small>Found ${totalEdges} edges with total weight: <span style="font-weight:bold; color:var(--visited-color);">${params[1]}</span></small>`;
                 default:
-                    return ` Processing Prim's algorithm...`;
+                    return ` Processing Prim's algorithm…`;
             }
         }
         
@@ -2804,7 +2822,7 @@ A</pre>
                     return `<strong>Dijkstra's algorithm complete!</strong><br>
                            <small>All shortest paths from the start node have been found.</small>`;
                 default:
-                    return ` Processing Dijkstra's algorithm...`;
+                    return ` Processing Dijkstra's algorithm…`;
             }
         }
         
@@ -2876,7 +2894,7 @@ A</pre>
                     return `${STATUS_ICON.done} <strong>Floyd-Warshall complete!</strong><br>
                            <small>All-pairs shortest paths have been computed.</small>`;
                 default:
-                    return `${STATUS_ICON.pass} Processing Floyd-Warshall algorithm...`;
+                    return `${STATUS_ICON.pass} Processing Floyd-Warshall algorithm…`;
             }
         }
         
@@ -2901,7 +2919,7 @@ A</pre>
                         : `${STATUS_ICON.done} <strong>Bellman-Ford complete!</strong><br>
                            <small>Shortest paths settled after ${params[2]} ${params[2] === 1 ? 'pass' : 'passes'}; no negative cycle.</small>`;
                 default:
-                    return `${STATUS_ICON.pass} Processing Bellman-Ford algorithm...`;
+                    return `${STATUS_ICON.pass} Processing Bellman-Ford algorithm…`;
             }
         }
         
@@ -2926,7 +2944,7 @@ A</pre>
                     return `<strong>${algoName} traversal complete!</strong><br>
                            <small>Visited path: <span style="font-weight:bold;">${params[0].join(' → ')}</span></small>`;
                 default:
-                    return ` Processing ${algoName}...`;
+                    return ` Processing ${algoName}…`;
             }
         }
         

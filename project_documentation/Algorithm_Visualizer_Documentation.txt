@@ -101,7 +101,7 @@ Visual Features:
 • Step-by-step Animation: Clear visual progression
 • Color-coded States:
   * Green: Visited/processed nodes
-  * Orange: Frontier/queue nodes  
+  * Orange: Frontier/queue nodes
   * Red: Ignored/rejected nodes
   * Gray: Unvisited nodes
 • Canvas Management: Proper cleanup preventing artifacts
@@ -119,7 +119,7 @@ SPEED CONTROL ENHANCEMENT (v2.1):
   - "Default" (41-80)
   - "Fast" (81-120)
   - "Very Fast" (121-160)
-  - "⚡Lightning" (161-200)
+  - "Lightning" (161-200)
 • Adaptive transition timing for smooth high-speed animations
 
 GRAPH VISUALIZATION FIXES:
@@ -150,7 +150,7 @@ API ENDPOINTS:
 • GET  /sorting             - Sorting visualizer
 • GET  /graph               - Graph algorithms
 • POST /run_bfs             - Execute BFS algorithm
-• POST /run_dfs             - Execute DFS algorithm  
+• POST /run_dfs             - Execute DFS algorithm
 • POST /run_dijkstra        - Execute Dijkstra's algorithm
 • POST /run_prim            - Execute Prim's algorithm
 • POST /generate_random_graph - Generate random graph data

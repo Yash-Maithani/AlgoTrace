@@ -93,22 +93,16 @@ def problems_in(path):
     return found
 
 
+# Only machinery and third party code is skipped. Every document the project
+# writes is scanned, including the ones nothing links to.
 SKIP_DIRS = {'.git', '__pycache__', 'venv', '.venv', 'node_modules',
-             '.pytest_cache', 'project_documentation', '.agents', '.claude',
-             '.vscode'}
+             '.pytest_cache', '.agents', '.claude', '.vscode'}
 
-# Documents that carried these before the rule existed. They are reported
-# separately rather than hidden, and they do not fail the check, so the gate
-# stays usable for the thing it is for: catching what a phase introduces.
-# REDESIGN_PLAN.md and DESIGN_SYSTEM.md are superseded by REBUILD_PLAN.md and
-# DESIGN.md. README.md is live and still wants cleaning.
-LEGACY = {'README.md', 'DESIGN_SYSTEM.md', 'REDESIGN_PLAN.md'}
 SUFFIXES = ('.py', '.html', '.js', '.css', '.md', '.json', '.txt')
 
 
 def main(root):
     total = 0
-    legacy_total = 0
     for dirpath, dirnames, filenames in os.walk(root):
         dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
         for name in sorted(filenames):
@@ -122,16 +116,10 @@ def main(root):
             if not hits:
                 continue
             rel = os.path.relpath(path, root)
-            if os.path.basename(path) in LEGACY:
-                legacy_total += len(hits)
-                continue
             for line_no, kind, written in hits:
                 print('%s:%d  %-22s %s' % (rel, line_no, kind, written))
                 total += 1
     print()
-    if legacy_total:
-        print('%d in documents that predate the rule (%s). Not counted.'
-              % (legacy_total, ', '.join(sorted(LEGACY))))
     print('TOTAL BANNED PATTERNS:', total)
     return 1 if total else 0
 
