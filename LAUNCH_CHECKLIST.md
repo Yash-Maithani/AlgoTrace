@@ -72,7 +72,7 @@ Everything unchecked is work.
 - [x] **No "made by AI" tag, badge or footer.** There is none anywhere in
       `templates/`, `static/` or the Python, and none should be added. The
       footer credit is the one the project uses:
-      `Team Tri Logic: Yash Maithani`.
+      `Yash Maithani`.
 - [ ] **Keep the credit line exactly as written** if the footer is ever
       touched. It is a project rule, not a preference.
 

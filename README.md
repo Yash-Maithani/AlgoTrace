@@ -7,7 +7,7 @@ Fifteen algorithms across three workspaces, each with a Learn panel that
 explains the current step, highlights the line of code running, and puts the
 counted work next to the formula.
 
-Team Tri Logic: Yash Maithani
+Yash Maithani
 
 ## What is on the site
 

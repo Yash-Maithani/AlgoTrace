@@ -31,7 +31,7 @@ Turn the Algorithm Visualizer into a beginner-friendly learning site: a new layo
 
 1. Do not change how the sorting bars or graph nodes and edges animate. Layout may move their containers. Before moving any markup, list every id and class the page's JS selects and keep them all.
 2. Do not change algorithm results, comparison counts or swap counts. Tests must prove it.
-3. Keep the credit line "Team Tri Logic: Yash Maithani" exactly as written.
+3. Keep the credit line "Yash Maithani" exactly as written.
 4. Keep the vibrant palette from commit 83b8f1b in both light and dark mode, and the existing theme toggle.
 5. No new frameworks, bundlers or npm packages. Plain HTML, CSS, vanilla JS, Jinja, Python. No new CDN libraries.
 6. Never use: purple gradients, pill-shaped buttons, fake reviews, fake metrics, fake user counters, vague hero text, emoji icons, em dashes, over-the-top scroll effects, cursor effects, AI stock photos, AI-sounding copy.
