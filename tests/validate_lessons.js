@@ -85,6 +85,19 @@ Object.keys(lessons).sort().forEach(function (key) {
         if (typeof line.indent !== 'number') complain(file, 'a code line has no indent');
     });
 
+    // Sorting and searching lessons say what each input preset means for them.
+    if (lesson.family === 'sorting' || lesson.family === 'searching') {
+        const KINDS = ['random', 'sorted', 'reversed', 'equal', 'nearly'];
+        const offered = lesson.presets || KINDS;
+        offered.forEach(function (kind) {
+            if (KINDS.indexOf(kind) === -1) complain(file, 'presets lists unknown preset ' + kind);
+            const note = lesson.presetNotes && lesson.presetNotes[kind];
+            if (typeof note !== 'string' || !note.trim()) complain(file, 'presetNotes.' + kind + ' is missing');
+        });
+    } else if ('presetNotes' in lesson) {
+        complain(file, 'presetNotes belongs only to sorting and searching lessons');
+    }
+
     const c = lesson.complexity;
     ['best', 'average', 'worst'].forEach(function (band) {
         const entry = c.time && c.time[band];

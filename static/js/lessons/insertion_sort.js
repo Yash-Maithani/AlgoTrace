@@ -15,6 +15,13 @@ window.LESSONS.insertion_sort = {
     analogy: 'Sorting a hand of playing cards: you pick up each new card and slide it left past the cards that are bigger until it sits in the right place.',
     whenToUse: 'On small lists, or on lists that are already nearly sorted. Real libraries fall back to it for short runs inside a bigger sort, because it is fast when there is little work to do.',
     stable: true,
+    presetNotes: {
+        random: "A typical input. Each value slides back past about half of the sorted part, so the work is roughly n squared over 4.",
+        sorted: "The best case: each value is compared once with its neighbour and stays, so the comparisons are n-1.",
+        reversed: "The worst case: every value slides all the way to the front, so it makes n(n-1)/2 comparisons and the same number of shifts.",
+        equal: "Also fast: an equal value is not smaller, so nothing shifts and the comparisons are n-1.",
+        nearly: "Close to the best case. Each value only slides past the one or two values that are out of place."
+    },
 
     /* Insertion sort slides values one place right to open a gap; it never
        exchanges a pair. The counter beside the comparisons counts those

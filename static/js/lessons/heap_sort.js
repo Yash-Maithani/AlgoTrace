@@ -15,6 +15,13 @@ window.LESSONS.heap_sort = {
     analogy: 'A knockout tournament. The winner rises to the top, is taken out and recorded, and the remaining players play off again for the next place.',
     whenToUse: 'When you need a guaranteed O(n log n) and cannot spare the extra array merge sort needs. It is the usual safety net when quick sort goes bad.',
     stable: false,
+    presetNotes: {
+        random: "A typical input. Heap sort does about n log n work whatever the order.",
+        sorted: "Sorted input gets no shortcut: building the heap and taking out the maximum still cost about n log n.",
+        reversed: "Reversed input is already close to a max heap, so building it is cheap, but the extractions still cost about n log n.",
+        equal: "Fewer swaps than other inputs: equal values never move up, so the sift down stops at once.",
+        nearly: "No shortcut for nearly sorted input: the work stays at about n log n."
+    },
 
     code: {
         pseudocode: [

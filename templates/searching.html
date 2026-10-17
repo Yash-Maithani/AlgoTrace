@@ -43,6 +43,7 @@
                                 <button type="button" class="btn btn-secondary btn-sm"
                                         id="sort-array">Sort it</button>
                             </div>
+                            <div id="preset-host"></div>
                             <div class="field-error" id="array-error" role="alert"></div>
                         </div>
 
@@ -158,6 +159,7 @@
     <script src="{{ url_for('static', filename='js/lessons/linear_search.js') }}"></script>
     <script src="{{ url_for('static', filename='js/lessons/binary_search.js') }}"></script>
     <script src="{{ url_for('static', filename='js/growth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/presets.js') }}"></script>
     <script src="{{ url_for('static', filename='js/teacher.js') }}"></script>
     <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
     <script>
@@ -166,6 +168,7 @@
         Workspace.start({
             endpoint: '/run_search',
             lessons: window.LESSONS,
+            onAlgorithmChange: function () { if (window.presetUi) window.presetUi.refresh(); },
 
             /* Build the request from the setup column. Returning a string
                instead of an object reports a validation problem. */
@@ -318,6 +321,21 @@
                 }
                 arrayInput.value = picked.join(', ');
                 document.getElementById('array-error').textContent = '';
+            });
+
+            /* A preset fills the values box, so what is run is what is shown.
+               Binary search offers only the presets that stay sorted. */
+            window.presetUi = Presets.mount({
+                host: document.getElementById('preset-host'),
+                getLesson: function () { return window.LESSONS[Workspace.current.algorithm]; },
+                getSize: function () {
+                    var count = values().length;
+                    return Math.min(30, Math.max(5, count || 12));
+                },
+                apply: function (list) {
+                    arrayInput.value = list.join(', ');
+                    document.getElementById('array-error').textContent = '';
+                }
             });
 
             document.getElementById('sort-array').addEventListener('click', function () {

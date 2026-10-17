@@ -146,3 +146,101 @@ HOW TO CHECK: <one or two lines>
 ```
 
 Do not include logs, terminal output or step-by-step narration in the report.
+
+---
+
+# Part 2: Teaching upgrades (Phases 9 to 23)
+
+Part 1 rules, definition of done and report format still apply to every phase below. Each phase leaves the site working, so the work can stop after any phase.
+
+## New non-negotiable rules for Part 2
+
+1. Defaults never change. Every new option (variant, preset, mode) is off or set to today's behaviour by default, so existing baselines and tests stay valid.
+2. Anything random (Quick Sort random pivot, presets) uses a seed that is shown on screen and reused on step back and replay, so a run is reproducible.
+3. Every algorithm, variant and language added must follow the lessons/README.md contract and pass `node tests/validate_lessons.js`.
+4. From Phase 12 on, any phase that adds an algorithm or variant also adds its C, C++ and Java code through the reference_code system.
+
+## Feature specs
+
+### Input presets (Phase 9)
+- Buttons in the Setup column of Sorting and Searching: Random, Already sorted, Reversed, All equal, Nearly sorted (sorted, then about 10 percent of adjacent pairs swapped, seeded).
+- Under the buttons, one line from the lesson data says what the chosen preset means for the chosen algorithm, e.g. "Already sorted is the worst case for Quick Sort with the last element as pivot". Add a `presetNotes` field to each lesson.
+- Binary and jump search only offer presets that stay sorted.
+
+### Keyboard shortcuts (Phase 9)
+- Space play/pause, Left/Right step back/forward, R reset. Implemented once in workspace.js.
+- Ignored while focus is in an input, textarea or select. Exposed with `aria-keyshortcuts` and a small "Keyboard shortcuts" disclosure in the control bar.
+
+### Variant switches (Phase 10)
+- Bubble Sort: early exit off (default) / on. Shows best case dropping from n(n-1)/2 to n-1 comparisons.
+- Merge Sort: `<` (default, unstable) / `<=` (stable). Pair with a stability demo: duplicate values get letter tags (5a, 5b) on the bars so students see whether equal values keep their order.
+- Quick Sort pivot: last (default) / middle / random (seeded).
+- Variant chosen in the Setup column, sent to /run_sort, recorded in the run. Lesson files gain a `variants` block that overrides code lines, complexity and notes per variant.
+- Merge and Quick Sort meta gain `depth` and `range: [lo, hi]` on every step (needed by the recursion tree in Phase 17).
+
+### Omega and Theta (Phase 11 data, Phase 14 UI)
+- Teach correctly: O, Omega and Theta are upper, lower and tight bounds. Best, average and worst are cases. Each case can have its own tight bound. Never teach "O = worst, Omega = best, Theta = average"; show that misconception in a callout and explain why it is wrong.
+- Lesson `complexity.time.<case>` gains `theta`. `complexity.overall` gains `O`, `Omega`, and `Theta` (null when best and worst differ).
+- Tests: overall O equals the worst case bound, overall Omega equals the best case bound, Theta present only when they match; counted comparisons on generated best and worst inputs grow in line with the stated bounds.
+- UI: Complexity tab shows a small table (case, Theta, reason) plus an Overall line. /big-o gains a "Three notations" section with an SVG chart of f(n) between c1*g(n) and c2*g(n) after n0, with sliders. Navbar label may become "Complexity"; the /big-o URL stays.
+
+### Multi-language code (Phases 12 and 13 data, Phase 14 UI)
+- One real, compilable file per algorithm per language:
+  `reference_code/c/<algo>.c`, `reference_code/cpp/<algo>.cpp`, `reference_code/java/<Algo>.java` (C11, C++17, Java 17).
+- The teaching part is wrapped in `lesson:start` / `lesson:end` comments; teaching lines carry `@<line id>` tags using the same ids as the Python listing.
+- `tools/extract_code.py` writes the extracted listings to `static/js/lessons/code/<algo>.js` (generated, never hand-edited). A test fails if the generated files are out of date.
+- Each program reads the same input format, prints output plus comparison and swap counts; tests compile and run all three and must match Python exactly. Missing compiler: the test skips with a clear message naming what to install.
+- Translations copy the Python behaviour exactly (no early exit unless the variant says so, last-element pivot by default, `<` in merge). Variants are covered too.
+- C graph code uses small helper functions (queue, stack, binary heap). The listing shows the main function; helpers sit behind a "Show helpers" toggle. Prim in C must use a real heap.
+
+### Code panel UI (Phase 14)
+- Tabs: Pseudocode, Python, C, C++, Java. Rectangular, 6px radius, no pills.
+- Animation: selected-tab background slides via transform (about 180ms, ease-out); code crossfades (about 120ms). The highlighted line stays on the same line id when the language changes. Reduced motion: instant.
+- Chosen language saved in localStorage (try/catch), shared by every page and the Home code card. Default Python.
+- Long lines wrap with a hanging indent, never horizontal scroll. "Expand code" opens a native `<dialog>` with the full listing (focus trapped, Esc closes).
+- Below 520px wide the tabs become a `<select>`.
+- "Live values" shows "Run the algorithm to see values change" before a run.
+
+### Home "One step, read three ways" player (Phase 15)
+- Plays one real full pass of bubble sort on 17, 11, 32, 45, 9 from the real step data. Stage, Explain, Code and Cost cards change together; swapped cells slide past each other (transform only).
+- Starts when scrolled into view, pauses when out of view. Play/pause and Step buttons. Code card follows the saved language.
+- Reduced motion: frozen step as now, Step button still works.
+
+### Predict mode (Phase 16)
+- A "Predict" toggle in the control bar. Before a step that can be asked about, the Explain tab shows a question built from the next step's meta: sorting compare "Will these two swap?"; search compare "Found, go left, or go right?"; graph "Which node is visited next?" (options from the current frontier).
+- Answer, then feedback with the real explanation, then the step plays. Skip button. Score for this run only. Fully keyboard operable. Step back always works.
+
+### Compare mode (Phase 17)
+- New route /compare: two sorting stages side by side (stacked on mobile), same input and presets, one shared transport, separate live counters, a finish banner saying which finished in fewer comparisons and by how much.
+- Requires workspace.js to support more than one instance on a page (scope by root element instead of global ids). Existing pages must keep working unchanged; tests prove it.
+
+### Recursion tree (Phase 18)
+- For Merge and Quick Sort, a panel under the stage drawing the call tree as SVG boxes labelled with their range. The active call (from meta `depth` and `range`) is highlighted; finished calls dim. Collapsible; hidden by default on mobile.
+
+### New algorithms (Phases 19 to 21)
+- Jump Search (sorted input, block size floor(sqrt(n))), Counting Sort (non-negative integers, shows the count array), Radix Sort (LSD, base 10, shows the ten buckets per digit pass). These run in the existing Searching and Sorting workspaces.
+- Topological Sort (Kahn's algorithm) needs directed graph support on the graph page: arrowheads, directed input format, and a clear message when a cycle makes an order impossible.
+- A* on a new grid workspace: click to draw walls, drag start and goal, Manhattan heuristic, live g, h and f values, open and closed sets. A "Run Dijkstra on the same grid" button shows how the heuristic saves work.
+- Each one ships with its lesson, Theta and Omega data, presets where relevant, C, C++ and Java code, and tests.
+
+## Phases
+
+| # | Phase | Model, effort |
+|---|---|---|
+| 9 | Quick wins: Home Searching tile, Live values text, input presets, keyboard shortcuts | Sonnet 5.5, Medium |
+| 10 | Variant switches (data, UI, lessons, stability tags) + depth/range meta | Opus 5.5, Medium |
+| 11 | Omega and Theta data for all algorithms and variants + tests (no UI) | Opus 5.5, Medium |
+| 12 | reference_code system + C, C++, Java for 6 sorts (with variants) and 2 searches + compile tests | Opus 5.5, Medium |
+| 13 | C, C++, Java for the 7 graph algorithms, with helpers + compile tests | Opus 5.5, Medium |
+| 14 | Code panel UI (tabs, animation, wrap, Expand, select) + Theta table + Three notations section | Sonnet 5.5, High |
+| 15 | Home "One step, read three ways" player | Sonnet 5.5, Medium |
+| 16 | Predict mode | Sonnet 5.5, High |
+| 17 | Compare mode (multi-instance workspace.js) | Opus 5.5, Medium |
+| 18 | Recursion tree for Merge and Quick Sort | Sonnet 5.5, High |
+| 19 | Jump Search, Counting Sort, Radix Sort | Opus 5.5, Medium |
+| 20 | Topological Sort + directed graph support | Opus 5.5, Medium |
+| 21 | A* grid workspace | Opus 5.5, High |
+| 22 | Independent review (report only), then one fix session | Opus 5.5 Medium, then Sonnet 5.5 Medium |
+| 23 | Launch prep (production server, meta tags, self-hosted D3, LICENSE, documentation) | Sonnet 5.5, Low |
+
+Priority if time or usage runs short: 9 to 15 are the core. 16 to 18 are strong extras. 19 to 21 are optional. Always finish with 22 and 23.

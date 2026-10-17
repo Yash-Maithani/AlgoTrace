@@ -70,6 +70,7 @@
             : null;
 
         this.bind();
+        this.bindShortcuts();
         this.syncTransport();
     }
 
@@ -113,6 +114,73 @@
             });
         }
     };
+
+    /* Space plays or pauses, Left and Right step, R resets. One listener for
+       every workspace, because they all have this transport. */
+    Workspace.prototype.bindShortcuts = function () {
+        var self = this;
+        [[this.playPause, 'Space'], [this.back, 'ArrowLeft'],
+         [this.forward, 'ArrowRight'], [this.resetButton, 'R']]
+            .forEach(function (pair) {
+                if (pair[0]) pair[0].setAttribute('aria-keyshortcuts', pair[1]);
+            });
+
+        var bar = document.querySelector('.control-bar');
+        if (bar && !bar.querySelector('.shortcuts')) bar.appendChild(shortcutsDisclosure());
+
+        document.addEventListener('keydown', function (event) {
+            if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
+            var target = event.target;
+            var tag = target && target.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' ||
+                (target && target.isContentEditable)) return;
+            // The Learn tabs use the arrow keys to move between themselves.
+            if (target && target.closest && target.closest('[role="tablist"], dialog')) return;
+
+            var key = event.key;
+            if (key === ' ') {
+                // On a button or link Space already means "press it".
+                if (tag === 'BUTTON' || tag === 'A' || tag === 'SUMMARY') return;
+                event.preventDefault();
+                self.togglePlay();
+            } else if (key === 'ArrowLeft') {
+                event.preventDefault();
+                self.pause();
+                self.go(self.index - 1);
+            } else if (key === 'ArrowRight') {
+                event.preventDefault();
+                self.pause();
+                self.go(self.index + 1);
+            } else if (key === 'r' || key === 'R') {
+                event.preventDefault();
+                self.pause();
+                self.go(0);
+            }
+        });
+    };
+
+    function shortcutsDisclosure() {
+        var box = document.createElement('details');
+        box.className = 'shortcuts';
+        var summary = document.createElement('summary');
+        summary.textContent = 'Keyboard shortcuts';
+        box.appendChild(summary);
+        var list = document.createElement('dl');
+        [['Space', 'Play or pause'], ['Left arrow', 'Step back'],
+         ['Right arrow', 'Step forward'], ['R', 'Back to the first step']]
+            .forEach(function (row) {
+                var dt = document.createElement('dt');
+                var kbd = document.createElement('kbd');
+                kbd.textContent = row[0];
+                dt.appendChild(kbd);
+                var dd = document.createElement('dd');
+                dd.textContent = row[1];
+                list.appendChild(dt);
+                list.appendChild(dd);
+            });
+        box.appendChild(list);
+        return box;
+    }
 
     Workspace.prototype.selectAlgorithm = function (name) {
         if (!name || name === this.algorithm) return;

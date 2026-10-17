@@ -17,6 +17,11 @@ window.LESSONS.binary_search = {
     analogy: 'Finding a word in a dictionary. You open it near the middle, see whether your word comes before or after, and never look at the other half again.',
     whenToUse: 'When the list is sorted and you will search it more than once. It needs a sorted list, so searching an unsorted one means paying for the sort first.',
     stable: null,
+    presets: ['sorted', 'equal'],
+    presetNotes: {
+        sorted: "The input binary search needs. Each comparison halves the live range, so n values take about log n comparisons.",
+        equal: "Still sorted. A target equal to the value is found at the middle in one comparison; any other target takes about log n."
+    },
 
     code: {
         pseudocode: [

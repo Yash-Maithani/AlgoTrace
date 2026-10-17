@@ -60,6 +60,10 @@
                             <p class="setup-hint" id="values-hint">Whole numbers, separated by commas.</p>
                         </div>
 
+                        <div class="setup-field" id="preset-host">
+                            <span class="setup-label" id="preset-label">Or start from a shape</span>
+                        </div>
+
                         <div class="field-error" id="setup-error" role="alert">{{ error }}</div>
 
                         <button type="button" class="btn btn-primary" id="run-button">
@@ -165,6 +169,7 @@
     <script src="{{ url_for('static', filename='js/lessons/' + lesson + '.js') }}"></script>
     {% endfor %}
     <script src="{{ url_for('static', filename='js/growth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/presets.js') }}"></script>
     <script src="{{ url_for('static', filename='js/teacher.js') }}"></script>
     <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
     <script>
@@ -219,9 +224,12 @@
             methodManual.addEventListener('change', syncInputMethod);
             syncInputMethod();
 
+            var presetUi = null;
+
             Workspace.start({
                 endpoint: '/run_sort',
                 lessons: lessonsByDisplayName(),
+                onAlgorithmChange: function () { if (presetUi) presetUi.refresh(); },
 
                 /* The old page's speed curve, kept exactly so a run at a given
                    slider position takes as long as it always did. */
@@ -332,6 +340,24 @@
                 onError: function (payload) {
                     document.getElementById('setup-error').textContent = payload.error;
                     return true;
+                }
+            });
+
+            /* A preset fills the typed values, so what is run is what is shown. */
+            presetUi = Presets.mount({
+                host: document.getElementById('preset-host'),
+                getLesson: function () {
+                    return Workspace.current.options.lessons[Workspace.current.algorithm];
+                },
+                getSize: function () {
+                    var n = parseInt(document.getElementById('array-size').value, 10);
+                    return Math.min(100, Math.max(5, isNaN(n) ? 30 : n));
+                },
+                apply: function (list) {
+                    document.getElementById('manual-input').value = list.join(', ');
+                    methodManual.checked = true;
+                    syncInputMethod();
+                    document.getElementById('setup-error').textContent = '';
                 }
             });
 

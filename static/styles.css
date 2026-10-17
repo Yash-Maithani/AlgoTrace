@@ -3254,3 +3254,50 @@ pre.sample {
         transition: none;
     }
 }
+
+/* --- Presets, shortcuts, empty live values -------------------------------- */
+
+.preset-row [aria-pressed="true"] {
+    border-color: currentColor;
+    box-shadow: inset 0 0 0 1px currentColor;
+}
+
+.preset-note { min-height: 2.6em; }
+
+.vars-empty {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+}
+
+.shortcuts {
+    flex-basis: 100%;
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+}
+
+.shortcuts summary { cursor: pointer; width: max-content; }
+
+.shortcuts dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-1) var(--space-3);
+    margin: var(--space-2) 0 0;
+}
+
+.shortcuts dd { margin: 0; }
+
+.shortcuts kbd {
+    padding: 1px var(--space-2);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background-color: var(--sunken);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+}
+
+.setup-field .setup-label {
+    display: block;
+    font-weight: 500;
+    font-size: var(--text-sm);
+}

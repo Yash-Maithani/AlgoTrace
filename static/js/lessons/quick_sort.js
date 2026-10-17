@@ -16,6 +16,13 @@ window.LESSONS.quick_sort = {
     analogy: 'Sorting a pile of forms by picking one at random, making a shorter pile and a taller pile around it, then sorting each of those the same way.',
     whenToUse: 'The usual default for in memory sorting, because it is fast in practice and needs no second array. Real implementations choose the pivot more carefully than this one does.',
     stable: false,
+    presetNotes: {
+        random: "The case quick sort is good at: the last element is usually near the middle, so the splits are balanced.",
+        sorted: "Already sorted is the worst case for Quick Sort with the last element as pivot: one side is always empty, so n(n-1)/2 comparisons.",
+        reversed: "Also a worst case with the last element as pivot: it is always the smallest, so the split is as lopsided as it can be.",
+        equal: "Also a worst case here: no value is smaller than the pivot, so every split is lopsided and it makes n(n-1)/2 comparisons.",
+        nearly: "Nearly sorted stays close to the worst case, because the last element is rarely near the middle."
+    },
 
     code: {
         pseudocode: [

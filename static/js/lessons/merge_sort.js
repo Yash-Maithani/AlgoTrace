@@ -15,6 +15,13 @@ window.LESSONS.merge_sort = {
     analogy: 'Two people each hold a sorted pile of cards. To make one sorted pile, you keep taking whichever top card is lower.',
     whenToUse: 'When you need a guaranteed O(n log n) regardless of the input, or when the data is too big for memory and has to be merged in runs from disk.',
     stable: false,
+    presetNotes: {
+        random: "A typical input. The work is about n log n whatever the order, because the list is always split in half.",
+        sorted: "The same splits as any input, but each merge finishes early, so it makes fewer comparisons than on random data.",
+        reversed: "The same splits again. Merges end early here too, but every value is still written back at every level.",
+        equal: "The order cannot change the splits. The writes are the same as on any other input of this size.",
+        nearly: "Almost sorted halves merge quickly, so the comparisons are low, but the writes stay at n log n."
+    },
 
     /* Merge sort never exchanges a pair of values, so the counter beside the
        comparisons counts writes, not swaps. See complexity.countsNote. */

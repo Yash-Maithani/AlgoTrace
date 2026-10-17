@@ -236,6 +236,9 @@
         body.appendChild(el('h3', 'vars-heading', 'Live values'));
         this.codeVars = el('dl', 'var-table');
         body.appendChild(this.codeVars);
+        this.codeVarsEmpty = el('p', 'vars-empty', EMPTY_VARS);
+        body.appendChild(this.codeVarsEmpty);
+        this.syncCodeVars();
     };
 
     Panel.prototype.renderComplexity = function () {
@@ -371,6 +374,18 @@
         });
     };
 
+    var EMPTY_VARS = 'Run the algorithm to see values change';
+
+    /* Before a run there are no values to list, and an empty heading reads as
+       a broken panel. Say what to do instead. Re-rendering the listing in the
+       middle of a run keeps the values of the step on screen. */
+    Panel.prototype.syncCodeVars = function () {
+        fillVars(this.codeVars, this.currentVars);
+        if (this.codeVarsEmpty) {
+            this.codeVarsEmpty.hidden = Object.keys(this.currentVars || {}).length > 0;
+        }
+    };
+
     function fillVars(list, vars) {
         if (!list) return;
         clear(list);
@@ -392,7 +407,8 @@
         if (this.explainText) this.explainText.textContent = '';
         if (this.explainWhy) this.explainWhy.textContent = '';
         fillVars(this.explainVars, {});
-        fillVars(this.codeVars, {});
+        this.currentVars = null;
+        this.syncCodeVars();
         this.highlight(null);
         this.renderThisRun(null);
     };
@@ -406,7 +422,8 @@
         if (this.explainText) this.explainText.textContent = step.explain.beginner;
         if (this.explainWhy) this.explainWhy.textContent = step.explain.why;
         fillVars(this.explainVars, step.vars);
-        fillVars(this.codeVars, step.vars);
+        this.currentVars = step.vars;
+        this.syncCodeVars();
         this.highlight(step.line);
         if (stats) this.renderThisRun(stats);
     };

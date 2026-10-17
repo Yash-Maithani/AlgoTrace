@@ -15,6 +15,13 @@ window.LESSONS.bubble_sort = {
     analogy: 'Tidying a shelf of books by checking each neighbouring pair and swapping any that are out of order, over and over.',
     whenToUse: 'Almost never in real code. It is here because it is the shortest sort to read, and it makes a clear picture of what a comparison and a swap are.',
     stable: true,
+    presetNotes: {
+        random: "A typical input. Every run makes n(n-1)/2 comparisons here; only the swap count depends on the order.",
+        sorted: "No swaps are needed, yet it still makes all n(n-1)/2 comparisons, because this version has no early exit.",
+        reversed: "The most swaps possible: every pair is out of order, so there is one swap for every comparison.",
+        equal: "Nothing swaps, because only a strictly larger left value moves. The comparisons are still n(n-1)/2.",
+        nearly: "Only a few swaps, but the comparison count does not drop, because each pass still runs to the end."
+    },
 
     code: {
         pseudocode: [

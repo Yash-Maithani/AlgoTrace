@@ -14,6 +14,13 @@ window.LESSONS.selection_sort = {
     analogy: 'Picking a team by scanning everyone still waiting, choosing the best one, and lining them up, then scanning the rest again.',
     whenToUse: 'When writing to the array is expensive and reading is cheap. It never makes more than n-1 swaps, which is far fewer than bubble or insertion sort.',
     stable: false,
+    presetNotes: {
+        random: "A typical input. Selection sort always makes n(n-1)/2 comparisons and at most n-1 swaps.",
+        sorted: "Each minimum is already in place, so it swaps nothing, but it still scans the whole unsorted part every time.",
+        reversed: "Still n(n-1)/2 comparisons. It swaps only about half the positions, because each swap fixes two values at once.",
+        equal: "No swaps, and the same n(n-1)/2 comparisons as any other input.",
+        nearly: "A couple of swaps, and the same n(n-1)/2 comparisons: selection sort cannot tell that the list was almost done."
+    },
 
     code: {
         pseudocode: [

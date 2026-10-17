@@ -90,6 +90,8 @@ window.LESSONS.bubble_sort = { /* the object below */ };
 | `complexity.growthNote` | string or null | why no curve fits. Required when `growth` is null, forbidden otherwise, and it must name the figure it is explaining |
 | `complexity.countsNote` | string or null | an explanation of a counter the learner will find surprising, shown under the "this run" box |
 | `complexity.divergence` | string or null | how this implementation differs from the textbook figure |
+| `presets` | list of strings | optional. Which input presets the page offers: any of `random`, `sorted`, `reversed`, `equal`, `nearly`. Omitted means all five. Binary search sets `['sorted', 'equal']`, because the other three would be refused |
+| `presetNotes` | object | sorting and searching only. One sentence per offered preset saying what that input means for this algorithm, drawn from the real counts |
 | `stable` | boolean or null | whether equal values keep their original order. `null` where it does not apply, as for a search |
 | `codePending` | boolean | present and `true` only while the lesson ships ahead of its implementation. The listing is then the form the later phase must build, and that phase either matches it or updates the lesson in the same commit |
 | `countLabel` | string | what the second counter is called, when it is not `swaps`. Merge sort sets `writes`, because it never exchanges a pair: it copies a merged run back over the array, so every value in the run is written whether or not it moved. A lesson that sets this must also explain it in `complexity.countsNote` |

@@ -17,6 +17,13 @@ window.LESSONS.linear_search = {
     analogy: 'Looking for a friend in an unsorted queue by walking along it and checking every face until you find them.',
     whenToUse: 'When the list is short, or when it is not sorted and you only need to search it once. Sorting a list first only pays off if you are going to search it many times.',
     stable: null,
+    presetNotes: {
+        random: "Unsorted data is what linear search is for: it works on any order, and the cost depends on where the target is.",
+        sorted: "Order does not help it. It still checks from the start, so a target near the end costs nearly n comparisons.",
+        reversed: "Order does not help it. A target at the far end still costs nearly n comparisons.",
+        equal: "If the target is that value it stops at the first cell, one comparison. Any other target makes it check all n values.",
+        nearly: "Order does not help it. The cost depends only on where the target sits."
+    },
 
     code: {
         pseudocode: [
