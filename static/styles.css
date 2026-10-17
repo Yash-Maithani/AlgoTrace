@@ -3163,7 +3163,12 @@ pre.sample {
 
     .speed-control { flex: 1 1 100%; order: 1; }
 
+    /* The numbers go when the bars are too thin to carry them. With few
+       enough bars they fit, and the Explain text names values the stage
+       ought to be showing, so the class puts them back. */
     .bar-value { display: none; }
+
+    .bar-container.shows-values .bar-value { display: block; }
 
     .legend { gap: var(--space-2); }
 }

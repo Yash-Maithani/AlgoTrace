@@ -115,8 +115,8 @@ def test_merge_sort_writes_even_when_nothing_moves():
     assert sorted_input['comparisons'] < shuffled['comparisons']
 
 
-def test_only_merge_sort_renames_its_counter():
-    """Every other sort really does exchange pairs."""
+def test_the_sorts_that_do_not_swap_say_so():
+    """Merge sort writes, insertion sort shifts. The other four swap."""
     script = (
         "global.window = {};"
         "const fs = require('fs'), path = require('path');"
@@ -133,9 +133,11 @@ def test_only_merge_sort_renames_its_counter():
     lessons = json.loads(out.stdout.decode('utf-8'))
     renamed = {k: v['countLabel'] for k, v in lessons.items() if 'countLabel' in v}
 
-    assert renamed == {'merge_sort': 'writes'}, renamed
-    assert lessons['merge_sort']['complexity']['countsNote'], (
-        'the renamed counter is not explained')
+    assert renamed == {'merge_sort': 'writes',
+                       'insertion_sort': 'shifts'}, renamed
+    for key in renamed:
+        assert lessons[key]['complexity']['countsNote'], (
+            '%s renames its counter without explaining it' % key)
 
 
 def test_the_banner_and_the_panel_both_follow_the_lesson():

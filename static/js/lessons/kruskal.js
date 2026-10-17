@@ -60,7 +60,7 @@ window.LESSONS.kruskal = {
             what: 'the sorted copy of the edge list, plus one parent and one rank entry per node for Union-Find'
         },
         auxiliaryNote: 'Auxiliary space is the memory the algorithm needs on top of the input array itself.',
-        thisRun: 'Big O describes how work grows as the input grows and ignores constants. The counter shows the exact work for this one input.',
+        thisRun: 'Big O describes how work grows as the input grows and ignores constants. The sizes above are this one graph; the figure is how the work would grow if the graph got bigger.',
         growth: 'nlogn',
         growthBasis: 'E, the number of edges',
         growthNote: null,

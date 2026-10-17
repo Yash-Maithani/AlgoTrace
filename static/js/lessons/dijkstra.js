@@ -59,7 +59,7 @@ window.LESSONS.dijkstra = {
             what: 'one distance and one predecessor per node, plus the set of unvisited nodes'
         },
         auxiliaryNote: 'Auxiliary space is the memory the algorithm needs on top of the input array itself.',
-        thisRun: 'Big O describes how work grows as the input grows and ignores constants. The counter shows the exact work for this one input.',
+        thisRun: 'Big O describes how work grows as the input grows and ignores constants. The sizes above are this one graph; the figure is how the work would grow if the graph got bigger.',
         growth: 'n2',
         growthBasis: 'V, the number of nodes',
         growthNote: null,

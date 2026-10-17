@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import (Flask, render_template, request, jsonify, redirect, url_for, abort)
 import random
 
 # Import sorting algorithm modules
@@ -271,6 +271,13 @@ def _sort_payload(name, values):
         }
         if meta:
             step_data.update(meta)
+        # The work done so far, read off the counter the result reports, so
+        # the running total on screen cannot drift from the final one. The
+        # Learn panel shows these as the run plays.
+        step_data.setdefault("vars", {})
+        step_data["vars"] = dict(step_data["vars"],
+                                 comparisons=stats["comparisons"],
+                                 swaps=stats["swaps"])
         steps.append(step_data)
 
     stats = {"swaps": 0, "comparisons": 0}
@@ -339,17 +346,27 @@ def run_sort():
         return jsonify({"error": "An error occurred: %s" % e}), 500
 
 
+SEARCH_PICKER = [
+    ("linear_search", "Linear Search", "Check every value until you find it."),
+    ("binary_search", "Binary Search", "Halve a sorted list over and over."),
+]
+
+
 @app.route("/searching")
 def searching_page():
-    """The searching workspace. The run itself goes through /run_search."""
+    """The searching workspace. The run itself goes through /run_search.
+
+    ?algorithm= opens on that one, the same way /sorting does, because the
+    Learn page links straight to a named algorithm.
+    """
+    selected = request.args.get("algorithm", "linear_search")
+    if selected not in SEARCH_ALGORITHMS:
+        selected = "linear_search"
+
     return render_template(
         "searching.html",
-        algorithms=[
-            ("linear_search", "Linear Search",
-             "Check every value until you find it."),
-            ("binary_search", "Binary Search",
-             "Halve a sorted list over and over."),
-        ],
+        algorithms=SEARCH_PICKER,
+        selected_algo=selected,
     )
 
 
@@ -439,23 +456,18 @@ def terms():
 
 @app.route("/graph")
 def graph_page():
-    # Get algorithm from query parameter, default to BFS
-    algo = request.args.get('algo', 'bfs')
-    # Convert to lowercase for consistent key lookup
-    algo = algo.lower()
-    
-    # Check if the algo exists in our dictionary
+    """The graph workspace. ?algo= picks which algorithm.
+
+    An unknown name is a 404 rather than a quiet fall back to BFS, which
+    served the wrong algorithm under the name that was asked for.
+    """
+    algo = request.args.get("algo", "bfs").lower()
     if algo not in graph_algo_dict:
-        # Default to BFS if not found
-        algo = 'bfs'
-    
-    # Get the template name from the algorithm
-    template_name = graph_algo_dict[algo]
-    
-    # For debugging
-    print(f"Request for graph algorithm: {algo}, template: {template_name}")
-    
-    return render_template(f"{template_name}.html", algorithm=algo)
+        abort(404)
+
+    return render_template("%s.html" % graph_algo_dict[algo], algorithm=algo)
+
+
 
 def handle_sorting():
     """The form POST. Still runs the sort here and still renders the page.
@@ -885,17 +897,30 @@ def run_prim():
         
         # Add final result
         total_weight = sum(e[2] for e in mst_edges)
+        # Prim grows one tree from the start node, so it reaches that node's
+        # component and no further. Saying which happened beats one sentence
+        # that hedges both.
+        reached_everything = len(visited) == len(graph)
         log.add(["final", mst_edges, total_weight], "done",
-                "The tree holds %d edge%s and weighs %s in total."
+                "The tree holds %d edge%s and weighs %s in total, reaching "
+                "%d of the %d node%s."
                 % (len(mst_edges), "" if len(mst_edges) == 1 else "s",
-                   total_weight),
-                "The heap is empty, so nothing is left that would reach a "
-                "new node. On a disconnected graph that leaves out every "
-                "node Prim could not get to.",
+                   total_weight, len(visited), len(graph),
+                   "" if len(graph) == 1 else "s"),
+                ("The heap is empty, so nothing is left that would reach a "
+                 "new node. Every node was reached, so this is a minimum "
+                 "spanning tree of the whole graph.") if reached_everything else
+                ("The heap is empty, so nothing is left that would reach a "
+                 "new node. Prim grows one tree outward from where it "
+                 "started, so the %d node%s it never reached are in a "
+                 "separate piece of the graph with no edge across to them."
+                 % (len(graph) - len(visited),
+                    "" if len(graph) - len(visited) == 1 else "s")),
                 indices=sorted(visited), values=[total_weight], line=None,
                 variables={"tree_edges": len(mst_edges),
                            "tree_weight": total_weight,
-                           "visited": sorted(visited)})
+                           "visited": sorted(visited),
+                           "reached_everything": reached_everything})
         
         return jsonify(log.payload())
     except Exception as e:

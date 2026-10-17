@@ -1098,13 +1098,11 @@ A</pre>
         
         // Generate a random graph with improved visuals and structure
         function generateRandomGraph() {
-            console.log('generateRandomGraph() called');
             const numNodes = parseInt(document.getElementById('num-nodes').value);
             const requestedEdges = parseInt(document.getElementById('num-edges').value);
             const algorithm = getCurrentAlgorithm();
             const isWeightedAlgo = isWeighted(algorithm);
             
-            console.log('Num nodes:', numNodes, 'Num edges:', requestedEdges, 'Algorithm:', algorithm);
             
             // Validate inputs
             const maxPossibleEdges = numNodes * (numNodes - 1) / 2;
@@ -1200,9 +1198,6 @@ A</pre>
                 
                 // Auto-visualize the graph after generation
                 setTimeout(() => {
-                    console.log('About to call visualize() from generateRandomGraph');
-                    console.log('Graph input:', document.getElementById('graph-input').value);
-                    console.log('Start node:', document.getElementById('start-node').value);
                     visualize();
                 }, 500);
                 
@@ -1405,13 +1400,6 @@ A</pre>
                         uniqueLinks.push(link);
                     }
                 });
-                
-                console.log('Total links:', links.length, 'Unique links for labels:', uniqueLinks.length);
-                console.log('Unique links:', uniqueLinks.map(l => ({
-                    source: typeof l.source === 'object' ? l.source.id : l.source,
-                    target: typeof l.target === 'object' ? l.target.id : l.target,
-                    value: l.value
-                })));
                 
                 // Store uniqueLinks for use in tick function
                 window.currentUniqueLinks = uniqueLinks;
@@ -1688,7 +1676,6 @@ A</pre>
         }
 
         function visualize() {
-            console.log('visualize() called');
             clearGraphErrors();
             try {
                 const graphInput = document.getElementById('graph-input').value;
@@ -1702,10 +1689,6 @@ A</pre>
                 // Update the weighted algorithm flag
                 isWeightedAlgorithm = isWeighted();
                 
-                console.log('Graph input:', graphInput);
-                console.log('Start node:', startNode);
-                console.log('Algorithm:', algorithm);
-                console.log('Is weighted:', isWeightedAlgorithm);
                 
                 // Check for empty input
                 if (!graphInput.trim()) {
@@ -1728,7 +1711,6 @@ A</pre>
                         parsed = parseSimplifiedFormat(graphInput, algorithm);
                         graph = parsed.graph;
 
-                        console.log('Parsed graph:', graph);
 
                         // If start node isn't manually set, use the one from the input
                         if (!startNode && parsed.startNode) {
@@ -1964,7 +1946,6 @@ A</pre>
             const [action, ...params] = step;
             const currentAlgo = getCurrentAlgorithm();
             
-            console.log(`Applying step ${stepIndex}: ${action}`, params);
             
             // Where the run has got to. One line, from the step's own meta.
             updateStatusDisplay(stepIndex);
@@ -2037,7 +2018,6 @@ A</pre>
         }
         
         function applyKruskalStep(action, params, stepIndex) {
-            console.log(`Kruskal step: ${action}`, params);
             
             switch (action) {
                 case 'sort_edges':
@@ -2049,7 +2029,6 @@ A</pre>
                     
                 case 'consider_edge': {
                     const [u, v, weight] = params;
-                    console.log(`Considering edge ${u}-${v} with weight ${weight}`);
                     markKruskalQueueRow(u, v, weight, 'considering');
                     // Only one edge is under consideration at a time; earlier
                     // verdicts stay on the edges that earned them.
@@ -2061,7 +2040,6 @@ A</pre>
                     
                 case 'add_edge': {
                     const [source, target, edgeWeight] = params;
-                    console.log(`Adding edge ${source}-${target} to MST`);
                     markKruskalQueueRow(source, target, edgeWeight, 'accepted');
                     setKruskalEdgeState(source, target, 'mst');
                     paintKruskalEdges();
@@ -2076,7 +2054,6 @@ A</pre>
                     
                 case 'reject_edge': {
                     const [rejU, rejV, rejWeight] = params;
-                    console.log(`Rejecting edge ${rejU}-${rejV} (creates cycle)`);
                     markKruskalQueueRow(rejU, rejV, rejWeight, 'rejected');
                     setKruskalEdgeState(rejU, rejV, 'rejected');
                     paintKruskalEdges();
@@ -2087,7 +2064,6 @@ A</pre>
                     // The spanning tree is closed. /run_kruskal sends this as a bare
                     // marker with no payload - the totals arrive with `final` - so
                     // this only pulses the tree it has already drawn.
-                    console.log('Spanning tree complete');
                     d3.selectAll('.link')
                         .filter(d => d.isInMST === true)
                         .transition()
@@ -2104,7 +2080,6 @@ A</pre>
                     break;
                     
                 default:
-                    console.log(`Unknown Kruskal action: ${action}`);
             }
         }
         
@@ -2623,7 +2598,6 @@ A</pre>
         
         function applyNodeStyle(node, style) {
             if (!node || node.id === undefined) return;
-            console.log(`Applying style '${style}' to node '${node.id}'`);
             // Remove existing style classes and apply new one
             d3.select('#graph-container').selectAll('circle')
                 .filter(d => d && d.id === node.id)
@@ -2647,7 +2621,6 @@ A</pre>
         }
         
         function highlightEdge(sourceId, targetId, style) {
-            console.log(`Highlighting edge '${sourceId}-${targetId}' with style '${style}'`);
             
             const edgeSelection = d3.selectAll('.link')
                 .filter(d => {
@@ -2688,7 +2661,6 @@ A</pre>
         }
         
         function resetAllNodesAndEdges() {
-            console.log('Resetting all nodes and edges');
             // Reset all nodes to unvisited (gray)
             nodes.forEach(node => {
                 applyNodeStyle(node, 'unvisited');
@@ -2699,7 +2671,6 @@ A</pre>
         }
         
         function resetNodeStyles() {
-            console.log('Resetting all nodes to unvisited');
             // Reset all nodes to unvisited without affecting edges
             nodes.forEach(node => {
                 applyNodeStyle(node, 'unvisited');
@@ -2707,7 +2678,6 @@ A</pre>
         }
         
         function resetEdgeStyles() {
-            console.log('Resetting all edges to default');
             // Reset all edges to default style
             d3.selectAll('.link')
                 .classed('edge-mst edge-considering edge-ignored edge-default shortest-path', false)
@@ -2843,7 +2813,19 @@ A</pre>
             } else if (algorithm === 'prim') {
                 // Prim: [mst_edges, total_weight]
                 const [mstEdges, totalWeight] = params;
-                content += '<h4>Minimum Spanning Tree:</h4>';
+                /* Prim grows one tree from the start node. A tree over every
+                   node has n-1 edges; fewer means the rest of the graph is a
+                   separate piece it could never reach. */
+                const reachedEverything = mstEdges.length === nodes.length - 1;
+                content += reachedEverything
+                    ? '<h4>Minimum spanning tree:</h4>'
+                    : '<h4>Minimum spanning tree of the start node\'s component:</h4>';
+                if (!reachedEverything) {
+                    content += `<p>The graph is disconnected. Prim grows outward from
+                                one node, so this spans the ${mstEdges.length + 1} nodes
+                                it could reach and leaves the other
+                                ${nodes.length - mstEdges.length - 1} out.</p>`;
+                }
                 content += '<table style="width:100%; border-collapse:collapse; margin-top:10px;">';
                 content += '<tr style="background:var(--sunken);"><th style="padding:8px; text-align:left; border:1px solid var(--border);">Edge</th><th style="padding:8px; text-align:center; border:1px solid var(--border);">Weight</th></tr>';
                 
@@ -2854,7 +2836,7 @@ A</pre>
                     </tr>`;
                 }
                 content += '</table>';
-                content += `<div style="margin-top:15px; padding:10px; background:var(--done-wash); border-radius:5px;"><strong>Total MST Weight:</strong> ${totalWeight}</div>`;
+                content += `<div style="margin-top:15px; padding:10px; background:var(--done-wash); border-radius:5px;"><strong>Total weight:</strong> ${totalWeight}</div>`;
                 
                 // Add visualization enhancement for MST
                 for (const [u, v, w] of mstEdges) {

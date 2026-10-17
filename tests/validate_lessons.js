@@ -14,6 +14,14 @@ const FIXED_THIS_RUN =
     'Big O describes how work grows as the input grows and ignores constants. ' +
     'The counter shows the exact work for this one input.';
 
+// A graph run shows its sizes and its figure, and no counted work: the
+// seven do not count one shared unit, and making one up would be a
+// metric the page does not measure.
+const FIXED_THIS_RUN_GRAPH =
+    'Big O describes how work grows as the input grows and ignores constants. ' +
+    'The sizes above are this one graph; the figure is how the work would grow ' +
+    'if the graph got bigger.';
+
 // null is allowed: a figure in two variables, such as O(V times E), is
 // not any single curve, and claiming one would be a different figure.
 const GROWTH_KEYS = ['1', 'logn', 'n', 'nlogn', 'n2', 'n3', null];
@@ -108,7 +116,10 @@ Object.keys(lessons).sort().forEach(function (key) {
         complain(file, 'a renamed counter must be explained in complexity.countsNote');
     }
     if (c.auxiliaryNote !== FIXED_AUXILIARY) complain(file, 'auxiliaryNote must use the shared wording');
-    if (c.thisRun !== FIXED_THIS_RUN) complain(file, 'thisRun must use the shared wording');
+    const wanted = lesson.family === 'graph' ? FIXED_THIS_RUN_GRAPH : FIXED_THIS_RUN;
+    if (c.thisRun !== wanted) {
+        complain(file, 'thisRun must use the shared wording for its family');
+    }
 });
 
 if (problems.length) {

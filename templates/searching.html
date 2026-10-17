@@ -18,7 +18,7 @@
                             <li>
                                 <button type="button" data-algorithm="{{ key }}"
                                         data-accent="{{ loop.index }}"
-                                        aria-current="{{ 'true' if loop.first else 'false' }}">
+                                        aria-current="{{ 'true' if key == selected_algo else 'false' }}">
                                     <span class="pick-name">{{ name }}</span>
                                     <span class="pick-note">{{ note }}</span>
                                 </button>
@@ -251,6 +251,22 @@
                     banner.textContent = payload.target + ' is not in the array. Checked ' +
                         result.comparisons + ' value' + plural + '.';
                 }
+            },
+
+            clearResult: function () {
+                var banner = document.getElementById('run-banner');
+                banner.textContent = '';
+                banner.removeAttribute('data-outcome');
+            },
+
+            /* Back to the empty stage. A refused run must not leave the cells
+               of the last one behind, because the values in the input box are
+               no longer the values on screen. */
+            clearStage: function () {
+                var row = document.getElementById('cell-row');
+                row.innerHTML = '';
+                row.hidden = true;
+                document.getElementById('stage-empty').hidden = false;
             },
 
             /* Binary search on an unsorted list is refused rather than

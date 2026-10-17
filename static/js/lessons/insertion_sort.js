@@ -16,6 +16,11 @@ window.LESSONS.insertion_sort = {
     whenToUse: 'On small lists, or on lists that are already nearly sorted. Real libraries fall back to it for short runs inside a bigger sort, because it is fast when there is little work to do.',
     stable: true,
 
+    /* Insertion sort slides values one place right to open a gap; it never
+       exchanges a pair. The counter beside the comparisons counts those
+       slides. See complexity.countsNote. */
+    countLabel: 'shifts',
+
     code: {
         pseudocode: [
             { id: 'outer', text: 'for each position i from the second onwards:', indent: 0 },
@@ -58,7 +63,7 @@ window.LESSONS.insertion_sort = {
         worked: {
             input: '[5, 3, 8, 1, 9]',
             comparisons: 6,
-            note: 'n = 5. The same list sorted, [1, 3, 5, 8, 9], costs only 4 comparisons, and reversed, [9, 8, 5, 3, 1], costs the full 10. This is the one quadratic sort here whose best case really is linear, because its inner loop breaks.'
+            note: 'n = 5. The same list sorted, [1, 3, 5, 8, 9], costs only 4 comparisons, and reversed, [9, 8, 5, 3, 1], costs the full 10. This is the one quadratic sort here whose best case really is linear, because its inner loop breaks. The shifts track the comparisons closely: 4 here, 0 on the sorted list and 10 on the reversed one.'
         },
         space: {
             value: 'O(1)',
@@ -66,6 +71,7 @@ window.LESSONS.insertion_sort = {
         },
         auxiliaryNote: 'Auxiliary space is the memory the algorithm needs on top of the input array itself.',
         thisRun: 'Big O describes how work grows as the input grows and ignores constants. The counter shows the exact work for this one input.',
+        countsNote: 'The second counter says shifts, not swaps, because insertion sort never exchanges a pair. It lifts one value out, slides everything bigger one place to the right to open a gap, and drops the value in. Each slide is one shift, so a value that has to travel four places back costs four of them. An already sorted list costs none, because no gap ever has to be opened.',
         growth: 'n2',
         growthBasis: null,
         growthNote: null,

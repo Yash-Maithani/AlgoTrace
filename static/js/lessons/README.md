@@ -84,7 +84,7 @@ window.LESSONS.bubble_sort = { /* the object below */ };
 | `complexity.worked` | `{input, comparisons, note}` | an exact count for a real n = 5 input |
 | `complexity.space` | `{value, what}` | `what` names the memory, for example "the recursion stack" |
 | `complexity.auxiliaryNote` | string | the fixed explanation of what auxiliary means |
-| `complexity.thisRun` | string | the fixed sentence for the "this run" box |
+| `complexity.thisRun` | string | the fixed sentence for the "this run" box. Two of them: one for a counted family, one for graphs, which show no counted work |
 | `complexity.growth` | string or null | which reference curve has this algorithm's shape: `1`, `logn`, `n`, `nlogn`, `n2` or `n3`. `null` when the figure needs two numbers at once, such as `O(V times E)`, because no curve on an axis of one variable is that figure |
 | `complexity.growthBasis` | string or null | what `n` on the axis stands for when the figure is written in another letter, for example `'V, the number of nodes'`. `null` when the figure is already in `n` |
 | `complexity.growthNote` | string or null | why no curve fits. Required when `growth` is null, forbidden otherwise, and it must name the figure it is explaining |
@@ -105,13 +105,20 @@ curve named by `growth` is only ever offered as the shape that figure has, never
 figure itself. The old per algorithm panels under the graph workspace used to carry
 their own copy; four of the seven contradicted the tab, so they now carry none.
 
-`complexity.auxiliaryNote` and `complexity.thisRun` are the same wording on every
-algorithm, so the learner reads one explanation rather than six paraphrases:
+`complexity.auxiliaryNote` is the same wording on every algorithm and `complexity.thisRun`
+the same within a family, so the learner reads one explanation rather than fifteen
+paraphrases:
 
 - auxiliaryNote: "Auxiliary space is the memory the algorithm needs on top of the input
   array itself."
-- thisRun: "Big O describes how work grows as the input grows and ignores constants. The
-  counter shows the exact work for this one input."
+- thisRun, for a sorting or searching lesson: "Big O describes how work grows as the
+  input grows and ignores constants. The counter shows the exact work for this one
+  input."
+- thisRun, for a graph lesson: "Big O describes how work grows as the input grows and
+  ignores constants. The sizes above are this one graph; the figure is how the work
+  would grow if the graph got bigger." A graph run shows its node and edge counts and
+  no counted work, because the seven algorithms do not count one shared unit, and the
+  sentence must not promise a counter the box does not have.
 
 ## 4. Graphs (Phase 4b)
 

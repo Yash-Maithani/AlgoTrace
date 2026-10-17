@@ -283,12 +283,20 @@
                         bar.querySelector('.bar-value').textContent = data[i];
                     });
 
+                    /* Narrow screens hide the bar values, because at 30 bars
+                       they overlap. At this many they fit, and the Explain
+                       text refers to them by value. */
+                    container.classList.toggle('shows-values', data.length <= 12);
+
                     document.getElementById('stage-empty').hidden = true;
                     container.hidden = false;
+                    /* The counts this step has reached, not the run's totals:
+                       a box headed "this run" that already showed the final
+                       numbers on step 1 gave the answer away. */
                     context.stats({
                         n: data.length,
-                        comparisons: context.payload.result.comparisons,
-                        swaps: context.payload.result.swaps
+                        comparisons: step.vars.comparisons,
+                        swaps: step.vars.swaps
                     });
                 },
 
@@ -306,6 +314,19 @@
                         ' values in ' + r.comparisons + ' comparison' +
                         (r.comparisons === 1 ? '' : 's') + ' and ' + r.swaps +
                         ' ' + (r.swaps === 1 ? one : noun) + '.';
+                },
+
+                clearResult: function () {
+                    var banner = document.getElementById('run-banner');
+                    banner.textContent = '';
+                    banner.removeAttribute('data-outcome');
+                },
+
+                clearStage: function () {
+                    var container = document.getElementById('array-container');
+                    container.innerHTML = '';
+                    container.hidden = true;
+                    document.getElementById('stage-empty').hidden = false;
                 },
 
                 onError: function (payload) {

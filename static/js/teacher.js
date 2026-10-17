@@ -382,6 +382,21 @@
         });
     }
 
+    /* No step to describe. The tabs stay, because the lesson is still the
+       right lesson; what goes is everything that described a run. */
+    Panel.prototype.clearStep = function () {
+        if (this.explainAction) {
+            this.explainAction.textContent = '';
+            this.explainAction.removeAttribute('data-action');
+        }
+        if (this.explainText) this.explainText.textContent = '';
+        if (this.explainWhy) this.explainWhy.textContent = '';
+        fillVars(this.explainVars, {});
+        fillVars(this.codeVars, {});
+        this.highlight(null);
+        this.renderThisRun(null);
+    };
+
     Panel.prototype.showStep = function (step, stats) {
         if (!step) return;
         if (this.explainAction) {

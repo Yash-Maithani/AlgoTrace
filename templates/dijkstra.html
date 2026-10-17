@@ -14,14 +14,24 @@
         <li>Traffic management systems</li>
         <li>Game pathfinding</li>
     </ul>
-    <p><strong>Note:</strong> For Dijkstra's algorithm, the graph input should include edge weights. Example format:</p>
-    <pre>
-{
-    'A': {'B': 4, 'C': 2},
-    'B': {'A': 4, 'D': 3},
-    'C': {'A': 2, 'D': 1},
-    'D': {'B': 3, 'C': 1}
-}
-    </pre>
+    <p><strong>Note:</strong> For Dijkstra's algorithm, the graph input must carry edge
+    weights. The format guide above the input box shows the usual edge list; a JSON
+    object of neighbours and weights is accepted as well, and has to use double
+    quotes. Either of these runs as written:</p>
+    <pre tabindex="0" role="region" aria-label="Example input, edge list">5 7
+A B 4
+A C 2
+B C 5
+B D 10
+C D 3
+C E 7
+D E 6
+A</pre>
+    <pre tabindex="0" role="region" aria-label="Example input, JSON object">{
+    "A": {"B": 4, "C": 2},
+    "B": {"A": 4, "D": 3},
+    "C": {"A": 2, "D": 1},
+    "D": {"B": 3, "C": 1}
+}</pre>
 </div>
 {% endblock %}

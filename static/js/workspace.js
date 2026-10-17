@@ -14,7 +14,13 @@
  *     metaFor(step, i, body),   optional, where the teacher payload lives when
  *                               it is not the step itself
  *     renderStep(step, ctx),    draw one step on the stage
- *     renderResult(payload),    optional, the closing banner
+ *     renderResult(payload),    optional, the closing banner. Called when the
+ *                               run reaches its last step, not when it loads,
+ *                               so it does not give the answer away
+ *     clearResult(),            optional, undo renderResult when the viewer
+ *                               steps back off the last step
+ *     clearStage(),             optional, blank the stage when a run is
+ *                               refused, so nothing of the last one is left
  *     onError(payload, ui),     optional, return true if the page handled it
  *     delayFor(sliderValue)     optional, milliseconds between frames
  *   })
@@ -38,6 +44,7 @@
         this.index = 0;
         this.timer = null;
         this.payload = null;
+        this.resultShown = false;
 
         this.picker = byId('algo-picker');
         this.runButton = byId('run-button');
@@ -164,6 +171,9 @@
             })
             .then(function (result) {
                 if (!result.ok || result.body.error) {
+                    /* There is no run now. Anything still on screen belongs
+                       to the last one and would be read as this one. */
+                    self.discard();
                     var handled = self.options.onError &&
                         self.options.onError(result.body, { algorithm: self.algorithm });
                     if (!handled) self.showError(null, result.body.error || 'The run failed.');
@@ -177,12 +187,28 @@
             });
     };
 
+    /* Throw the loaded run away: no steps, no stage, no narration, no
+       banner, and a transport that cannot be pressed. */
+    Workspace.prototype.discard = function () {
+        this.pause();
+        this.payload = null;
+        this.steps = [];
+        this.index = 0;
+        this.lastStats = null;
+        this.resultShown = false;
+        if (this.options.clearResult) this.options.clearResult();
+        if (this.options.clearStage) this.options.clearStage();
+        if (this.panel) this.panel.clearStep();
+        this.syncTransport();
+    };
+
     Workspace.prototype.load = function (payload) {
         this.pause();
         this.payload = payload;
         this.steps = payload.steps || [];
         this.index = 0;
-        if (this.options.renderResult) this.options.renderResult(payload);
+        this.resultShown = false;
+        if (this.options.clearResult) this.options.clearResult();
         this.go(0);
         this.syncTransport();
     };
@@ -204,7 +230,22 @@
                 : step;
             this.panel.showStep(meta, this.lastStats);
         }
+        this.showResultIfFinished();
         this.syncTransport();
+    };
+
+    /* The banner belongs to the last step, so it arrives with it and leaves
+       again on the way back. */
+    Workspace.prototype.showResultIfFinished = function () {
+        var finished = this.steps.length > 0 &&
+            this.index === this.steps.length - 1;
+        if (finished === this.resultShown) return;
+        this.resultShown = finished;
+        if (finished) {
+            if (this.options.renderResult) this.options.renderResult(this.payload);
+        } else if (this.options.clearResult) {
+            this.options.clearResult();
+        }
     };
 
     Workspace.prototype.syncTransport = function () {
