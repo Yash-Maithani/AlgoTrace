@@ -1,83 +1,33 @@
 """Phase 14 in a real browser.
 
-These need Playwright and a Chrome or Edge to drive. Neither is a project
-dependency, so every test here skips, saying what is missing, when they are
-not available. To run them:
+These need Playwright (requirements-dev.txt) and a browser for it to drive.
+When they are missing every test here skips, and tests/conftest.py prints a
+warning at the top and bottom of the run. To enable them:
 
-    python -m pip install playwright      (no browser download: it uses the
-                                           Chrome or Edge already installed)
-    python -m pytest tests/test_browser_phase14.py
+    python -m pip install -r requirements-dev.txt
+    python -m playwright install chromium
 
 Reduced motion is emulated with the browser's own media emulation, so the CSS
 the page ships is what is tested, not a reading of it.
 """
 import json
 import os
-import shutil
 import subprocess
 import sys
-import threading
 
 import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-try:
-    from playwright.sync_api import sync_playwright
-except ImportError:                                   # pragma: no cover
-    sync_playwright = None
-
-from werkzeug.serving import make_server
-
-from app import app
+from browser_helpers import NODE, SKIP_REASON, available, page_for
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-NODE = shutil.which('node')
 
-pytestmark = pytest.mark.skipif(
-    sync_playwright is None or NODE is None,
-    reason='needs `pip install playwright` and node; see this file\'s docstring')
+pytestmark = pytest.mark.skipif(not available(), reason=SKIP_REASON)
 
 THETA = {'1': '1', 'log n': 'log n', 'n': 'n', 'n log n': 'n log n', 'n squared': 'n²',
          'V': 'V', 'E': 'E', 'V squared': 'V²', 'V cubed': 'V³',
          'V times E': 'V·E', 'E log E': 'E log E', 'k times E': 'k·E'}
-
-
-@pytest.fixture(scope='module')
-def base_url():
-    app.config['TESTING'] = True
-    server = make_server('127.0.0.1', 0, app, threaded=True)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    yield 'http://127.0.0.1:%d' % server.server_port
-    server.shutdown()
-
-
-@pytest.fixture(scope='module')
-def browser():
-    with sync_playwright() as p:
-        for channel in ('chrome', 'msedge'):
-            try:
-                b = p.chromium.launch(channel=channel, headless=True)
-                break
-            except Exception:
-                b = None
-        if b is None:
-            pytest.skip('no Chrome or Edge found for Playwright to drive')
-        yield b
-        b.close()
-
-
-def page_for(browser, base_url, path, width=1280, height=900, scheme='light', reduced='no-preference'):
-    ctx = browser.new_context(viewport={'width': width, 'height': height}, color_scheme=scheme,
-                              reduced_motion=reduced)
-    page = ctx.new_page()
-    errors = []
-    page.on('pageerror', lambda e: errors.append(str(e)))
-    page.goto(base_url + path)
-    page.errors = errors
-    page.ctx = ctx
-    return page
 
 
 def run_sort(page, algorithm, values='5, 3, 8, 3, 9, 1, 7, 5'):

@@ -1,0 +1,11 @@
+# Everything needed to run the full test set, browser tests included.
+#
+#   python -m pip install -r requirements-dev.txt
+#   python -m playwright install chromium
+#
+# The second line downloads the Chromium build Playwright drives (about 150 MB,
+# once). Without it the browser tests fall back to a Chrome or Edge that is
+# already installed, and without either they skip with a warning.
+-r requirements.txt
+pytest==7.4.3
+playwright==1.64.0

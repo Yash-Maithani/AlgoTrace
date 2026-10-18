@@ -13,7 +13,7 @@ Yash Maithani
 
 | Route | Page |
 |---|---|
-| `/` | Home, with a hero that runs a real bubble sort on eight bars |
+| `/` | Home, with a hero that runs a real bubble sort on eight bars and a player that reads one run three ways |
 | `/learn` | Every algorithm, grouped, in a suggested beginner order |
 | `/sorting` | Sorting workspace, six algorithms |
 | `/searching` | Searching workspace, two algorithms |
@@ -79,6 +79,20 @@ internet.
 
 ## Tests
 
+Install the test tools once. Playwright drives a real browser, which is how the
+reduced motion, width and theme checks run against the CSS the site ships:
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m playwright install chromium
+```
+
+The second line downloads Chromium (about 150 MB, once). If you skip it, the
+browser tests use a Chrome or Edge that is already installed, and if there is
+none they skip. A run without them says so in a warning at the top and the
+bottom, so a green result is never mistaken for a complete one. Browser tests
+are in `tests/test_browser_phase14.py` and the files that follow it.
+
 Two ways to run them:
 
 ```bash
@@ -115,6 +129,9 @@ behaviour:
 | `test_reference_code.py` | The C, C++ and Java sorts and searches, compiled and run, match the Python step by step (slow) |
 | `test_reference_graphs.py` | The C, C++ and Java graph programs match every `/run_*` endpoint step by step on the recorded graphs and on generated ones built to hit ties, negative weights and negative cycles (slow) |
 | `test_code_listings.py` | The listings generated from those programs are current and use the lesson's line ids |
+| `test_phase14b.py` | Every visible source line is in its generated listing, and a statement over several lines carries its id on all of them |
+| `test_browser_phase14.py` | In a real browser: reduced motion, the Code panel in every language, the Complexity tab for every algorithm and variant, no sideways scroll at 375, 768 and 1440 in both themes |
+| `test_phase15.py`, `test_browser_phase15.py` | The Home player: its steps are the real `/run_sort` steps, all four cards change together on every step, it starts and pauses with the viewport, and under emulated reduced motion it stays on its frozen step while Step still works |
 
 Two more checks are not pytest:
 

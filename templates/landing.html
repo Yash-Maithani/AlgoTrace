@@ -37,33 +37,39 @@
             </div>
         </section>
 
-        <!-- One step, read three ways -->
-        <section class="band reveal-group">
+        <!-- One step, read three ways. The step the page is served on is
+             also the one it keeps when motion is reduced, so with no
+             JavaScript this is a complete, if still, picture. -->
+        {% set frozen = player.steps[player.frozen] %}
+        <section class="band reveal-group" id="player" aria-labelledby="player-heading">
             <div class="wrap">
-                <h2 class="section-title">One step, read three ways</h2>
+                <h2 class="section-title" id="player-heading">One step, read three ways</h2>
                 <p class="section-lead">
-                    This is a real step from a real bubble sort on
-                    <code>{{ band.array|join(', ') }}</code>. Every workspace on this site
-                    gives you the same three readings on every step.
+                    This is a real run of bubble sort on
+                    <code>{{ player.start|join(', ') }}</code>, played from the same steps
+                    the Sorting workspace uses. Every workspace on this site gives you the
+                    same three readings on every step.
                 </p>
 
-                <div class="band-stage" aria-hidden="true">
-                    {% for value in band.array %}
-                    <span class="band-cell {% if loop.index0 == band.left or loop.index0 == band.right %}is-comparing{% endif %}">{{ value }}</span>
-                    {% endfor %}
+                <div class="band-stage" id="player-stage" aria-hidden="true">
+                    <div class="band-track" id="player-track">
+                        {% for value in frozen.array %}
+                        <span class="band-cell {% if loop.index0 in frozen.indices %}is-comparing{% endif %}"
+                              style="--pos: {{ loop.index0 }}">{{ value }}</span>
+                        {% endfor %}
+                    </div>
                 </div>
+
+                <!-- Built by JavaScript: without it the buttons would do nothing. -->
+                <div class="player-controls" id="player-controls" role="group"
+                     aria-label="Player controls" hidden></div>
 
                 <div class="band-cols">
                     <article class="band-col reveal">
                         <h3>Explain</h3>
-                        <p class="band-lead">
-                            {{ band.left_value }} is
-                            {% if band.swaps %}bigger than{% else %}not bigger than{% endif %}
-                            {{ band.right_value }}, so they
-                            {% if band.swaps %}swap{% else %}stay put{% endif %}.
-                        </p>
-                        <p>Bubble sort walks the list and fixes any neighbouring pair that is
-                           out of order, then starts again.</p>
+                        <p class="band-lead" id="player-explain" role="status"
+                           aria-live="polite" aria-atomic="true">{{ frozen.explain.beginner }}</p>
+                        <p id="player-why">{{ frozen.explain.why }}</p>
                     </article>
 
                     <article class="band-col reveal">
@@ -72,20 +78,25 @@
                         <pre class="band-code"><code>for j in range(0, n-i-1):
 <mark>    if arr[j] &gt; arr[j+1]:</mark>
         arr[j], arr[j+1] = arr[j+1], arr[j]</code></pre>
-                        <p>The marked line is the comparison you are watching.</p>
+                        <p>The marked lines are the step you are watching.</p>
                     </article>
 
                     <article class="band-col reveal">
                         <h3>Cost</h3>
-                        <p class="band-stat">
-                            <strong>{{ band.comparisons }}</strong> of
-                            <strong>{{ band.total_comparisons }}</strong> comparisons
+                        <p class="band-stat" id="player-cost">
+                            <strong id="player-count">{{ frozen.comparisons }}</strong> of
+                            <strong>{{ player.total }}</strong> comparisons
+                        </p>
+                        <p class="band-swaps">
+                            <span id="player-swaps">{{ frozen.swaps }}</span> swaps so far
                         </p>
                         <p>This bubble sort has no early exit, so it always performs
-                           n(n-1)/2 comparisons. For n = {{ band.n }} that is
-                           {{ band.total_comparisons }}, whatever the input looks like.</p>
+                           n(n-1)/2 comparisons. For n = {{ player.n }} that is
+                           {{ player.total }}, whatever the input looks like.</p>
                     </article>
                 </div>
+
+                <script type="application/json" id="player-data">{{ player|tojson }}</script>
             </div>
         </section>
 
@@ -166,6 +177,7 @@
     <script src="{{ url_for('static', filename='js/lessons/code/bubble_sort.js') }}"></script>
     <script src="{{ url_for('static', filename='js/codeview.js') }}"></script>
     <script src="{{ url_for('static', filename='js/home_code.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/home_player.js') }}"></script>
     <script>
         (function () {
             'use strict';

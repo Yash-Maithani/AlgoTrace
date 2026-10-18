@@ -28,6 +28,9 @@ with open(BASELINE_PATH, encoding='utf-8') as fh:
 RESPONSES = BASELINE['responses']
 STABLE = [r for r in RESPONSES if not r.get('order_sensitive')]
 ORDER_SENSITIVE = [r for r in RESPONSES if r.get('order_sensitive')]
+# Only /run_bellman_ford returns fields beyond steps and meta, so only its rows
+# have a summary to compare. The others used to be collected and skipped.
+ENVELOPED = [r for r in STABLE if r['envelope']]
 
 ENDPOINTS = sorted({r['endpoint'] for r in RESPONSES})
 
@@ -63,18 +66,21 @@ def test_step_array_is_unchanged(client, row):
         % (row['endpoint'], row['case']))
 
 
-@pytest.mark.parametrize('row', STABLE, ids=ident)
+@pytest.mark.parametrize('row', ENVELOPED, ids=ident)
 def test_summary_fields_are_unchanged(client, row):
     """/run_bellman_ford also returns distances and a cycle flag."""
-    if not row['envelope']:
-        pytest.skip('this endpoint returns no summary fields')
-
     _, payload = post(client, row)
 
     for key, value in row['envelope'].items():
         assert payload[key] == value, (
             '%s changed its %s for the %s graph'
             % (row['endpoint'], key, row['case']))
+
+
+def test_only_bellman_ford_has_summary_fields():
+    """If another endpoint grows a summary, its rows must join ENVELOPED, and
+    they do by themselves: this just names who has one now."""
+    assert {r['endpoint'] for r in ENVELOPED} == {'/run_bellman_ford'}
 
 
 def test_no_response_is_order_sensitive_any_more():

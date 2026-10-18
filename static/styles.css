@@ -3463,10 +3463,6 @@ pre.sample {
     font-size: var(--text-sm);
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .lang-thumb,
-    .code-stage { transition: none; }
-}
 
 /* The Home code card: the same language control, a short listing. */
 .band-code-lang { margin-bottom: var(--space-3); }
@@ -3599,3 +3595,78 @@ pre.sample {
 
 /* A screen-reader-only name is absolutely positioned: anchor it to its symbol so it can never widen the page. */
 .notation { position: relative; }
+
+/* --- The Home player -------------------------------------------------------- */
+
+.band-stage { --cell: clamp(44px, 14vw, 56px); --gap: 8px; }
+
+/* Live: every cell is placed by --pos and moved by transform alone. */
+.band-stage.is-live { display: block; }
+
+.band-track {
+    position: relative;
+    width: calc(var(--cell) * 5 + var(--gap) * 4);
+    height: calc(var(--cell) + 28px);
+    margin: 0 auto;
+    padding-top: 14px;
+}
+
+.band-stage.is-live .band-cell {
+    position: absolute;
+    top: 14px;
+    left: 0;
+    width: var(--cell);
+    min-width: 0;
+    height: var(--cell);
+    padding: 0;
+    transform: translate(calc(var(--pos, 0) * (var(--cell) + var(--gap))), var(--lift, 0px));
+    transition: transform 320ms var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+}
+
+.band-stage.is-live.no-motion .band-cell { transition: none; }
+
+/* Swapped cells carry the swap colour, in its label tier like the others. */
+.band-cell.is-swapped {
+    background-color: var(--reject-solid);
+    border-color: var(--reject-solid);
+    color: var(--on-state);
+    font-weight: 500;
+}
+
+.band-cell.is-sorted {
+    background-color: var(--done-solid);
+    border-color: var(--done-solid);
+    color: var(--on-state);
+    font-weight: 500;
+}
+
+.player-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+}
+
+.player-controls[hidden] { display: none; }
+
+.player-play { min-width: 5.5em; }
+
+.player-status {
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+    font-variant-numeric: tabular-nums;
+}
+
+.band-swaps { margin: 0 0 var(--space-3); color: var(--text-muted); font-size: var(--text-sm); }
+
+
+.player-controls [hidden] { display: none; }
+
+/* Last in the file on purpose: it must come after every rule that sets a
+   transition for these elements, or the rule it overrides would win. */
+@media (prefers-reduced-motion: reduce) {
+    .lang-thumb,
+    .code-stage,
+    .band-stage.is-live .band-cell { transition: none; }
+}

@@ -84,7 +84,7 @@ sorting_algo_details = {
 # ---------------------------------------------------------------------------
 
 HERO_ARRAY = [42, 17, 93, 8, 61, 29, 75, 36]
-BAND_ARRAY = [17, 32, 11, 45, 9]
+BAND_ARRAY = [17, 11, 32, 45, 9]
 
 
 def _bubble_steps(values):
@@ -105,43 +105,30 @@ def _bubble_steps(values):
     return steps, stats
 
 
-def _band_step(values, wanted):
-    """One frozen step for the annotated band on the home page.
-
-    Picks the first step at or after `wanted` where two elements are being
-    compared, so the band always shows a real comparison rather than the
-    final all-sorted frame.
-    """
-    steps, _ = _bubble_steps(values)
-    chosen = None
-    for index in range(min(wanted, len(steps) - 1), len(steps)):
-        step = steps[index]
-        pair = step["compared"]
-        if len(pair) == 2 and all(isinstance(i, int) for i in pair):
-            chosen = (index, step)
-            break
-    if chosen is None:
-        chosen = (0, steps[0])
-
-    index, step = chosen
-    left, right = step["compared"]
-    values_now = step["array"]
-    # Comparisons counted up to and including this step.
-    comparisons = sum(
-        1 for s in steps[: index + 1]
-        if len(s["compared"]) == 2 and all(isinstance(i, int) for i in s["compared"])
-    )
-    n = len(values)
+def _player_payload():
+    """The run the Home player plays: the real bubble sort over BAND_ARRAY,
+    exactly the steps /run_sort would send for it, trimmed to what the player
+    draws. `origins[i]` says which starting position the cell now at i began
+    in, which is how a swapped pair can slide past each other instead of
+    being redrawn."""
+    run = _sort_payload("Bubble Sort", list(BAND_ARRAY), None, None)
+    steps = [{
+        "array": s["array"],
+        "origins": s["origins"],
+        "action": s["action"],
+        "indices": s["indices"],
+        "line": s["line"],
+        "comparisons": s["vars"].get("comparisons", 0),
+        "swaps": s["vars"].get("swaps", 0),
+        "explain": s["explain"],
+    } for s in run["steps"]]
     return {
-        "array": values_now,
-        "left": left,
-        "right": right,
-        "left_value": values_now[left],
-        "right_value": values_now[right],
-        "swaps": values_now[left] > values_now[right],
-        "comparisons": comparisons,
-        "total_comparisons": n * (n - 1) // 2,
-        "n": n,
+        "start": list(BAND_ARRAY),
+        "steps": steps,
+        "total": run["result"]["comparisons"],
+        "n": run["result"]["n"],
+        # The step the page is served on, and shows when motion is reduced.
+        "frozen": next((i for i, s in enumerate(steps) if i >= 4 and s["action"] == "compare"), 0),
     }
 
 
@@ -160,7 +147,7 @@ def index():
         hero_start=HERO_ARRAY,
         hero_sorted=sorted(HERO_ARRAY),
         hero_comparisons=hero_stats["comparisons"],
-        band=_band_step(BAND_ARRAY, 4),
+        player=_player_payload(),
     )
 
 @app.route("/sorting", methods=["GET", "POST"])
