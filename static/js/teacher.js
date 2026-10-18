@@ -67,7 +67,7 @@
     function Panel(options) {
         this.root = options.panel;
         this.lesson = options.lesson || null;
-        this.codeView = 'pseudocode';
+        this.codeView = null;
         this.active = 'explain';
         this.build();
         if (this.lesson) this.renderStatic();
@@ -211,38 +211,13 @@
         var shown = variantLine(lesson);
         if (shown) body.appendChild(shown);
 
-        var toggle = el('div', 'code-toggle');
-        toggle.setAttribute('role', 'group');
-        toggle.setAttribute('aria-label', 'Code view');
-        ['pseudocode', 'python'].forEach(function (view) {
-            var button = el('button', 'code-toggle-btn',
-                view === 'pseudocode' ? 'Pseudocode' : 'Python');
-            button.type = 'button';
-            button.setAttribute('aria-pressed', self.codeView === view ? 'true' : 'false');
-            button.addEventListener('click', function () {
-                self.codeView = view;
-                self.renderCode();
-                self.highlight(self.currentLine);
-            });
-            toggle.appendChild(button);
-        });
-        body.appendChild(toggle);
-
-        // The listing scrolls sideways in a narrow panel, so it is a focus
-        // stop: a scroll box no one can reach from the keyboard hides its own
-        // right hand side. Named, because an unexplained stop is worse.
-        var listing = el('ol', 'code-listing');
-        listing.tabIndex = 0;
-        listing.setAttribute('aria-label',
-            (self.codeView === 'python' ? 'Python' : 'Pseudocode') + ' listing');
-        lesson.code[this.codeView].forEach(function (line) {
-            var item = el('li', 'code-line');
-            if (line.id) item.setAttribute('data-line', line.id);
-            item.style.setProperty('--indent', line.indent || 0);
-            item.appendChild(el('code', null, line.text));
-            listing.appendChild(item);
-        });
-        body.appendChild(listing);
+        // Language tabs, the listing, helpers and Expand all live in
+        // static/js/codeview.js, shared with the Home code card.
+        if (this.codeView) this.codeView.destroy();
+        var holder = el('div', 'code-holder');
+        body.appendChild(holder);
+        this.codeView = window.CodeView.mount({ host: holder, lesson: lesson });
+        this.codeView.highlight(this.currentLine);
 
         body.appendChild(el('h3', 'vars-heading', 'Live values'));
         this.codeVars = el('dl', 'var-table');
@@ -383,13 +358,7 @@
 
     Panel.prototype.highlight = function (lineId) {
         this.currentLine = lineId;
-        var lines = this.bodies.code.querySelectorAll('.code-line');
-        Array.prototype.forEach.call(lines, function (line) {
-            var on = !!lineId && line.getAttribute('data-line') === lineId;
-            line.classList.toggle('is-current', on);
-            if (on) line.setAttribute('aria-current', 'step');
-            else line.removeAttribute('aria-current');
-        });
+        if (this.codeView) this.codeView.highlight(lineId);
     };
 
     var EMPTY_VARS = 'Run the algorithm to see values change';

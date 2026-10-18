@@ -79,6 +79,8 @@ window.LESSON_CODE.quick_sort = {
             { id: null, text: "static void swap(int *a, int *b)", indent: 0 },
             { id: null, text: "{", indent: 0 },
             { id: null, text: "int t = *a;", indent: 1 },
+            { id: null, text: "*a = *b;", indent: 1 },
+            { id: null, text: "*b = t;", indent: 1 },
             { id: null, text: "}", indent: 0 }
         ]
     },

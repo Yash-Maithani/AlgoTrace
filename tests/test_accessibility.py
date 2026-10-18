@@ -236,12 +236,21 @@ def test_the_stage_is_a_named_focus_stop(name):
     assert 'aria-labelledby="stage-heading"' in stage
 
 
-def test_the_code_listing_can_be_scrolled_by_keyboard():
-    with open(os.path.join(STATIC, 'js', 'teacher.js'), encoding='utf-8') as fh:
+def test_the_code_listing_never_scrolls_sideways():
+    """It wraps instead (Phase 14), so there is no hidden half to reach. The
+    listing is named, and the Expand dialog's body, which scrolls down, is a
+    focus stop."""
+    with open(os.path.join(STATIC, 'js', 'codeview.js'), encoding='utf-8') as fh:
         source = fh.read()
+    with open(os.path.join(STATIC, 'styles.css'), encoding='utf-8') as fh:
+        css = fh.read()
+    listing_rules = css.split('.code-listing {', 1)[1].split('}', 1)[0]
+    line_rules = css.split('.code-line code {', 1)[1].split('}', 1)[0]
 
-    assert 'listing.tabIndex = 0;' in source
-    assert "listing.setAttribute('aria-label'" in source
+    assert 'overflow-x' not in listing_rules
+    assert 'pre-wrap' in line_rules
+    assert "this.list.setAttribute('aria-label'" in source
+    assert 'this.body.root.tabIndex = 0;' in source
 
 
 # ---------------------------------------------------------------------------

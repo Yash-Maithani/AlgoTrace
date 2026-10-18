@@ -740,6 +740,27 @@ class StepLog:
         return body
 
 
+def _missing_node_response(graph):
+    """A 400 naming the edge that points at a node with no line of its own.
+
+    The graph endpoints index graph[node] for every neighbour they reach, so a
+    neighbour that is not a key raised KeyError and came back as a bare 500.
+    This runs only after that failure, so a valid graph pays nothing for it.
+    Returns None when the KeyError was something else.
+    """
+    if not isinstance(graph, dict):
+        return None
+    for u, neighbours in graph.items():
+        if not isinstance(neighbours, (dict, list)):
+            continue
+        for v in neighbours:
+            if v not in graph:
+                return jsonify({'error': "Node %s lists %s as a neighbour, but "
+                                "%s has no node of its own. Add %s to the "
+                                "graph or remove the edge." % (u, v, v, v)}), 400
+    return None
+
+
 @app.route("/run_bfs", methods=["POST"])
 def run_bfs():
     try:
@@ -801,6 +822,11 @@ def run_bfs():
                 indices=list(traversal_path), line=None,
                 variables={"queue": [], "visited": sorted(visited)})
         return jsonify(log.payload())
+    except KeyError as e:
+        refusal = _missing_node_response((request.json or {}).get("graph"))
+        if refusal:
+            return refusal
+        return jsonify({'error': f'An error occurred: {str(e)}'}), 500
     except Exception as e:
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
 
@@ -865,6 +891,11 @@ def run_dfs():
                 indices=list(traversal_path), line=None,
                 variables={"stack": [], "visited": sorted(visited)})
         return jsonify(log.payload())
+    except KeyError as e:
+        refusal = _missing_node_response((request.json or {}).get("graph"))
+        if refusal:
+            return refusal
+        return jsonify({'error': f'An error occurred: {str(e)}'}), 500
     except Exception as e:
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
 
@@ -953,6 +984,11 @@ def run_dijkstra():
                 variables={"distances": {k: _wire(v)
                                          for k, v in distances.items()}})
         return jsonify(log.payload())
+    except KeyError as e:
+        refusal = _missing_node_response((request.json or {}).get("graph"))
+        if refusal:
+            return refusal
+        return jsonify({'error': f'An error occurred: {str(e)}'}), 500
     except Exception as e:
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
 
@@ -1092,6 +1128,11 @@ def run_prim():
                            "reached_everything": reached_everything})
         
         return jsonify(log.payload())
+    except KeyError as e:
+        refusal = _missing_node_response((request.json or {}).get("graph"))
+        if refusal:
+            return refusal
+        return jsonify({'error': f'An error occurred: {str(e)}'}), 500
     except Exception as e:
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
 

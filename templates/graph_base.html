@@ -686,7 +686,9 @@ A</pre>
 
 {% block page_js %}
     <script src="{{ url_for('static', filename='js/lessons/' + algorithm + '.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/lessons/code/' + algorithm + '.js') }}"></script>
     <script src="{{ url_for('static', filename='js/growth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/codeview.js') }}"></script>
     <script src="{{ url_for('static', filename='js/teacher.js') }}"></script>
     <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
     <script>

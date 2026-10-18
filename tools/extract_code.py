@@ -134,7 +134,7 @@ def parse_all(path):
         if stripped.startswith('/*'):
             in_comment = '*/' not in stripped
             continue
-        if not stripped or stripped.startswith(('//', '*')):
+        if not stripped or stripped.startswith('//'):
             continue
 
         hide = '@hide' in tags

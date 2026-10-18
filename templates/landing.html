@@ -68,6 +68,7 @@
 
                     <article class="band-col reveal">
                         <h3>Code</h3>
+                        <div class="band-code-lang" id="home-code-lang"></div>
                         <pre class="band-code"><code>for j in range(0, n-i-1):
 <mark>    if arr[j] &gt; arr[j+1]:</mark>
         arr[j], arr[j+1] = arr[j+1], arr[j]</code></pre>
@@ -161,6 +162,10 @@
 {% endblock %}
 
 {% block page_js %}
+    <script src="{{ url_for('static', filename='js/lessons/bubble_sort.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/lessons/code/bubble_sort.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/codeview.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/home_code.js') }}"></script>
     <script>
         (function () {
             'use strict';
