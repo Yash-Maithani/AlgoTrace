@@ -6,7 +6,9 @@
 const fs = require('fs');
 const path = require('path');
 
-const LESSON_DIR = path.join(__dirname, '..', 'static', 'js', 'lessons');
+// LESSON_DIR can point elsewhere, so a test can prove a broken lesson fails.
+const LESSON_DIR = process.env.LESSON_DIR || path.join(__dirname, '..', 'static', 'js', 'lessons');
+const VARIANTS = require(path.join(__dirname, '..', 'static', 'js', 'variants.js'));
 
 const FIXED_AUXILIARY =
     'Auxiliary space is the memory the algorithm needs on top of the input array itself.';
@@ -54,9 +56,7 @@ files.forEach(function (name) {
 
 const lessons = global.window.LESSONS || {};
 
-Object.keys(lessons).sort().forEach(function (key) {
-    const lesson = lessons[key];
-    const file = key + '.js';
+function checkLesson(lesson, key, file) {
 
     ['id', 'name', 'family', 'idea', 'analogy', 'whenToUse', 'code', 'complexity']
         .forEach(function (field) {
@@ -133,6 +133,98 @@ Object.keys(lessons).sort().forEach(function (key) {
     if (c.thisRun !== wanted) {
         complain(file, 'thisRun must use the shared wording for its family');
     }
+}
+
+// The input shapes a claim can be measured on, and how it is compared.
+const CLAIM_INPUTS = ['sorted', 'reversed', 'equal', 'random', 'nearly'];
+const CLAIM_BOUNDS = ['exact', 'atMost', 'mean'];
+// A formula is arithmetic in n with these helpers and nothing else, so the
+// Python test can evaluate it without trusting the file.
+const FORMULA = /^(?:[n0-9+\-*\/(). ]|log2|H|ceil|floor)+$/;
+
+function textAt(lesson, where) {
+    const parts = where.split('.');
+    if (parts[0] === 'presetNotes') return (lesson.presetNotes || {})[parts[1]];
+    if (parts[0] === 'time') {
+        const entry = lesson.complexity.time[parts[1]];
+        return entry && entry.reason;
+    }
+    return lesson.complexity[where];
+}
+
+function checkClaims(lesson, file) {
+    const claims = lesson.complexity.claims;
+    if (claims === undefined) return;
+    if (!Array.isArray(claims) || !claims.length) {
+        complain(file, 'complexity.claims must be a non empty list');
+        return;
+    }
+    claims.forEach(function (claim, k) {
+        const at = 'claims[' + k + ']';
+        if (CLAIM_INPUTS.indexOf(claim.input) === -1) complain(file, at + ' has unknown input ' + claim.input);
+        if ('sameAs' in claim) {
+            if (CLAIM_INPUTS.indexOf(claim.sameAs) === -1) complain(file, at + ' sameAs names unknown input ' + claim.sameAs);
+        } else {
+            if (typeof claim.comparisons !== 'string' || !FORMULA.test(claim.comparisons)) {
+                complain(file, at + ' comparisons must be a formula in n');
+            }
+            if (CLAIM_BOUNDS.indexOf(claim.bound) === -1) complain(file, at + ' bound must be one of ' + CLAIM_BOUNDS.join(', '));
+        }
+        // Every claim backs a sentence the learner reads.
+        const text = typeof claim.where === 'string' ? textAt(lesson, claim.where) : null;
+        if (typeof text !== 'string' || !text.trim()) {
+            complain(file, at + ' where must name a text the lesson shows, got ' + claim.where);
+        }
+    });
+}
+
+function checkVariants(lesson, key, file) {
+    const v = lesson.variants;
+    if (v === undefined) return;
+    if (lesson.family !== 'sorting') complain(file, 'variants belong only to sorting lessons for now');
+    Object.keys(v).forEach(function (field) {
+        if (['key', 'label', 'default', 'options'].indexOf(field) === -1) {
+            complain(file, 'variants has an unknown field ' + field);
+        }
+    });
+    if (typeof v.key !== 'string' || !v.key) complain(file, 'variants.key must name the switch');
+    if (typeof v.label !== 'string' || !v.label) complain(file, 'variants.label is missing');
+    const ids = Object.keys(v.options || {});
+    if (ids.length < 2) complain(file, 'variants.options needs at least two options');
+    if (ids.indexOf(v.default) === -1) complain(file, 'variants.default must be one of the options');
+    if (!lesson.complexity.claims) complain(file, 'a lesson with variants must give complexity.claims');
+
+    ids.forEach(function (id) {
+        const option = v.options[id];
+        const where = file + ' [' + v.key + '=' + id + ']';
+        if (typeof option.label !== 'string' || !option.label.trim()) complain(where, 'option needs a label');
+        if (typeof option.note !== 'string' || !option.note.trim()) complain(where, 'option needs a note');
+        Object.keys(option).forEach(function (field) {
+            if (field === 'label' || field === 'note') return;
+            if (VARIANTS.OVERRIDABLE.indexOf(field) === -1) complain(where, 'an option cannot override ' + field);
+            if (id === v.default) complain(where, 'the default option is the lesson as written, so it overrides nothing');
+        });
+        if (option.code && !(option.code.pseudocode && option.code.python)) {
+            complain(where, 'an option that changes the code gives both listings');
+        }
+        const c = option.complexity || {};
+        if ((c.time || c.worked) && !c.claims) {
+            complain(where, 'an option that changes its complexity text gives its own claims');
+        }
+        // The variant, as the page will show it, must meet the whole contract.
+        const resolved = VARIANTS.resolve(lesson, id);
+        checkLesson(resolved, key, where);
+        checkClaims(resolved, where);
+    });
+}
+
+Object.keys(lessons).sort().forEach(function (key) {
+    const lesson = lessons[key];
+    const file = key + '.js';
+    checkLesson(lesson, key, file);
+    if (!lesson.complexity) return;
+    checkClaims(lesson, file);
+    checkVariants(lesson, key, file);
 });
 
 if (problems.length) {

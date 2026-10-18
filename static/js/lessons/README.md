@@ -20,6 +20,13 @@ more. Every field is present on every step.
 | `vars` | object | the live variables at this moment, for example `{"i": 2, "j": 5, "n": 30}`. Keys differ per algorithm |
 | `explain` | object | `{beginner, why}`, two plain sentences. `beginner` names the real values involved. `why` says what the algorithm is trying to achieve, and is allowed to repeat across steps of the same kind |
 
+Two more fields belong to particular sorts (Phase 10):
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `origins` | list of ints | every sorting step, added by app.py: `origins[k]` is the position in the input that the value now at `k` started from. The page tags equal values 5a, 5b from it. Halfway through a merge sort copy back one value can sit in two places, so it is a permutation on every frame except `overwrite` ones |
+| `depth`, `range` | int, `[lo, hi]` | every Merge Sort and Quick Sort step: how many calls deep the step is (the first call is 0) and the inclusive range that call owns. The `done` frame is depth 0 over `[0, n-1]`; an empty list's is `[0, -1]` |
+
 ### `action` vocabulary
 
 | Action | Meaning |
@@ -95,6 +102,10 @@ window.LESSONS.bubble_sort = { /* the object below */ };
 | `stable` | boolean or null | whether equal values keep their original order. `null` where it does not apply, as for a search |
 | `codePending` | boolean | present and `true` only while the lesson ships ahead of its implementation. The listing is then the form the later phase must build, and that phase either matches it or updates the lesson in the same commit |
 | `countLabel` | string | what the second counter is called, when it is not `swaps`. Merge sort sets `writes`, because it never exchanges a pair: it copies a merged run back over the array, so every value in the run is written whether or not it moved. A lesson that sets this must also explain it in `complexity.countsNote` |
+
+| `complexity.claims` | list | the figures the text states, in a form the tests can measure. Each is `{input, comparisons, bound, where}` or `{input, sameAs, where}`. `input` is `sorted`, `reversed`, `equal`, `random` or `nearly`; `comparisons` is a formula in `n` using `+ - * / ( )`, `log2`, `H` (harmonic number), `ceil`, `floor`; `bound` is `exact`, `atMost` or `mean` (averaged over seeds); `sameAs` says the count equals that of another input; `where` names the text it backs, such as `time.best`, `presetNotes.equal` or `divergence`. Required on a lesson with `variants` |
+| `complexity.worked.seed` | number | only where the count depends on a seed, as with a random pivot |
+| `variants` | object | optional, sorting only. A switch with `{key, label, default, options}`. `key` and the option ids match `SORT_VARIANTS` in app.py, and `default` is the first, the version the site always ran. Each option has `label` and `note` (one sentence shown under the switch). Every other option may override `idea`, `stable`, `presetNotes` (merged per preset), `code` (both listings, replaced whole), and `complexity` (merged per key, `time` per case). An option that changes `time` or `worked` gives its own `claims`. `static/js/variants.js` applies an option, and the validator checks every option as the page will show it |
 
 The two code listings show the algorithm, not the plumbing. The `draw` and `stats`
 calls that exist in the Python file are instrumentation for the visualization and are

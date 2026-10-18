@@ -21,6 +21,8 @@
  *                               steps back off the last step
  *     clearStage(),             optional, blank the stage when a run is
  *                               refused, so nothing of the last one is left
+ *     onLoad(payload),          optional, called once when a run arrives,
+ *                               before its first step is drawn
  *     onError(payload, ui),     optional, return true if the page handled it
  *     delayFor(sliderValue)     optional, milliseconds between frames
  *   })
@@ -277,6 +279,7 @@
         this.index = 0;
         this.resultShown = false;
         if (this.options.clearResult) this.options.clearResult();
+        if (this.options.onLoad) this.options.onLoad(payload);
         this.go(0);
         this.syncTransport();
     };

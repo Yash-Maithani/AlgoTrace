@@ -2404,7 +2404,12 @@ a.logo:focus-visible,
         gap: var(--space-4);
         align-items: start;
     }
-    .algo-picker { grid-auto-flow: column; grid-auto-columns: 1fr; }
+    /* The picker takes a full row of its own. Squeezed into one 240px track
+       as a single row of six or seven columns, its names overflowed into
+       the input fields beside it. */
+    .setup-grid > :first-child { grid-column: 1 / -1; }
+    .setup-grid > :first-child .algo-picker { margin-bottom: 0; }
+    .algo-picker { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
 }
 
 /* --- Stage ---------------------------------------------------------------- */
@@ -3263,6 +3268,42 @@ pre.sample {
 }
 
 .preset-note { min-height: 2.6em; }
+
+/* --- Variant switches and stability tags (Phase 10) ----------------------- */
+
+.variant-switch { margin-bottom: var(--space-2); }
+
+.variant-switch legend {
+    font-weight: 500;
+    font-size: var(--text-sm);
+    padding: 0;
+    margin-bottom: var(--space-1);
+}
+
+.seed-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+}
+
+.seed-row label { font-weight: 500; font-size: var(--text-sm); }
+.seed-row input { width: 10rem; max-width: 100%; }
+.seed-row .setup-hint { flex-basis: 100%; }
+
+.variant-line {
+    margin: 0 0 var(--space-3);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+}
+
+/* The letter after a repeated value, 5a and 5b, so a learner can follow
+   equal values and see whether the sort kept their order. */
+.bar-tag {
+    font-weight: 700;
+    color: var(--accent);
+}
 
 .vars-empty {
     margin: 0;

@@ -193,12 +193,23 @@
         }
     };
 
+    /* A lesson resolved through static/js/variants.js says which version
+       of the algorithm it describes. The Code and Complexity tabs name it,
+       because both change with the switch. */
+    function variantLine(lesson) {
+        if (!lesson.variants || !lesson.variantLabel) return null;
+        return el('p', 'variant-line',
+            'Showing: ' + lesson.variants.label + ', ' + lesson.variantLabel);
+    }
+
     Panel.prototype.renderCode = function () {
         var self = this;
         var body = this.bodies.code;
         var lesson = this.lesson;
         clear(body);
         if (!lesson) return;
+        var shown = variantLine(lesson);
+        if (shown) body.appendChild(shown);
 
         var toggle = el('div', 'code-toggle');
         toggle.setAttribute('role', 'group');
@@ -247,6 +258,8 @@
         clear(body);
         if (!lesson) return;
         var c = lesson.complexity;
+        var shown = variantLine(lesson);
+        if (shown) body.appendChild(shown);
 
         body.appendChild(el('h3', null, 'Time'));
         var table = el('dl', 'complexity-table');
@@ -264,6 +277,11 @@
         body.appendChild(el('h3', null, 'A worked example'));
         var worked = el('p', 'worked');
         worked.appendChild(el('code', null, c.worked.input));
+        // A random pivot's count depends on its seed, so the seed is part of
+        // the example.
+        if (c.worked.seed !== undefined) {
+            worked.appendChild(document.createTextNode(' with seed ' + c.worked.seed));
+        }
         worked.appendChild(document.createTextNode(' costs '));
         worked.appendChild(el('strong', null, String(c.worked.comparisons)));
         worked.appendChild(document.createTextNode(' comparisons.'));

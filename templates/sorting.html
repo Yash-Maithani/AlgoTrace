@@ -60,6 +60,40 @@
                             <p class="setup-hint" id="values-hint">Whole numbers, separated by commas.</p>
                         </div>
 
+                        <!-- One switch per algorithm that has one. The first
+                             option of each is the version the site has always
+                             run. Only the chosen algorithm's switch shows. -->
+                        <div class="setup-field" id="variant-host" hidden>
+                            {% for name, spec in sort_variants.items() %}
+                            <fieldset class="radio-row variant-switch" data-variant-for="{{ name }}"
+                                      data-variant-key="{{ spec.key }}" hidden>
+                                <legend>{{ spec.label }}</legend>
+                                {% for option in spec.options %}
+                                <label class="radio-option" for="variant-{{ spec.key }}-{{ option[0] }}">
+                                    <input type="radio" name="variant-{{ spec.key }}"
+                                           id="variant-{{ spec.key }}-{{ option[0] }}"
+                                           value="{{ option[0] }}" {{ 'checked' if loop.first }}>
+                                    {{ option[1] }}
+                                </label>
+                                {% endfor %}
+                            </fieldset>
+                            {% endfor %}
+                            <div class="seed-row" id="seed-row" hidden>
+                                <label for="pivot-seed">Seed</label>
+                                <input type="number" id="pivot-seed" min="0" max="2147483647"
+                                       inputmode="numeric" placeholder="New one each run"
+                                       aria-describedby="seed-hint">
+                                <button type="button" class="btn btn-secondary btn-sm" id="new-seed">
+                                    New seed
+                                </button>
+                                <p class="setup-hint" id="seed-hint">
+                                    The seed of the last run stays here, so running again
+                                    replays it. Clear it or press New seed for a different run.
+                                </p>
+                            </div>
+                            <p class="setup-hint variant-note" id="variant-note" role="status"></p>
+                        </div>
+
                         <div class="setup-field" id="preset-host">
                             <span class="setup-label" id="preset-label">Or start from a shape</span>
                         </div>
@@ -170,6 +204,7 @@
     {% endfor %}
     <script src="{{ url_for('static', filename='js/growth.js') }}"></script>
     <script src="{{ url_for('static', filename='js/presets.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/variants.js') }}"></script>
     <script src="{{ url_for('static', filename='js/teacher.js') }}"></script>
     <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
     <script>
@@ -182,12 +217,50 @@
                files are keyed by id. One map, built by the server. */
             var LESSON_FOR = {{ lesson_ids|tojson }};
 
+            /* Which option each switch is on, by display name. Every switch
+               starts on its first option, the version the site always ran. */
+            var chosenVariant = {};
+
+            /* The lesson as the chosen variant reads: its code, complexity
+               and notes laid over the lesson file by static/js/variants.js. */
+            function lessonFor(display) {
+                var base = window.LESSONS[LESSON_FOR[display]];
+                return Variants.resolve(base, chosenVariant[display]);
+            }
+
             function lessonsByDisplayName() {
                 var out = {};
                 Object.keys(LESSON_FOR).forEach(function (display) {
-                    out[display] = window.LESSONS[LESSON_FOR[display]];
+                    out[display] = lessonFor(display);
                 });
                 return out;
+            }
+
+            /* Letter tags for equal values: the first 5 in the input is 5a,
+               the next 5b, and so on, so a learner can see whether a sort
+               kept equal values in their starting order. A value that occurs
+               once gets no tag. Indexed by starting position. */
+            function letters(k) {
+                var out = '';
+                k += 1;
+                while (k > 0) {
+                    k -= 1;
+                    out = String.fromCharCode(97 + (k % 26)) + out;
+                    k = Math.floor(k / 26);
+                }
+                return out;
+            }
+
+            function tagsFor(input) {
+                var count = {}, seen = {}, tags = [];
+                input.forEach(function (v) { count[v] = (count[v] || 0) + 1; });
+                input.forEach(function (v, origin) {
+                    if (count[v] < 2) { tags[origin] = ''; return; }
+                    seen[v] = seen[v] || 0;
+                    tags[origin] = letters(seen[v]);
+                    seen[v] += 1;
+                });
+                return tags;
             }
 
             /* Which bar class each action paints. This reproduces exactly what
@@ -210,6 +283,9 @@
                 }
             }
 
+            var tags = [];
+            var lastTagged = null;
+
             var methodRandom = document.getElementById('random-input');
             var methodManual = document.getElementById('manual-input-choice');
             var sizeField = document.getElementById('size-field');
@@ -226,10 +302,84 @@
 
             var presetUi = null;
 
+            var variantHost = document.getElementById('variant-host');
+            var variantNote = document.getElementById('variant-note');
+            var seedRow = document.getElementById('seed-row');
+            var seedInput = document.getElementById('pivot-seed');
+            var lastSeed = null;
+
+            function switchFor(display) {
+                return variantHost.querySelector('[data-variant-for="' + display + '"]');
+            }
+
+            function isRandomPivot(display) {
+                return display === 'Quick Sort' && chosenVariant[display] === 'random';
+            }
+
+            /* Show the chosen algorithm's switch, its note and, for the
+               random pivot, the seed. */
+            function syncVariantUi(display) {
+                var any = false;
+                Array.prototype.forEach.call(
+                    variantHost.querySelectorAll('[data-variant-for]'),
+                    function (box) {
+                        var mine = box.getAttribute('data-variant-for') === display;
+                        box.hidden = !mine;
+                        any = any || mine;
+                    });
+                variantHost.hidden = !any;
+                seedRow.hidden = !isRandomPivot(display);
+                var lesson = lessonFor(display);
+                var text = lesson && lesson.variantNote ? lesson.variantNote : '';
+                if (isRandomPivot(display) && lastSeed !== null) {
+                    text += ' The last run used seed ' + lastSeed + '.';
+                }
+                variantNote.textContent = text;
+            }
+
+            Array.prototype.forEach.call(
+                variantHost.querySelectorAll('[data-variant-for]'),
+                function (box) {
+                    var display = box.getAttribute('data-variant-for');
+                    chosenVariant[display] = box.querySelector('input[type="radio"]').value;
+                    box.addEventListener('change', function (event) {
+                        if (!event.target.matches('input[type="radio"]')) return;
+                        chosenVariant[display] = event.target.value;
+                        var ws = Workspace.current;
+                        ws.options.lessons[display] = lessonFor(display);
+                        if (ws.algorithm === display) {
+                            /* A run made by the other version would now be
+                               read against this version's code, so it goes. */
+                            if (ws.payload) ws.discard();
+                            if (ws.panel) ws.panel.setLesson(ws.options.lessons[display]);
+                        }
+                        syncVariantUi(display);
+                        if (presetUi) presetUi.refresh();
+                    });
+                });
+
+            document.getElementById('new-seed').addEventListener('click', function () {
+                seedInput.value = 1 + Math.floor(Math.random() * 99999);
+                seedInput.focus();
+            });
+
             Workspace.start({
                 endpoint: '/run_sort',
                 lessons: lessonsByDisplayName(),
-                onAlgorithmChange: function () { if (presetUi) presetUi.refresh(); },
+                onAlgorithmChange: function (name) {
+                    syncVariantUi(name);
+                    if (presetUi) presetUi.refresh();
+                },
+
+                /* The run records its variant and seed. The seed goes back
+                   into the field, so running again replays it. */
+                onLoad: function (payload) {
+                    if (payload.seed !== null && payload.seed !== undefined) {
+                        lastSeed = payload.seed;
+                        seedInput.value = payload.seed;
+                    }
+                    syncVariantUi(payload.algorithm);
+                },
 
                 /* The old page's speed curve, kept exactly so a run at a given
                    slider position takes as long as it always did. */
@@ -245,22 +395,33 @@
                 },
 
                 readRequest: function (ui) {
+                    var body = { algorithm: ui.algorithm };
+                    if (chosenVariant[ui.algorithm]) body.variant = chosenVariant[ui.algorithm];
+                    if (isRandomPivot(ui.algorithm) && seedInput.value.trim() !== '') {
+                        body.seed = seedInput.value.trim();
+                    }
                     if (methodManual.checked) {
                         var typed = document.getElementById('manual-input').value;
                         if (!typed.trim()) {
                             return { field: 'setup-error', message: 'Enter some numbers, separated by commas.' };
                         }
-                        return { algorithm: ui.algorithm, values: typed };
+                        body.values = typed;
+                        return body;
                     }
-                    return {
-                        algorithm: ui.algorithm,
-                        size: document.getElementById('array-size').value
-                    };
+                    body.size = document.getElementById('array-size').value;
+                    return body;
                 },
 
                 renderStep: function (step, context) {
                     var container = document.getElementById('array-container');
                     var data = step.array;
+
+                    var payload = context.payload || {};
+                    if (payload !== lastTagged) {
+                        lastTagged = payload;
+                        tags = tagsFor(payload.array || data);
+                    }
+                    var origins = step.origins || [];
 
                     if (container.childElementCount !== data.length) {
                         container.innerHTML = '';
@@ -288,7 +449,15 @@
                         } else if (painted && marked.indexOf(i) !== -1) {
                             bar.classList.add(painted);
                         }
-                        bar.querySelector('.bar-value').textContent = data[i];
+                        var tag = tags[origins[i]] || '';
+                        var label = bar.querySelector('.bar-value');
+                        label.textContent = data[i];
+                        if (tag) {
+                            var mark = document.createElement('span');
+                            mark.className = 'bar-tag';
+                            mark.textContent = tag;
+                            label.appendChild(mark);
+                        }
                     });
 
                     /* Narrow screens hide the bar values, because at 30 bars
@@ -318,10 +487,24 @@
                     var noun = lesson.countLabel || 'swaps';
                     var one = noun.replace(/s$/, '');
                     banner.setAttribute('data-outcome', 'found');
-                    banner.textContent = payload.algorithm + ' sorted ' + r.n +
+                    /* The run says which version made it, and its seed. */
+                    var which = '';
+                    if (payload.variant && lesson.variants) {
+                        var resolved = Variants.resolve(lesson, payload.variant);
+                        which = ' (' + lesson.variants.label + ': ' + resolved.variantLabel +
+                            (payload.seed !== null && payload.seed !== undefined
+                                ? ', seed ' + payload.seed : '') + ')';
+                    }
+                    var text = payload.algorithm + which + ' sorted ' + r.n +
                         ' values in ' + r.comparisons + ' comparison' +
                         (r.comparisons === 1 ? '' : 's') + ' and ' + r.swaps +
                         ' ' + (r.swaps === 1 ? one : noun) + '.';
+                    if (r.kept_equal_order === true) {
+                        text += ' Equal values kept their starting order: the letter tags still run a, b, c.';
+                    } else if (r.kept_equal_order === false) {
+                        text += ' Some equal values changed order: compare the letter tags.';
+                    }
+                    banner.textContent = text;
                 },
 
                 clearResult: function () {
@@ -364,7 +547,21 @@
             /* POST /sorting still runs the sort server side. When it did, the
                workspace opens on that run rather than throwing it away. */
             var initialRun = {{ initial_run|tojson }};
-            if (initialRun) Workspace.current.load(initialRun);
+            syncVariantUi(Workspace.current.algorithm);
+            if (initialRun) {
+                /* A form POST may have chosen a variant: put the switch on it. */
+                if (initialRun.variant) {
+                    chosenVariant[initialRun.algorithm] = initialRun.variant;
+                    var box = switchFor(initialRun.algorithm);
+                    var radio = box && box.querySelector('input[value="' + initialRun.variant + '"]');
+                    if (radio) radio.checked = true;
+                    Workspace.current.options.lessons[initialRun.algorithm] = lessonFor(initialRun.algorithm);
+                    if (Workspace.current.panel) {
+                        Workspace.current.panel.setLesson(lessonFor(initialRun.algorithm));
+                    }
+                }
+                Workspace.current.load(initialRun);
+            }
         })();
     </script>
 {% endblock %}

@@ -181,6 +181,7 @@ def sorting_page():
             selected_algo=selected_algo,
             lesson_ids=SORT_LESSON_IDS,
             pick_notes=SORT_PICK_NOTES,
+            sort_variants=_variants_for_template(),
             initial_run=None,
             error="",
         )
@@ -256,21 +257,157 @@ SORT_PICK_NOTES = {
 }
 
 
-def _sort_payload(name, values):
+# ---------------------------------------------------------------------------
+# Variant switches (Phase 10).
+#
+# Three sorts have one switch each. The first option of each is the version
+# the site has always run, so a request that names no variant reproduces
+# every earlier run and every baseline exactly. `kwargs` is what the option
+# passes to the sorting function; `info` corrects the legacy info block for
+# the variants that change a figure in it. The lesson file's `variants`
+# block uses the same keys and option ids.
+# ---------------------------------------------------------------------------
+
+SORT_VARIANTS = {
+    "Bubble Sort": {
+        "key": "early_exit",
+        "label": "Early exit",
+        "options": [
+            ("off", "Off", {"early_exit": False}, {}),
+            ("on", "On", {"early_exit": True},
+             {"time_complexity": {"Best": "O(n)", "Average/Worst": "O(n^2)"}}),
+        ],
+    },
+    "Merge Sort": {
+        "key": "compare",
+        "label": "Merge comparison",
+        "options": [
+            ("lt", "left < right", {"stable": False}, {}),
+            ("le", "left <= right", {"stable": True}, {"stable": True}),
+        ],
+    },
+    "Quick Sort": {
+        "key": "pivot",
+        "label": "Pivot",
+        "options": [
+            ("last", "Last", {"pivot_rule": "last"}, {}),
+            ("middle", "Middle", {"pivot_rule": "middle"},
+             {"time_complexity": {"Best": "O(n log n)", "Average/Worst": "O(n^2)"}}),
+            ("random", "Random (seeded)", {"pivot_rule": "random"},
+             {"time_complexity": {"Best": "O(n log n)", "Average/Worst": "O(n^2)"}}),
+        ],
+    },
+}
+
+# Seeds are whole numbers in this range, so one fits on screen and in a
+# 32 bit integer in the C and Java translations.
+MAX_SEED = 2 ** 31 - 1
+
+
+def _variant_options(name):
+    spec = SORT_VARIANTS.get(name)
+    return {opt[0]: opt for opt in spec["options"]} if spec else {}
+
+
+def _default_variant(name):
+    spec = SORT_VARIANTS.get(name)
+    return spec["options"][0][0] if spec else None
+
+
+def _read_variant(name, raw_variant, raw_seed):
+    """Check the requested variant and seed. Returns (variant, seed, error).
+
+    An algorithm with no switch accepts no variant. Only the random pivot
+    takes a seed; when it is asked for without one, the server picks one and
+    reports it, so the run can still be replayed from what is on screen."""
+    options = _variant_options(name)
+    if raw_variant in (None, ""):
+        variant = _default_variant(name)
+    elif raw_variant not in options:
+        if not options:
+            return None, None, "%s has no variants." % name
+        return None, None, "%s has no variant %r. Choose one of: %s." % (
+            name, raw_variant, ", ".join(options))
+    else:
+        variant = raw_variant
+
+    if not (name == "Quick Sort" and variant == "random"):
+        return variant, None, None
+    if raw_seed in (None, ""):
+        return variant, random.randint(1, 99999), None
+    if isinstance(raw_seed, bool):
+        return None, None, "The seed must be a whole number."
+    try:
+        seed = int(str(raw_seed).strip())
+    except ValueError:
+        return None, None, "The seed must be a whole number."
+    if not 0 <= seed <= MAX_SEED:
+        return None, None, "The seed must be between 0 and %d." % MAX_SEED
+    return variant, seed, None
+
+
+class _Tracked(int):
+    """An int that remembers the position it started at.
+
+    The sorts only compare and move values, so they carry this through
+    untouched, and every frame can say where each value came from. That is
+    what lets the page tag equal values 5a and 5b and show whether a sort
+    kept them in order."""
+
+    def __new__(cls, value, origin):
+        item = int.__new__(cls, value)
+        item.origin = origin
+        return item
+
+
+def _plain(value):
+    """A step field with the tracked ints turned back into plain ones."""
+    if isinstance(value, _Tracked):
+        return int(value)
+    if isinstance(value, list):
+        return [_plain(v) for v in value]
+    if isinstance(value, dict):
+        return {k: _plain(v) for k, v in value.items()}
+    return value
+
+
+def _variants_for_template():
+    """The switches as the Setup column draws them: display name to
+    {key, label, options: [[id, label], ...]}."""
+    return {
+        name: {"key": spec["key"], "label": spec["label"],
+               "options": [[opt[0], opt[1]] for opt in spec["options"]]}
+        for name, spec in SORT_VARIANTS.items()
+    }
+
+
+def _sort_payload(name, values, variant=None, seed=None):
     """One run, in the shape /run_sort answers with.
 
     POST /sorting and /run_sort both go through here, so the page cannot be
-    served one thing and the endpoint another.
+    served one thing and the endpoint another. `variant` defaults to the
+    algorithm's first option, which is the version the site always ran.
     """
     steps = []
+    if variant is None:
+        variant = _default_variant(name)
+    kwargs = {}
+    info_overrides = {}
+    if variant is not None:
+        _, _, kwargs, info_overrides = _variant_options(name)[variant]
+        kwargs = dict(kwargs)
+        if kwargs.get("pivot_rule") == "random":
+            kwargs["seed"] = seed
 
     def draw(array_state, compared_indices=None, meta=None):
         step_data = {
-            "array": array_state[:],
+            "array": [int(v) for v in array_state],
             "compared": compared_indices[:] if compared_indices else [],
+            # Where each value on screen started, for the stability tags.
+            "origins": [v.origin for v in array_state],
         }
         if meta:
-            step_data.update(meta)
+            step_data.update(_plain(meta))
         # The work done so far, read off the counter the result reports, so
         # the running total on screen cannot drift from the final one. The
         # Learn panel shows these as the run plays.
@@ -281,19 +418,24 @@ def _sort_payload(name, values):
         steps.append(step_data)
 
     stats = {"swaps": 0, "comparisons": 0}
-    working = list(values)
-    sorting_algo_dict[name](working, draw, lambda: None, stats)
-    details = sorting_algo_details[name]
+    working = [_Tracked(v, i) for i, v in enumerate(values)]
+    sorting_algo_dict[name](working, draw, lambda: None, stats, **kwargs)
+    details = dict(sorting_algo_details[name], **info_overrides)
 
     return {
         "steps": steps,
         "array": list(values),
-        "sorted": working,
+        "sorted": [int(v) for v in working],
         "algorithm": name,
+        # The run records which version of the algorithm made it, and the
+        # seed when there is one, so it can be replayed exactly.
+        "variant": variant,
+        "seed": seed if kwargs.get("pivot_rule") == "random" else None,
         "result": {
             "comparisons": stats["comparisons"],
             "swaps": stats["swaps"],
             "n": len(values),
+            "kept_equal_order": _kept_equal_order(working),
         },
         "info": {
             "stable": details["stable"],
@@ -302,6 +444,20 @@ def _sort_payload(name, values):
             "description": details["description"],
         },
     }
+
+
+def _kept_equal_order(final):
+    """True when every group of equal values ended in its starting order.
+
+    None when the input had no equal values, because then there was nothing
+    for a sort to keep or break."""
+    seen = {}
+    for item in final:
+        seen.setdefault(int(item), []).append(item.origin)
+    groups = [g for g in seen.values() if len(g) > 1]
+    if not groups:
+        return None
+    return all(g == sorted(g) for g in groups)
 
 
 # ---------------------------------------------------------------------------
@@ -341,7 +497,11 @@ def run_sort():
             if problem:
                 return jsonify({"error": problem}), 400
 
-        return jsonify(_sort_payload(name, values))
+        variant, seed, problem = _read_variant(name, data.get("variant"), data.get("seed"))
+        if problem:
+            return jsonify({"error": problem}), 400
+
+        return jsonify(_sort_payload(name, values, variant, seed))
     except Exception as e:
         return jsonify({"error": "An error occurred: %s" % e}), 500
 
@@ -499,13 +659,22 @@ def handle_sorting():
             else:
                 values = [random.randint(1, 100) for _ in range(size)]
 
+    variant, seed = None, None
+    if not error:
+        variant, seed, error = _read_variant(selected_algo,
+                                             request.form.get("variant"),
+                                             request.form.get("seed"))
+        if error:
+            values = []
+
     return render_template(
         "sorting.html",
         sorting_algorithms=list(sorting_algo_dict.keys()),
         selected_algo=selected_algo,
         lesson_ids=SORT_LESSON_IDS,
         pick_notes=SORT_PICK_NOTES,
-        initial_run=None if error else _sort_payload(selected_algo, values),
+        sort_variants=_variants_for_template(),
+        initial_run=None if error else _sort_payload(selected_algo, values, variant, seed),
         error=error,
     )
 

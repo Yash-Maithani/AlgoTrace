@@ -219,6 +219,9 @@
                         state = step.action === 'found' ? 'found' : 'current';
                     }
                     cell.setAttribute('data-state', state);
+                    // The cells are only rebuilt when the length changes, so
+                    // a new run of the same length must still show its values.
+                    cell.querySelector('.cell-box').textContent = values[index];
 
                     var pointers = cell.firstChild;
                     pointers.innerHTML = '';
