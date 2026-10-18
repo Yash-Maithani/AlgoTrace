@@ -38,17 +38,23 @@ window.LESSONS.dijkstra = {
         time: {
             best: {
                 value: 'O(V squared)',
-                reason: 'The min() scan reads every unvisited node to find the nearest one. That is V nodes on the first pass, V-1 on the second, and so on, whatever the weights are.'
+                theta: 'V squared',
+                reason: 'Even the cheapest graph in which the start reaches every node needs V picks, and each pick walks every one of the V nodes in node_order to find the nearest unvisited one, whatever the weights are.'
             },
             average: {
                 value: 'O(V squared)',
+                theta: 'V squared',
                 reason: 'V scans of up to V nodes gives V squared, and the relaxation loop adds only E on top, which is the smaller term on a dense graph.'
             },
             worst: {
                 value: 'O(V squared)',
-                reason: 'The scan cost does not depend on the input at all. Even a graph with one edge pays the full V squared in scanning.'
+                theta: 'V squared',
+                reason: 'The scan cost does not depend on the weights or the edges: any graph in which the start reaches every node pays V scans of V nodes. The relaxation loop adds E on top, and E is at most V squared.'
             }
         },
+        overall: { O: 'V squared', Omega: 'V squared', Theta: 'V squared' },
+        misconception: 'Best, average and worst are cases: three kinds of input. O, Omega and Theta are bounds: a ceiling on the growth, a floor under it, and both at once. Every case has its own bounds, so reading O as the worst case, Omega as the best and Theta as the average mixes up two different ideas.',
+        caseScope: 'The cases are over graphs in which the start reaches every node, which is what the page generator makes. A start that reaches fewer nodes does less work, because the part it cannot reach is never touched.',
         worked: {
             input: 'A-B 4, A-C 2, B-D 5, C-D 8, D-E 6 starting at A',
             comparisons: 5,

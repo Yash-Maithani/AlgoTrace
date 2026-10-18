@@ -55,17 +55,22 @@ window.LESSONS.merge_sort = {
         time: {
             best: {
                 value: 'O(n log n)',
+                theta: 'n log n',
                 reason: 'The list is always cut exactly in half, so there are always about log n levels, and every level merges all n values. The input cannot make the splitting any cheaper.'
             },
             average: {
                 value: 'O(n log n)',
+                theta: 'n log n',
                 reason: 'Same shape of work. Each merge of two runs costs at most one comparison per value taken.'
             },
             worst: {
                 value: 'O(n log n)',
+                theta: 'n log n',
                 reason: 'Even in the worst arrangement a merge costs one comparison per value, so a level is O(n) and the total is O(n log n). This is the only sort here with no bad case.'
             }
         },
+        overall: { O: 'n log n', Omega: 'n log n', Theta: 'n log n' },
+        misconception: 'Best, average and worst are cases: three kinds of input. O, Omega and Theta are bounds: a ceiling on the growth, a floor under it, and both at once. Every case has its own bounds, so reading O as the worst case, Omega as the best and Theta as the average mixes up two different ideas.',
         worked: {
             input: '[5, 3, 8, 1, 9]',
             comparisons: 7,

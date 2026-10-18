@@ -56,17 +56,22 @@ window.LESSONS.insertion_sort = {
         time: {
             best: {
                 value: 'O(n)',
+                theta: 'n',
                 reason: 'On an already sorted list the key is never smaller than the value to its left, so the while loop breaks after one comparison each time. That is n-1 comparisons in total.'
             },
             average: {
                 value: 'O(n squared)',
+                theta: 'n squared',
                 reason: 'A value lands roughly halfway back into the sorted run on average, so each of the n keys costs about i/2 comparisons.'
             },
             worst: {
                 value: 'O(n squared)',
+                theta: 'n squared',
                 reason: 'On a reversed list every key has to walk past the whole sorted run, giving 1 + 2 + ... + (n-1) = n(n-1)/2 comparisons.'
             }
         },
+        overall: { O: 'n squared', Omega: 'n', Theta: null },
+        misconception: 'Best, average and worst are cases: three kinds of input. O, Omega and Theta are bounds: a ceiling on the growth, a floor under it, and both at once. Every case has its own bounds, so reading O as the worst case, Omega as the best and Theta as the average mixes up two different ideas.',
         worked: {
             input: '[5, 3, 8, 1, 9]',
             comparisons: 6,

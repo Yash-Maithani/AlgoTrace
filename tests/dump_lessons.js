@@ -1,6 +1,7 @@
-/* Prints the sorting lessons as JSON, each variant already resolved the way
-   the page resolves it, so the Python tests can check the figures in them
-   against the code. Run by tests/test_variants.py. */
+/* Prints every lesson as JSON, each variant already resolved the way the
+   page resolves it, so the Python tests can check the figures in them
+   against the code. Run by tests/test_variants.py and tests/test_phase11.py.
+   A lesson with no switch appears under the single option ''. */
 const fs = require('fs');
 const path = require('path');
 
@@ -16,7 +17,6 @@ fs.readdirSync(LESSON_DIR).filter(function (n) { return n.endsWith('.js'); })
 const out = {};
 Object.keys(window.LESSONS).forEach(function (key) {
     const lesson = window.LESSONS[key];
-    if (lesson.family !== 'sorting') return;
     const ids = VARIANTS.optionIds(lesson);
     out[key] = {
         default: VARIANTS.defaultOf(lesson),

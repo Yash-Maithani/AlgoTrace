@@ -44,17 +44,22 @@ window.LESSONS.bubble_sort = {
         time: {
             best: {
                 value: 'O(n squared)',
+                theta: 'n squared',
                 reason: 'The inner loop runs n-1 times, then n-2, and so on, whatever the values are. Nothing in this code stops a pass early, so a sorted list costs exactly as much as a shuffled one.'
             },
             average: {
                 value: 'O(n squared)',
+                theta: 'n squared',
                 reason: 'The number of comparisons does not depend on the input at all. It is always n(n-1)/2.'
             },
             worst: {
                 value: 'O(n squared)',
+                theta: 'n squared',
                 reason: 'Same count again. A reverse sorted list costs no more comparisons than a sorted one, only more swaps.'
             }
         },
+        overall: { O: 'n squared', Omega: 'n squared', Theta: 'n squared' },
+        misconception: 'Best, average and worst are cases: three kinds of input. O, Omega and Theta are bounds: a ceiling on the growth, a floor under it, and both at once. Every case has its own bounds, so reading O as the worst case, Omega as the best and Theta as the average mixes up two different ideas.',
         worked: {
             input: '[5, 3, 8, 1, 9]',
             comparisons: 10,
@@ -130,17 +135,21 @@ window.LESSONS.bubble_sort = {
                     time: {
                         best: {
                             value: 'O(n)',
+                            theta: 'n',
                             reason: 'On a list that is already in order the first pass makes n-1 comparisons and no swaps, so the flag ends the sort after that one pass.'
                         },
                         average: {
                             value: 'O(n squared)',
+                            theta: 'n squared',
                             reason: 'A shuffled list keeps swapping until its last few passes, so the passes that are skipped are the short ones and the total still grows as n squared.'
                         },
                         worst: {
                             value: 'O(n squared)',
+                            theta: 'n squared',
                             reason: 'A reversed list swaps in every pass, so no pass comes back clean early and all n(n-1)/2 comparisons are made, exactly as without the flag.'
                         }
                     },
+                    overall: { O: 'n squared', Omega: 'n', Theta: null },
                     worked: {
                         input: '[5, 3, 8, 1, 9]',
                         comparisons: 10,

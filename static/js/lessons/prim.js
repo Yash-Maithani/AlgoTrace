@@ -40,18 +40,24 @@ window.LESSONS.prim = {
     complexity: {
         time: {
             best: {
-                value: 'O(E log E)',
-                reason: 'Every edge is pushed into the heap as soon as one of its ends joins the tree, and each push costs log of the heap size.'
+                value: 'O(V)',
+                theta: 'V',
+                reason: 'A path that begins at the start: each node that joins the tree pushes the one edge to its unvisited neighbour, so the heap never holds more than a couple of entries and every push and pop is constant time. That is V-1 rounds.'
             },
             average: {
                 value: 'O(E log E)',
-                reason: 'Up to E pushes and E pops, each log E. The tree itself only ever takes V-1 edges, but the heap sees far more than that.'
+                theta: 'E log E',
+                reason: 'On a random connected graph up to E edges are pushed and popped, and the heap grows to a size in proportion to E, so each push and pop costs about log E.'
             },
             worst: {
                 value: 'O(E log E)',
-                reason: 'An edge whose far end is already in the tree is still pushed, popped and only then discarded, so the heap traffic is driven by E and not by V.'
+                theta: 'E log E',
+                reason: 'A complete graph: an edge whose far end is already in the tree is still pushed, popped and only then discarded, so the heap traffic is driven by E and not by V, and the heap holds a share of all E edges at once.'
             }
         },
+        overall: { O: 'E log E', Omega: 'V', Theta: null },
+        misconception: 'Best, average and worst are cases: three kinds of input. O, Omega and Theta are bounds: a ceiling on the growth, a floor under it, and both at once. Every case has its own bounds, so reading O as the worst case, Omega as the best and Theta as the average mixes up two different ideas.',
+        caseScope: 'The cases are over graphs in which the start reaches every node, which is what the page generator makes. A start that reaches fewer nodes does less work, because the part it cannot reach is never touched.',
         worked: {
             input: 'A-B 4, A-C 2, B-D 5, C-D 8, D-E 6 starting at A',
             comparisons: 4,

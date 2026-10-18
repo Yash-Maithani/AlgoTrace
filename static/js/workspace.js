@@ -193,6 +193,10 @@
                 link.setAttribute('aria-current',
                     link.getAttribute('data-algorithm') === name ? 'true' : 'false');
             });
+        /* The loaded run belongs to the algorithm just left. Kept, its steps
+           would play under the new algorithm's name, code and counters, so
+           it goes, exactly as a refused run does. */
+        if (this.payload) this.discard();
         if (this.panel) this.panel.setLesson((this.options.lessons || {})[name]);
         if (this.options.onAlgorithmChange) this.options.onAlgorithmChange(name);
     };
@@ -229,6 +233,7 @@
             return;
         }
 
+        var askedFor = this.algorithm;
         fetch(this.options.endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -240,6 +245,9 @@
                 });
             })
             .then(function (result) {
+                // The learner switched algorithm while this was in flight,
+                // so the answer is for a page that is no longer showing.
+                if (self.algorithm !== askedFor) return;
                 if (!result.ok || result.body.error) {
                     /* There is no run now. Anything still on screen belongs
                        to the last one and would be read as this one. */

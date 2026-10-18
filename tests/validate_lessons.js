@@ -103,8 +103,18 @@ function checkLesson(lesson, key, file) {
         const entry = c.time && c.time[band];
         if (!entry || !entry.value || !entry.reason) {
             complain(file, 'complexity.time.' + band + ' needs a value and a reason');
+            return;
+        }
+        // Each case states its tight bound, and the O shown for the case is
+        // that same bound, so the two can never disagree.
+        if (BOUNDS.indexOf(entry.theta) === -1) {
+            complain(file, 'complexity.time.' + band + '.theta must be one of: ' + BOUNDS.join(', '));
+        } else if (entry.value !== 'O(' + entry.theta + ')') {
+            complain(file, 'complexity.time.' + band + '.value is ' + entry.value +
+                     ' but its theta says O(' + entry.theta + ')');
         }
     });
+    checkOverall(lesson, file);
     ['worked', 'space', 'auxiliaryNote', 'thisRun', 'growth',
      'growthBasis', 'growthNote'].forEach(function (field) {
         if (!(field in c)) complain(file, 'complexity is missing ' + field);
@@ -132,6 +142,68 @@ function checkLesson(lesson, key, file) {
     const wanted = lesson.family === 'graph' ? FIXED_THIS_RUN_GRAPH : FIXED_THIS_RUN;
     if (c.thisRun !== wanted) {
         complain(file, 'thisRun must use the shared wording for its family');
+    }
+}
+
+// Phase 11. The bounds a case or the overall line may state, written the
+// way the rest of the lesson writes figures. `k times E` is Bellman-Ford's
+// average, where k is its number of passes.
+const BOUNDS = ['1', 'log n', 'n', 'n log n', 'n squared',
+                'V', 'E', 'V squared', 'V cubed', 'V times E', 'E log E', 'k times E'];
+
+// Which growth curve a one variable worst case has. A bound missing here
+// names two variables at once, so the lesson draws no curve for it.
+const CURVE_OF = {
+    '1': '1', 'log n': 'logn', 'n': 'n', 'n log n': 'nlogn', 'n squared': 'n2',
+    'V': 'n', 'E': 'n', 'V squared': 'n2', 'V cubed': 'n3', 'E log E': 'nlogn'
+};
+
+const FIXED_MISCONCEPTION =
+    'Best, average and worst are cases: three kinds of input. O, Omega and Theta ' +
+    'are bounds: a ceiling on the growth, a floor under it, and both at once. Every ' +
+    'case has its own bounds, so reading O as the worst case, Omega as the best and ' +
+    'Theta as the average mixes up two different ideas.';
+
+function checkOverall(lesson, file) {
+    const c = lesson.complexity;
+    const t = c.time;
+    const o = c.overall;
+    if (!t || !t.best || !t.worst) return;
+    if (!o || typeof o !== 'object') {
+        complain(file, 'complexity.overall is missing');
+        return;
+    }
+    ['O', 'Omega', 'Theta'].forEach(function (k) {
+        if (!(k in o)) complain(file, 'complexity.overall is missing ' + k);
+    });
+    // Across every input, the growth is at most the worst case and at least
+    // the best case. A single Theta exists only when those two agree.
+    if (o.O !== t.worst.theta) {
+        complain(file, 'overall.O is ' + o.O + ' but the worst case is ' + t.worst.theta);
+    }
+    if (o.Omega !== t.best.theta) {
+        complain(file, 'overall.Omega is ' + o.Omega + ' but the best case is ' + t.best.theta);
+    }
+    const tight = t.best.theta === t.worst.theta ? t.best.theta : null;
+    if (o.Theta !== tight) {
+        complain(file, 'overall.Theta must be ' + (tight === null
+            ? 'null, because the best and worst cases differ'
+            : tight + ', because the best and worst cases agree'));
+    }
+    if (c.growth !== (CURVE_OF[t.worst.theta] || null)) {
+        complain(file, 'growth is ' + c.growth + ' but the worst case ' + t.worst.theta +
+                 ' has the curve ' + (CURVE_OF[t.worst.theta] || null));
+    }
+    if (c.misconception !== FIXED_MISCONCEPTION) {
+        complain(file, 'complexity.misconception must use the shared wording');
+    }
+    // A graph's cases need saying which graphs they range over.
+    if (lesson.family === 'graph') {
+        if (typeof c.caseScope !== 'string' || !c.caseScope.trim()) {
+            complain(file, 'a graph lesson says which graphs its cases range over in complexity.caseScope');
+        }
+    } else if ('caseScope' in c) {
+        complain(file, 'caseScope belongs only to graph lessons');
     }
 }
 

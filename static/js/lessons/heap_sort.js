@@ -19,7 +19,7 @@ window.LESSONS.heap_sort = {
         random: "A typical input. Heap sort does about n log n work whatever the order.",
         sorted: "Sorted input gets no shortcut: building the heap and taking out the maximum still cost about n log n.",
         reversed: "Reversed input is already close to a max heap, so building it is cheap, but the extractions still cost about n log n.",
-        equal: "Fewer swaps than other inputs: equal values never move up, so the sift down stops at once.",
+        equal: "The best case: equal values never move, so every sift down stops at once and the whole sort costs about 3n comparisons, not n log n.",
         nearly: "No shortcut for nearly sorted input: the work stays at about n log n."
     },
 
@@ -54,18 +54,23 @@ window.LESSONS.heap_sort = {
     complexity: {
         time: {
             best: {
-                value: 'O(n log n)',
-                reason: 'Building the heap costs O(n), then each of the n-1 extractions repairs a heap of height log n. Nothing about the input lets the repair stop early.'
+                value: 'O(n)',
+                theta: 'n',
+                reason: 'On a list of equal values no child is ever bigger than its parent, so every sift down stops after at most two comparisons and never recurses. That is 3n - 6 comparisons for n of 3 or more. Distinct values cannot do this: then the best case is n log n, because each extraction has to sift a small value back down.'
             },
             average: {
                 value: 'O(n log n)',
-                reason: 'Each repair walks at most one path from the root to a leaf, comparing up to two children per level.'
+                theta: 'n log n',
+                reason: 'Each repair walks one path from the root towards a leaf, comparing up to two children per level, and on distinct values a repair usually goes most of the way down.'
             },
             worst: {
                 value: 'O(n log n)',
+                theta: 'n log n',
                 reason: 'The height of the heap bounds every repair, so there is no arrangement that makes a repair longer than log n levels.'
             }
         },
+        overall: { O: 'n log n', Omega: 'n', Theta: null },
+        misconception: 'Best, average and worst are cases: three kinds of input. O, Omega and Theta are bounds: a ceiling on the growth, a floor under it, and both at once. Every case has its own bounds, so reading O as the worst case, Omega as the best and Theta as the average mixes up two different ideas.',
         worked: {
             input: '[5, 3, 8, 1, 9]',
             comparisons: 11,

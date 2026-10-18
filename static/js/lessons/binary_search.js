@@ -52,17 +52,22 @@ window.LESSONS.binary_search = {
         time: {
             best: {
                 value: 'O(1)',
+                theta: '1',
                 reason: 'If the target happens to sit at the first middle position the loop answers after one comparison.'
             },
             average: {
                 value: 'O(log n)',
+                theta: 'log n',
                 reason: 'Every comparison that misses throws away half of what is left, so the range shrinks 5, 2, 1 rather than 5, 4, 3.'
             },
             worst: {
                 value: 'O(log n)',
+                theta: 'log n',
                 reason: 'The range can only be halved so many times before it is empty, which is log base 2 of n steps. A missing target costs exactly that.'
             }
         },
+        overall: { O: 'log n', Omega: '1', Theta: null },
+        misconception: 'Best, average and worst are cases: three kinds of input. O, Omega and Theta are bounds: a ceiling on the growth, a floor under it, and both at once. Every case has its own bounds, so reading O as the worst case, Omega as the best and Theta as the average mixes up two different ideas.',
         worked: {
             input: '[4, 8, 15, 16, 23], target 4',
             comparisons: 2,

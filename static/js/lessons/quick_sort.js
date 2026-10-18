@@ -54,17 +54,22 @@ window.LESSONS.quick_sort = {
         time: {
             best: {
                 value: 'O(n log n)',
+                theta: 'n log n',
                 reason: 'When each pivot lands near the middle, the range halves every time, so there are about log n levels and each level scans n values once.'
             },
             average: {
                 value: 'O(n log n)',
+                theta: 'n log n',
                 reason: 'On shuffled input the pivot is rarely near either end, so the ranges shrink quickly enough to keep the depth logarithmic.'
             },
             worst: {
                 value: 'O(n squared)',
+                theta: 'n squared',
                 reason: 'The pivot is always the last value. On a list that is already sorted, or reverse sorted, every partition peels off one value and leaves n-1 behind, giving n(n-1)/2 comparisons.'
             }
         },
+        overall: { O: 'n squared', Omega: 'n log n', Theta: null },
+        misconception: 'Best, average and worst are cases: three kinds of input. O, Omega and Theta are bounds: a ceiling on the growth, a floor under it, and both at once. Every case has its own bounds, so reading O as the worst case, Omega as the best and Theta as the average mixes up two different ideas.',
         worked: {
             input: '[5, 3, 8, 1, 9]',
             comparisons: 9,
@@ -147,17 +152,21 @@ window.LESSONS.quick_sort = {
                     time: {
                         best: {
                             value: 'O(n log n)',
+                            theta: 'n log n',
                             reason: 'When the middle value is the median of its range, each partition halves the range. A sorted or reversed list starts that way, so both now cost fewer than n log2 n comparisons.'
                         },
                         average: {
                             value: 'O(n log n)',
+                            theta: 'n log n',
                             reason: 'On shuffled input the middle position holds a value no better or worse than any other, so it behaves like a random pivot and the depth stays logarithmic.'
                         },
                         worst: {
                             value: 'O(n squared)',
+                            theta: 'n squared',
                             reason: 'An all equal list still costs n(n-1)/2: no value is smaller than the pivot, so every split peels off one value. Some arrangements built against the middle choice do the same.'
                         }
                     },
+                    overall: { O: 'n squared', Omega: 'n log n', Theta: null },
                     worked: {
                         input: '[5, 3, 8, 1, 9]',
                         comparisons: 6,
@@ -223,17 +232,21 @@ window.LESSONS.quick_sort = {
                     time: {
                         best: {
                             value: 'O(n log n)',
+                            theta: 'n log n',
                             reason: 'When the seed happens to pick values near the middle, each partition halves the range, so there are about log n levels of n comparisons each.'
                         },
                         average: {
                             value: 'O(n log n)',
+                            theta: 'n log n',
                             reason: 'Whatever the order of distinct values, a random pivot is a typical value, so averaged over seeds the count is 2(n+1)H(n) - 4n, about 1.39 n log2 n, where H(n) = 1 + 1/2 + ... + 1/n.'
                         },
                         worst: {
                             value: 'O(n squared)',
+                            theta: 'n squared',
                             reason: 'An unlucky seed can still pick the smallest or largest value every time, and an all equal list costs n(n-1)/2 for every seed.'
                         }
                     },
+                    overall: { O: 'n squared', Omega: 'n log n', Theta: null },
                     worked: {
                         input: '[5, 3, 8, 1, 9]',
                         seed: 42,

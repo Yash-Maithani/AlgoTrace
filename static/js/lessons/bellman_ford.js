@@ -43,17 +43,23 @@ window.LESSONS.bellman_ford = {
         time: {
             best: {
                 value: 'O(E)',
-                reason: 'This version stops as soon as a whole pass changes nothing. On a graph where one sweep settles everything, that costs two passes: the useful one and the quiet one that proves it.'
+                theta: 'E',
+                reason: 'When the edges are listed outward from the start, the first pass settles every distance, the second changes nothing, and the loop stops: two sweeps of E edges.'
             },
             average: {
-                value: 'O(V times E)',
-                reason: 'Each pass sweeps all E edges, and up to V-1 passes are needed, because a shortest path gains at most one edge per pass.'
+                value: 'O(k times E)',
+                theta: 'k times E',
+                reason: 'Each pass sweeps all E edges and the loop stops after k passes, where k is one more than the number of passes it takes to settle every distance. That depends on how many edges the shortest paths have and the order the edges are listed in, so it is written with its own letter. On random connected graphs k stays small.'
             },
             worst: {
                 value: 'O(V times E)',
-                reason: 'A path that threads through every node needs V-1 passes to form, and the edge order can force exactly that.'
+                theta: 'V times E',
+                reason: 'A path listed from its far end back to the start: each pass settles just one more node, so all V-1 passes run, each sweeping all E edges.'
             }
         },
+        overall: { O: 'V times E', Omega: 'E', Theta: null },
+        misconception: 'Best, average and worst are cases: three kinds of input. O, Omega and Theta are bounds: a ceiling on the growth, a floor under it, and both at once. Every case has its own bounds, so reading O as the worst case, Omega as the best and Theta as the average mixes up two different ideas.',
+        caseScope: 'The cases are over graphs in which the start reaches every node, which is what the page generator makes. A start that reaches fewer nodes does less work, because the part it cannot reach is never touched.',
         worked: {
             input: 'A-B 4, A-C 2, B-D 5, C-D 8, D-E 6 starting at A',
             comparisons: 20,

@@ -88,6 +88,10 @@ window.LESSONS.bubble_sort = { /* the object below */ };
 | `code.pseudocode` | list of `{id, text, indent}` | `id` is null for a line no step ever lands on |
 | `code.python` | list of `{id, text, indent}` | the same ids, matching the real file in `sorting_algorithms/` |
 | `complexity.time` | `{best, average, worst}` | each `{value, reason}`, the reason tied to the code |
+| `complexity.time.<case>.theta` | string | Phase 11. The tight bound for that case, derived from this repository's code and measured by `tests/test_phase11.py`. One of `1`, `log n`, `n`, `n log n`, `n squared`, `V`, `E`, `V squared`, `V cubed`, `V times E`, `E log E`, `k times E` (Bellman-Ford's average, k being its number of passes). The case's `value` must read `O(<theta>)` |
+| `complexity.overall` | `{O, Omega, Theta}` | the bounds across every input. `O` equals the worst case's theta, `Omega` the best case's, and `Theta` is that bound when the two agree and `null` when they differ |
+| `complexity.misconception` | string | the shared note that cases (best, average, worst) and bounds (O, Omega, Theta) are different ideas. Same wording in every lesson, exactly as in `tests/validate_lessons.js` |
+| `complexity.caseScope` | string | graph lessons only, required. Which graphs the cases range over, for example graphs where the start reaches every node |
 | `complexity.worked` | `{input, comparisons, note}` | an exact count for a real n = 5 input |
 | `complexity.space` | `{value, what}` | `what` names the memory, for example "the recursion stack" |
 | `complexity.auxiliaryNote` | string | the fixed explanation of what auxiliary means |
@@ -117,6 +121,12 @@ verbatim in its caption, its "this run" row and the chart's accessible name, and
 curve named by `growth` is only ever offered as the shape that figure has, never as the
 figure itself. The old per algorithm panels under the graph workspace used to carry
 their own copy; four of the seven contradicted the tab, so they now carry none.
+
+A case is a kind of input; a bound is a statement about growth. Every case
+has its own Theta, and the overall line follows from the extreme cases: the
+growth on any input is at most the worst case's and at least the best
+case's. The `growth` curve is the shape of the worst case's theta, or `null`
+when that theta names two variables. The validator enforces all of this.
 
 `complexity.auxiliaryNote` is the same wording on every algorithm and `complexity.thisRun`
 the same within a family, so the learner reads one explanation rather than fifteen

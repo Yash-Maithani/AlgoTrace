@@ -56,7 +56,7 @@ sorting_algo_details = {
     },
     "Heap Sort": {
         "description": "Heap Sort builds a heap from the input data and repeatedly extracts the maximum element from the heap and rebuilds the heap.",
-        "time_complexity": {"Best": "O(n log n)", "Average/Worst": "O(n log n)"},
+        "time_complexity": {"Best": "O(n)", "Average/Worst": "O(n log n)"},
         "space_complexity": "O(log n)",
         "stable": False
     },
@@ -1124,6 +1124,14 @@ def run_kruskal():
         if not isinstance(nodes, list) or not isinstance(edges, list):
             return jsonify({"error": "nodes and edges must both be lists."}), 400
 
+        # A set, so checking an edge's ends costs one look-up each rather
+        # than a scan of the node list. As a list scan this check alone made
+        # the endpoint O(V times E) before Kruskal itself had started.
+        try:
+            known = set(nodes)
+        except TypeError:
+            return jsonify({"error": "Node names must be text or numbers."}), 400
+
         clean_edges = []
         for edge in edges:
             if not isinstance(edge, (list, tuple)) or len(edge) != 3:
@@ -1132,7 +1140,7 @@ def run_kruskal():
             problem = _check_weight(weight, u, v)
             if problem:
                 return jsonify({"error": problem}), 400
-            if u not in nodes or v not in nodes:
+            if isinstance(u, (list, dict)) or isinstance(v, (list, dict))                     or u not in known or v not in known:
                 return jsonify({"error": f"Edge {u}-{v} references a node outside the node list."}), 400
             clean_edges.append((u, v, weight))
 

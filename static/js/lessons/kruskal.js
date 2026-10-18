@@ -38,18 +38,24 @@ window.LESSONS.kruskal = {
     complexity: {
         time: {
             best: {
-                value: 'O(E log E)',
-                reason: 'The sort has to see every edge before the first one can be chosen, so even a graph that needs only its two cheapest edges pays for sorting all of them.'
+                value: 'O(E)',
+                theta: 'E',
+                reason: 'Edges that arrive already in order of weight: Python\'s sort, Timsort, spots the sorted run in E-1 comparisons, and the walk down the list does one near constant Union-Find check per edge.'
             },
             average: {
                 value: 'O(E log E)',
-                reason: 'The sort dominates. The walk down the list is E steps, and each Union-Find query is near constant thanks to path halving and union by rank.'
+                theta: 'E log E',
+                reason: 'Edges in shuffled order of weight cost about E log E comparisons to sort. The walk down the list is E steps, and each Union-Find query is near constant thanks to path halving and union by rank.'
             },
             worst: {
                 value: 'O(E log E)',
-                reason: 'Same sort. The union and find operations grow so slowly, by the inverse Ackermann function, that they are effectively constant for any graph that fits in memory.'
+                theta: 'E log E',
+                reason: 'Same sort. The union and find operations grow so slowly, by the inverse Ackermann function, that they are effectively constant for any graph that fits in memory, so the sort sets the pace.'
             }
         },
+        overall: { O: 'E log E', Omega: 'E', Theta: null },
+        misconception: 'Best, average and worst are cases: three kinds of input. O, Omega and Theta are bounds: a ceiling on the growth, a floor under it, and both at once. Every case has its own bounds, so reading O as the worst case, Omega as the best and Theta as the average mixes up two different ideas.',
+        caseScope: 'The cases are over connected graphs, which is what the page generator makes.',
         worked: {
             input: 'A-B 4, A-C 2, B-D 5, C-D 8, D-E 6 over nodes A to E',
             comparisons: 5,

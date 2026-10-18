@@ -37,18 +37,24 @@ window.LESSONS.dfs = {
     complexity: {
         time: {
             best: {
-                value: 'O(V times E)',
-                reason: 'Like the breadth-first endpoint it has no early exit, so it empties the stack whatever it finds on the way.'
+                value: 'O(V)',
+                theta: 'V',
+                reason: 'A path that begins at the start: the stack never holds more than one node, so each of the V visits and their `not in stack` checks costs a constant amount.'
             },
             average: {
                 value: 'O(V times E)',
-                reason: 'The `neighbor not in stack` test scans a list that can hold up to V nodes, and it runs once per edge.'
+                theta: 'V times E',
+                reason: 'On a random connected graph the stack holds a steady share of all the nodes for much of the run, and the `neighbor not in stack` test scans it for a steady share of the edges, so the total is a constant fraction of V times E.'
             },
             worst: {
                 value: 'O(V times E)',
-                reason: 'Same scan once per edge. Taking from the top of the stack is cheap, unlike the front of a queue, so this is the only linear cost.'
+                theta: 'V times E',
+                reason: 'A star or a complete graph: the start pushes all its neighbours at once, so later edges each scan a stack of about V nodes. Taking from the top of the stack is cheap, unlike the front of a queue, so the scan is the only linear cost.'
             }
         },
+        overall: { O: 'V times E', Omega: 'V', Theta: null },
+        misconception: 'Best, average and worst are cases: three kinds of input. O, Omega and Theta are bounds: a ceiling on the growth, a floor under it, and both at once. Every case has its own bounds, so reading O as the worst case, Omega as the best and Theta as the average mixes up two different ideas.',
+        caseScope: 'The cases are over graphs in which the start reaches every node, which is what the page generator makes. A start that reaches fewer nodes does less work, because the part it cannot reach is never touched.',
         worked: {
             input: 'A-B, A-C, B-D, C-D, D-E starting at A',
             comparisons: 5,

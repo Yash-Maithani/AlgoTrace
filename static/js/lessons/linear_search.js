@@ -44,17 +44,22 @@ window.LESSONS.linear_search = {
         time: {
             best: {
                 value: 'O(1)',
+                theta: '1',
                 reason: 'If the target is the very first value, the loop compares once and returns.'
             },
             average: {
                 value: 'O(n)',
+                theta: 'n',
                 reason: 'A target that is present is equally likely to be anywhere, so on average the loop looks at about half the list, which still grows in step with n.'
             },
             worst: {
                 value: 'O(n)',
+                theta: 'n',
                 reason: 'If the target is last, or missing altogether, every one of the n values is compared before the loop can answer.'
             }
         },
+        overall: { O: 'n', Omega: '1', Theta: null },
+        misconception: 'Best, average and worst are cases: three kinds of input. O, Omega and Theta are bounds: a ceiling on the growth, a floor under it, and both at once. Every case has its own bounds, so reading O as the worst case, Omega as the best and Theta as the average mixes up two different ideas.',
         worked: {
             input: '[4, 8, 15, 16, 23], target 16',
             comparisons: 4,

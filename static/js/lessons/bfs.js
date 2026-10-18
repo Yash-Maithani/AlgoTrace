@@ -37,18 +37,24 @@ window.LESSONS.bfs = {
     complexity: {
         time: {
             best: {
-                value: 'O(V times E)',
-                reason: 'There is no early exit in this version. It drains the queue completely even when the node you wanted was the first one visited.'
+                value: 'O(V)',
+                theta: 'V',
+                reason: 'A path that begins at the start: the queue never holds more than one node, so every visit and every `not in queue` check costs a constant amount, V of them in all.'
             },
             average: {
                 value: 'O(V times E)',
-                reason: 'The duplicate check `neighbor not in queue` scans the queue, which can hold up to V nodes, and it runs once for every edge.'
+                theta: 'V times E',
+                reason: 'On a random connected graph the queue holds a steady share of all the nodes for much of the run, and the `neighbor not in queue` scan runs for a steady share of the edges, so the scans add up to a constant fraction of V times E.'
             },
             worst: {
                 value: 'O(V times E)',
-                reason: 'Same scan, plus queue.pop(0) shifting every remaining element along, once per visit. Both are linear in V, and the edge loop runs E times.'
+                theta: 'V times E',
+                reason: 'A star or a complete graph: the start puts all its neighbours in the queue at once, so later edges each scan a queue of about V nodes. On top of that queue.pop(0) shifts every remaining element along, once per visit.'
             }
         },
+        overall: { O: 'V times E', Omega: 'V', Theta: null },
+        misconception: 'Best, average and worst are cases: three kinds of input. O, Omega and Theta are bounds: a ceiling on the growth, a floor under it, and both at once. Every case has its own bounds, so reading O as the worst case, Omega as the best and Theta as the average mixes up two different ideas.',
+        caseScope: 'The cases are over graphs in which the start reaches every node, which is what the page generator makes. A start that reaches fewer nodes does less work, because the part it cannot reach is never touched.',
         worked: {
             input: 'A-B, A-C, B-D, C-D, D-E starting at A',
             comparisons: 5,

@@ -47,17 +47,22 @@ window.LESSONS.selection_sort = {
         time: {
             best: {
                 value: 'O(n squared)',
+                theta: 'n squared',
                 reason: 'The inner scan always runs from i+1 to the end. It has no way to stop early, because the smallest value could be the very last one it looks at.'
             },
             average: {
                 value: 'O(n squared)',
+                theta: 'n squared',
                 reason: 'The scan runs n-1 times, then n-2, and so on, giving n(n-1)/2 comparisons for every input.'
             },
             worst: {
                 value: 'O(n squared)',
+                theta: 'n squared',
                 reason: 'The same n(n-1)/2 comparisons. The input only changes how often a new smallest value is found, which costs nothing extra.'
             }
         },
+        overall: { O: 'n squared', Omega: 'n squared', Theta: 'n squared' },
+        misconception: 'Best, average and worst are cases: three kinds of input. O, Omega and Theta are bounds: a ceiling on the growth, a floor under it, and both at once. Every case has its own bounds, so reading O as the worst case, Omega as the best and Theta as the average mixes up two different ideas.',
         worked: {
             input: '[5, 3, 8, 1, 9]',
             comparisons: 10,

@@ -43,17 +43,23 @@ window.LESSONS.floyd_warshall = {
         time: {
             best: {
                 value: 'O(V cubed)',
+                theta: 'V cubed',
                 reason: 'Three nested loops over every node, with no condition that can cut any of them short. A graph with no edges at all still runs the full V cubed.'
             },
             average: {
                 value: 'O(V cubed)',
+                theta: 'V cubed',
                 reason: 'Every one of the V stopping points is tried against every one of the V squared pairs.'
             },
             worst: {
                 value: 'O(V cubed)',
+                theta: 'V cubed',
                 reason: 'Identical. This is the rare algorithm whose cost depends only on how many nodes there are, never on the edges between them.'
             }
         },
+        overall: { O: 'V cubed', Omega: 'V cubed', Theta: 'V cubed' },
+        misconception: 'Best, average and worst are cases: three kinds of input. O, Omega and Theta are bounds: a ceiling on the growth, a floor under it, and both at once. Every case has its own bounds, so reading O as the worst case, Omega as the best and Theta as the average mixes up two different ideas.',
+        caseScope: 'The cases are over connected graphs, which is what the page generator makes.',
         worked: {
             input: 'A-B 4, A-C 2, B-D 5, C-D 8, D-E 6 over nodes A to E',
             comparisons: 100,
