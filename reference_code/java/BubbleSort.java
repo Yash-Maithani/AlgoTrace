@@ -29,8 +29,8 @@ public class BubbleSort {
                 step("compare", "compare", j, arr[j], j + 1, arr[j + 1]); // @hide
                 if (arr[j] > arr[j + 1]) {                          // @compare
                     int t = arr[j];                                 // @swap
-                    arr[j] = arr[j + 1];
-                    arr[j + 1] = t;
+                    arr[j] = arr[j + 1];                             // @swap
+                    arr[j + 1] = t;                                  // @swap
                     swapped = true;                                 // @only:on
                     swaps++;                                        // @hide
                     step("swap", "swap", j, arr[j], j + 1, arr[j + 1]); // @hide

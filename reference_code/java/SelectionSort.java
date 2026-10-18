@@ -33,8 +33,8 @@ public class SelectionSort {
             }
             if (i != minIdx) {
                 int t = arr[i];                                     // @swap
-                arr[i] = arr[minIdx];
-                arr[minIdx] = t;
+                arr[i] = arr[minIdx];                                // @swap
+                arr[minIdx] = t;                                     // @swap
                 swaps++;                                            // @hide
                 step("swap", "swap", i, arr[i], minIdx, arr[minIdx]); // @hide
             }

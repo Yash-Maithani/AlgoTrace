@@ -92,7 +92,7 @@ def test_big_o_is_in_the_navbar(client):
 
 def test_learn_card_links_to_it(client):
     body = client.get('/learn').get_data(as_text=True)
-    searching_onwards = body.split('<h2>Big O</h2>')[1]
+    searching_onwards = body.split('<h2>Complexity</h2>')[1]
 
     assert 'href="/big-o"' in searching_onwards
     assert 'Coming soon' not in searching_onwards

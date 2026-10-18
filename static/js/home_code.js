@@ -13,9 +13,9 @@
         !window.LESSONS.bubble_sort) return;
 
     var lesson = window.LESSONS.bubble_sort;
-    // The three lines in view, and the one the card points at.
+    // The three lines in view, and the one the card points at (by id).
     var SHOWN = ['walk', 'compare', 'swap'];
-    var MARKED = 'compare';
+    var marked = 'compare';
 
     var picker = CodeView.control(function (id) { CodeView.setLanguage(id); });
     host.appendChild(picker.el);
@@ -25,20 +25,9 @@
         picker.set(language);
         var data = CodeView.listing(lesson, language);
         if (!data) return;
-        // The lines in view, plus the lines that finish a statement the
-        // last of them starts: Java's swap is three lines under one id.
-        var lines = [];
-        var tail = null;
-        data.lines.forEach(function (l) {
-            if (SHOWN.indexOf(l.id) !== -1) {
-                lines.push(l);
-                tail = l.id === SHOWN[SHOWN.length - 1] ? l.indent || 0 : null;
-            } else if (tail !== null && !l.id && (l.indent || 0) >= tail) {
-                lines.push(l);
-            } else {
-                tail = null;
-            }
-        });
+        // A statement that spans several lines (Java's swap) carries its
+        // id on every one of them, so filtering by id keeps them all.
+        var lines = data.lines.filter(function (l) { return SHOWN.indexOf(l.id) !== -1; });
         if (!lines.length) return;
         var base = Math.min.apply(null, lines.map(function (l) { return l.indent || 0; }));
 
@@ -47,7 +36,7 @@
             var pad = new Array(((line.indent || 0) - base) * 4 + 1).join(' ');
             var text = pad + line.text;
             var newline = i < lines.length - 1 ? '\n' : '';
-            if (line.id === MARKED) {
+            if (line.id === marked) {
                 var mark = document.createElement('mark');
                 mark.textContent = text;
                 // The mark is a block and ends its own line: a newline after
@@ -64,4 +53,10 @@
 
     CodeView.onChange(draw);
     draw();
+
+    /* Point the card at another line by id. Every line with that id is
+       marked, so a statement that spans several lines lights whole. */
+    window.HomeCode = {
+        light: function (id) { marked = id; draw(); }
+    };
 })();

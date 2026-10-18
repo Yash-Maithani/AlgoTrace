@@ -17,6 +17,7 @@
                 <li><a href="#what">What Big O is</a></li>
                 <li><a href="#counting">Counting steps from code</a></li>
                 <li><a href="#cases">Best, average and worst</a></li>
+                <li><a href="#notations">Three notations</a></li>
                 <li><a href="#curves">The five curves</a></li>
                 <li><a href="#chart">How they grow</a></li>
                 <li><a href="#formula">The formula against the counter</a></li>
@@ -135,6 +136,194 @@
             inputs above. Its best case really is O(n squared). The figure describes the
             code you have, not the code the textbook has.
         </p>
+
+        <!-- THREE NOTATIONS ---------------------------------------------- -->
+        <h2 id="notations">Three notations</h2>
+
+        <p>
+            Cases and notations are two separate ideas, and mixing them up is the most
+            common mistake in this subject. A <strong>case</strong> is a kind of input:
+            the best one, a typical one, the worst one. A <strong>notation</strong> is a
+            claim about how fast a function grows. Any case can be described with any of
+            the three.
+        </p>
+
+        <dl class="curve-list three-notations">
+            <dt>
+                <span class="notation"><span aria-hidden="true">O</span><span class="sr-only">Big O</span></span>
+                the upper bound
+            </dt>
+            <dd>
+                "Grows no faster than." The work stays at or below some constant times
+                this curve once the input is big enough. It is a ceiling, and a ceiling
+                can sit well above the real thing: a linear algorithm is also
+                <span class="notation"><span aria-hidden="true">O(n&sup2;)</span><span class="sr-only">Big O of n squared</span></span>,
+                which is true and not very useful.
+            </dd>
+
+            <dt>
+                <span class="notation"><span aria-hidden="true">&Omega;</span><span class="sr-only">Omega</span></span>
+                the lower bound
+            </dt>
+            <dd>
+                "Grows at least as fast as." The work stays at or above some constant
+                times this curve once the input is big enough. It is a floor.
+            </dd>
+
+            <dt>
+                <span class="notation"><span aria-hidden="true">&Theta;</span><span class="sr-only">Theta</span></span>
+                the tight bound
+            </dt>
+            <dd>
+                Both at once: a ceiling and a floor with the same shape, so the growth is
+                pinned down from above and below. Saying
+                <span class="notation"><span aria-hidden="true">&Theta;(n&sup2;)</span><span class="sr-only">Theta of n squared</span></span>
+                is the strongest of the three claims.
+            </dd>
+        </dl>
+
+        <p>
+            Here they are for three algorithms on this site, each worked out from its own
+            code and checked against the real counts by the tests.
+        </p>
+
+        <div class="table-scroll" tabindex="0" role="region" aria-label="Bounds for three algorithms, scrolls sideways on a narrow screen">
+        <table class="count-table notation-table">
+            <caption>Best and worst case, then what that makes overall</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Algorithm</th>
+                    <th scope="col">Best case</th>
+                    <th scope="col">Worst case</th>
+                    <th scope="col">Overall <span aria-hidden="true">O</span><span class="sr-only">Big O</span></th>
+                    <th scope="col">Overall <span aria-hidden="true">&Omega;</span><span class="sr-only">Omega</span></th>
+                    <th scope="col">Overall <span aria-hidden="true">&Theta;</span><span class="sr-only">Theta</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th scope="row"><a href="{{ url_for('sorting_page') }}?algorithm=Bubble+Sort">Bubble sort</a></th>
+                    <td><span aria-hidden="true">&Theta;(n&sup2;)</span><span class="sr-only">Theta of n squared</span></td>
+                    <td><span aria-hidden="true">&Theta;(n&sup2;)</span><span class="sr-only">Theta of n squared</span></td>
+                    <td><span aria-hidden="true">O(n&sup2;)</span><span class="sr-only">Big O of n squared</span></td>
+                    <td><span aria-hidden="true">&Omega;(n&sup2;)</span><span class="sr-only">Omega of n squared</span></td>
+                    <td><span aria-hidden="true">&Theta;(n&sup2;)</span><span class="sr-only">Theta of n squared</span></td>
+                </tr>
+                <tr>
+                    <th scope="row"><a href="{{ url_for('sorting_page') }}?algorithm=Insertion+Sort">Insertion sort</a></th>
+                    <td><span aria-hidden="true">&Theta;(n)</span><span class="sr-only">Theta of n</span></td>
+                    <td><span aria-hidden="true">&Theta;(n&sup2;)</span><span class="sr-only">Theta of n squared</span></td>
+                    <td><span aria-hidden="true">O(n&sup2;)</span><span class="sr-only">Big O of n squared</span></td>
+                    <td><span aria-hidden="true">&Omega;(n)</span><span class="sr-only">Omega of n</span></td>
+                    <td>none</td>
+                </tr>
+                <tr>
+                    <th scope="row"><a href="{{ url_for('searching_page') }}?algorithm=linear_search">Linear search</a></th>
+                    <td><span aria-hidden="true">&Theta;(1)</span><span class="sr-only">Theta of 1</span></td>
+                    <td><span aria-hidden="true">&Theta;(n)</span><span class="sr-only">Theta of n</span></td>
+                    <td><span aria-hidden="true">O(n)</span><span class="sr-only">Big O of n</span></td>
+                    <td><span aria-hidden="true">&Omega;(1)</span><span class="sr-only">Omega of 1</span></td>
+                    <td>none</td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+
+        <p>
+            Bubble sort on this site has no early exit, so it makes n(n-1)/2 comparisons
+            on every input. Its best, average and worst cases are all
+            <span class="notation"><span aria-hidden="true">&Theta;(n&sup2;)</span><span class="sr-only">Theta of n squared</span></span>,
+            and the overall ceiling and floor meet there too. Insertion sort's best case
+            is
+            <span class="notation"><span aria-hidden="true">&Theta;(n)</span><span class="sr-only">Theta of n</span></span>
+            and its worst case is
+            <span class="notation"><span aria-hidden="true">&Theta;(n&sup2;)</span><span class="sr-only">Theta of n squared</span></span>,
+            so across all inputs the most you can promise is a ceiling of
+            <span class="notation"><span aria-hidden="true">O(n&sup2;)</span><span class="sr-only">Big O of n squared</span></span>
+            and a floor of
+            <span class="notation"><span aria-hidden="true">&Omega;(n)</span><span class="sr-only">Omega of n</span></span>.
+            No single function is both, so there is no overall
+            <span class="notation"><span aria-hidden="true">&Theta;</span><span class="sr-only">Theta</span></span>.
+            Linear search is the same story: one comparison if the target is first, n if
+            it is last or missing.
+        </p>
+
+        <div class="callout misconception" role="note">
+            <p>
+                <strong>A tempting shortcut, and why it is wrong.</strong> You will see
+                "O is the worst case, Omega is the best case, Theta is the average." Do not
+                learn it. Those are two different ideas. Insertion sort's <em>best</em>
+                case, a sorted list, costs n-1 comparisons, and that one case has all three
+                bounds of its own: it is
+                <span class="notation"><span aria-hidden="true">O(n)</span><span class="sr-only">Big O of n</span></span>,
+                <span class="notation"><span aria-hidden="true">&Omega;(n)</span><span class="sr-only">Omega of n</span></span>
+                and
+                <span class="notation"><span aria-hidden="true">&Theta;(n)</span><span class="sr-only">Theta of n</span></span>.
+                Bubble sort's average case is
+                <span class="notation"><span aria-hidden="true">&Theta;(n&sup2;)</span><span class="sr-only">Theta of n squared</span></span>,
+                and so is its worst. Every case has an upper, a lower and a tight bound of
+                its own; best, average and worst are just three of the inputs you can ask
+                about.
+            </p>
+        </div>
+
+        <h3 id="tight">What "tight" means, with sliders</h3>
+
+        <p>
+            A function f is
+            <span class="notation"><span aria-hidden="true">&Theta;(g)</span><span class="sr-only">Theta of g</span></span>
+            when two constants c1 and c2 and a starting size n0 exist so that, for every
+            n from n0 on, <code class="formula">c1 &times; g(n) &le; f(n) &le; c2 &times; g(n)</code>.
+            The upper half of that is
+            <span class="notation"><span aria-hidden="true">O</span><span class="sr-only">Big O</span></span>,
+            the lower half is
+            <span class="notation"><span aria-hidden="true">&Omega;</span><span class="sr-only">Omega</span></span>.
+            Pick an f and a g, then move the sliders until the blue curve stays between
+            the other two from n0 on. Try bubble sort's count against n, and see that no
+            ceiling constant works however large you make it.
+        </p>
+
+        <div class="notation-explorer">
+            <div class="notation-controls">
+                <div class="setup-field">
+                    <label for="nt-f">f(n), the work counted</label>
+                    <select id="nt-f">
+                        <option value="bubble">Bubble sort comparisons, n(n-1)/2</option>
+                        <option value="insertion">Insertion sort on a sorted list, n-1</option>
+                        <option value="example">An example with extras, 3n&sup2; + 20n + 50</option>
+                    </select>
+                </div>
+                <div class="setup-field">
+                    <label for="nt-g">g(n), the shape to compare with</label>
+                    <select id="nt-g">
+                        <option value="n2">n squared</option>
+                        <option value="nlogn">n log n</option>
+                        <option value="n">n</option>
+                    </select>
+                </div>
+                <div class="setup-field">
+                    <label for="nt-c1">c1, the floor constant</label>
+                    <input type="range" id="nt-c1" class="speed-slider" min="0.05" max="5" step="0.05" value="0.25"
+                           aria-describedby="nt-c1-out">
+                    <p class="setup-hint" id="nt-c1-out">c1 = 0.25</p>
+                </div>
+                <div class="setup-field">
+                    <label for="nt-c2">c2, the ceiling constant</label>
+                    <input type="range" id="nt-c2" class="speed-slider" min="0.05" max="10" step="0.05" value="0.5"
+                           aria-describedby="nt-c2-out">
+                    <p class="setup-hint" id="nt-c2-out">c2 = 0.5</p>
+                </div>
+                <div class="setup-field">
+                    <label for="nt-n0">n0, where the bounds start to hold</label>
+                    <input type="range" id="nt-n0" class="speed-slider" min="1" max="40" step="1" value="2"
+                           aria-describedby="nt-n0-out">
+                    <p class="setup-hint" id="nt-n0-out">n0 = 2</p>
+                </div>
+            </div>
+
+            <div class="notation-chart" id="nt-chart"></div>
+            <p class="notation-verdict" id="nt-verdict" role="status" aria-live="polite"></p>
+        </div>
 
         <!-- THE CURVES --------------------------------------------------- -->
         <h2 id="curves">The five curves</h2>
@@ -334,6 +523,7 @@
 
 {% block page_js %}
     <script src="{{ url_for('static', filename='js/growth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notations.js') }}"></script>
     <script>
         /* The chart on this page is the shared component with a slider on it
            and no curve singled out, since the point here is the comparison. */

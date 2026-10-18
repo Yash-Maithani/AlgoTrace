@@ -39,7 +39,7 @@ One shared shell, built in Phase 2, used by every route.
 | skip link (visually hidden until focused)                 |
 +----------------------------------------------------------+
 | HEADER  sticky, 56px                                      |
-|  logo        Home Learn Sorting Searching Graphs Big O    |
+|  logo        Home Learn Sorting Searching Graphs Complexity |
 |                                               theme toggle|
 +----------------------------------------------------------+
 |                                                           |

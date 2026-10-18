@@ -68,8 +68,8 @@ window.LESSON_CODE.selection_sort = {
                 { id: null, text: "}", indent: 2 },
                 { id: null, text: "if (i != minIdx) {", indent: 2 },
                 { id: "swap", text: "int t = arr[i];", indent: 3 },
-                { id: null, text: "arr[i] = arr[minIdx];", indent: 3 },
-                { id: null, text: "arr[minIdx] = t;", indent: 3 },
+                { id: "swap", text: "arr[i] = arr[minIdx];", indent: 3 },
+                { id: "swap", text: "arr[minIdx] = t;", indent: 3 },
                 { id: null, text: "}", indent: 2 },
                 { id: null, text: "}", indent: 1 },
                 { id: null, text: "}", indent: 0 }

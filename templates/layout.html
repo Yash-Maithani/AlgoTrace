@@ -10,7 +10,7 @@
     page_js     a page scoped <script> block
 
   The navbar is data driven from `nav_items` below. Routes that do not exist
-  yet (Learn, Searching, Big O) are added one line at a time by their own
+  yet (Learn, Searching, Complexity) are added one line at a time by their own
   phase, so this file never links somewhere that 404s.
 #}
 <!DOCTYPE html>
@@ -77,7 +77,7 @@
                     ('sorting_page', 'Sorting'),
                     ('searching_page', 'Searching'),
                     ('graph_page',   'Graphs'),
-                    ('big_o_page',   'Big O')
+                    ('big_o_page',   'Complexity')
                 ] %}
                 {% for endpoint, label in nav_items %}
                 <a href="{{ url_for(endpoint) }}"

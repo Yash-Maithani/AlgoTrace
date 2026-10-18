@@ -227,6 +227,108 @@
         this.syncCodeVars();
     };
 
+    /* O, Omega and Theta, written with their symbols for the eye and in words
+       for a screen reader, which would otherwise read "O" as a letter and
+       skip the figure's meaning. The lesson stores the figure in words
+       ('n squared'); this is the only place that turns it into symbols. */
+    var SYMBOL = { O: 'O', Omega: 'Ω', Theta: 'Θ' };
+    var SPOKEN = { O: 'Big O', Omega: 'Omega', Theta: 'Theta' };
+    var FIGURE = {
+        'n squared': ['n²', 'n squared'],
+        'V squared': ['V²', 'V squared'],
+        'V cubed': ['V³', 'V cubed'],
+        'V times E': ['V·E', 'V times E'],
+        'k times E': ['k·E', 'k times E']
+    };
+
+    function figure(token) {
+        return FIGURE[token] || [token, token];
+    }
+
+    /* The bare symbol, with its name in words. */
+    function symbol(kind) {
+        var node = el('span', 'notation');
+        node.appendChild(el('span', null, SYMBOL[kind]));
+        node.firstChild.setAttribute('aria-hidden', 'true');
+        node.appendChild(el('span', 'sr-only', SPOKEN[kind]));
+        return node;
+    }
+
+    function notation(kind, token) {
+        var f = figure(token);
+        var node = el('span', 'notation');
+        node.appendChild(el('span', null, SYMBOL[kind] + '(' + f[0] + ')'));
+        node.firstChild.setAttribute('aria-hidden', 'true');
+        node.appendChild(el('span', 'sr-only', SPOKEN[kind] + ' of ' + f[1]));
+        return node;
+    }
+
+    /* Case, tight bound, reason. Each case has its own Theta, and the lesson
+       says why, so the table is the lesson's data and nothing more. */
+    function thetaTable(c) {
+        var table = el('table', 'theta-table');
+        table.appendChild(el('caption', 'sr-only',
+            'Time by case, with the tight bound for each'));
+        var head = el('tr');
+        [['Case', null], ['Tight bound ', 'Theta'], ['Why', null]].forEach(function (col) {
+            var th = el('th');
+            th.scope = 'col';
+            if (col[1]) {
+                th.appendChild(document.createTextNode(col[0]));
+                th.appendChild(symbol(col[1]));
+            } else {
+                th.textContent = col[0];
+            }
+            head.appendChild(th);
+        });
+        var thead = el('thead');
+        thead.appendChild(head);
+        table.appendChild(thead);
+        var tbody = el('tbody');
+        [['Best', c.time.best], ['Average', c.time.average], ['Worst', c.time.worst]]
+            .forEach(function (pair) {
+                var row = el('tr');
+                var th = el('th', null, pair[0]);
+                th.scope = 'row';
+                row.appendChild(th);
+                var cell = el('td', 'theta-cell');
+                cell.appendChild(notation('Theta', pair[1].theta));
+                row.appendChild(cell);
+                row.appendChild(el('td', 'complexity-reason', pair[1].reason));
+                tbody.appendChild(row);
+            });
+        table.appendChild(tbody);
+        return table;
+    }
+
+    /* Across every input: the ceiling (O), the floor (Omega) and, only when
+       the two meet, the tight bound. */
+    function overallLine(c) {
+        var o = c.overall;
+        var line = el('p', 'overall-line');
+        line.appendChild(el('strong', null, 'Overall: '));
+        line.appendChild(notation('O', o.O));
+        line.appendChild(document.createTextNode(' at most, '));
+        line.appendChild(notation('Omega', o.Omega));
+        line.appendChild(document.createTextNode(' at least, '));
+        if (o.Theta) {
+            line.appendChild(notation('Theta', o.Theta));
+            line.appendChild(document.createTextNode(
+                ': the ceiling and the floor are the same function, so it is tight for every input.'));
+        } else {
+            line.appendChild(document.createTextNode('and no single '));
+            line.appendChild(symbol('Theta'));
+            line.appendChild(document.createTextNode('. The best case is '));
+            line.appendChild(notation('Theta', c.time.best.theta));
+            line.appendChild(document.createTextNode(' and the worst is '));
+            line.appendChild(notation('Theta', c.time.worst.theta));
+            line.appendChild(document.createTextNode(
+                ', so no one function fits every input.'));
+            line.setAttribute('data-no-theta', 'true');
+        }
+        return line;
+    }
+
     Panel.prototype.renderComplexity = function () {
         var body = this.bodies.complexity;
         var lesson = this.lesson;
@@ -237,17 +339,14 @@
         if (shown) body.appendChild(shown);
 
         body.appendChild(el('h3', null, 'Time'));
-        var table = el('dl', 'complexity-table');
-        [['Best', c.time.best], ['Average', c.time.average], ['Worst', c.time.worst]]
-            .forEach(function (pair) {
-                var dt = el('dt', null, pair[0]);
-                var dd = el('dd');
-                dd.appendChild(el('span', 'complexity-value', pair[1].value));
-                dd.appendChild(el('span', 'complexity-reason', pair[1].reason));
-                table.appendChild(dt);
-                table.appendChild(dd);
-            });
-        body.appendChild(table);
+        body.appendChild(thetaTable(c));
+        body.appendChild(overallLine(c));
+        if (c.misconception) {
+            var mix = el('p', 'misconception');
+            mix.appendChild(el('strong', null, 'A common mix-up. '));
+            mix.appendChild(document.createTextNode(c.misconception));
+            body.appendChild(mix);
+        }
 
         body.appendChild(el('h3', null, 'A worked example'));
         var worked = el('p', 'worked');

@@ -8,6 +8,14 @@
       "port": 5002,
       "autoPort": false,
       "url": "http://localhost:5002"
+    },
+    {
+      "name": "flask-5055",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-c", "from app import app; app.config[\"TEMPLATES_AUTO_RELOAD\"] = True; app.jinja_env.auto_reload = True; app.run(port=5055, use_reloader=False)"],
+      "port": 5055,
+      "autoPort": false,
+      "url": "http://localhost:5055"
     }
   ]
 }
