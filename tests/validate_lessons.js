@@ -310,17 +310,17 @@ if (fs.existsSync(CODE_DIR)) {
 }
 const CODE = global.window.LESSON_CODE;
 
+// The set of ids a listing uses. A language may use one id on two lines,
+// as Prim pushes edges in two places, and both light up together.
 function idsOf(listing) {
-    return listing.map(function (l) { return l.id; }).filter(Boolean).sort();
+    return Array.from(new Set(listing.map(function (l) { return l.id; }).filter(Boolean))).sort();
 }
 
 function checkCode(lesson, key) {
     const file = 'code/' + key + '.js';
     const code = CODE[key];
     if (!code) {
-        if (lesson.family === 'sorting' || lesson.family === 'searching') {
-            complain(file, 'is missing: run python tools/extract_code.py');
-        }
+        complain(file, 'is missing: run python tools/extract_code.py');
         return;
     }
     const variants = VARIANTS.optionIds(lesson);
@@ -333,6 +333,17 @@ function checkCode(lesson, key) {
         }
         if (typeof entry.source !== 'string' || !entry.source.startsWith('reference_code/')) {
             complain(file, language + ' must name its source under reference_code/');
+        }
+        // Helpers sit behind "Show helpers": plain lines with no line id, so
+        // turning them on never moves the highlight.
+        if (!Array.isArray(entry.helpers)) {
+            complain(file, language + ' must list its helpers, even if there are none');
+        } else {
+            entry.helpers.forEach(function (line) {
+                if (typeof line.text !== 'string' || !line.text.trim()) complain(file, language + ' has a helper line with no text');
+                if (typeof line.indent !== 'number' || line.indent < 0) complain(file, language + ' has a helper line with no indent');
+                if (line.id !== null) complain(file, language + ' helper lines carry no line id');
+            });
         }
         const have = Object.keys(entry.listings);
         if (have.join(' ') !== wanted.join(' ')) {

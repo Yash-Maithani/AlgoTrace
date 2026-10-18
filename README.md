@@ -112,7 +112,8 @@ behaviour:
 | `test_kruskal.py` | Union-find behaviour on disconnected input |
 | `test_variants.py` | Every variant switch: output, counts, stability, seeds, and each lesson claim measured against the code |
 | `test_phase11.py` | Each case's stated Theta, checked by growing the input and counting real work (slow) |
-| `test_reference_code.py` | The C, C++ and Java programs, compiled and run, match the Python step by step (slow) |
+| `test_reference_code.py` | The C, C++ and Java sorts and searches, compiled and run, match the Python step by step (slow) |
+| `test_reference_graphs.py` | The C, C++ and Java graph programs match every `/run_*` endpoint step by step on the recorded graphs and on generated ones built to hit ties, negative weights and negative cycles (slow) |
 | `test_code_listings.py` | The listings generated from those programs are current and use the lesson's line ids |
 
 Two more checks are not pytest:
@@ -141,7 +142,7 @@ app.py                     every route, and the seven graph algorithms
 teacher.py                 the one builder every step passes through
 sorting_algorithms/        six sorts, each yielding teacher steps
 searching_algorithms/      linear and binary search
-reference_code/            the same eight algorithms in C, C++ and Java
+reference_code/            all fifteen algorithms in C, C++ and Java
 templates/
   layout.html              the shell every page extends
   landing.html             Home

@@ -22,7 +22,9 @@ window.LESSON_CODE.insertion_sort = {
                 { id: null, text: "}", indent: 1 },
                 { id: null, text: "}", indent: 0 }
             ]
-        }
+        },
+        helpers: [
+        ]
     },
     cpp: {
         source: "reference_code/cpp/insertion_sort.cpp",
@@ -45,7 +47,9 @@ window.LESSON_CODE.insertion_sort = {
                 { id: null, text: "}", indent: 1 },
                 { id: null, text: "}", indent: 0 }
             ]
-        }
+        },
+        helpers: [
+        ]
     },
     java: {
         source: "reference_code/java/InsertionSort.java",
@@ -67,6 +71,8 @@ window.LESSON_CODE.insertion_sort = {
                 { id: null, text: "}", indent: 1 },
                 { id: null, text: "}", indent: 0 }
             ]
-        }
+        },
+        helpers: [
+        ]
     }
 };

@@ -56,6 +56,8 @@ SEARCHES = {
     'binary_search': (binary_search, 'BinarySearch'),
 }
 ALGORITHMS = sorted(SORTS) + sorted(SEARCHES)
+sys.path.insert(0, os.path.join(ROOT, 'tools'))
+from extract_code import ALGORITHMS as JAVA_CLASS  # noqa: E402  lesson id -> Java class
 SEEDS = [0, 1, 42, 4821, 99999, 2 ** 31 - 1]
 
 TOOLS = {
@@ -186,7 +188,7 @@ def compile_program(language, algo, out_dir):
         cmd = ['g++', '-std=c++17', '-O2', '-Wall', '-Wextra', '-pedantic', '-Werror', src, '-o', exe]
         run = [exe]
     else:
-        cls = (SORTS.get(algo) or SEARCHES.get(algo))[1]
+        cls = JAVA_CLASS[algo]
         src = os.path.join(REF, 'java', cls + '.java')
         classes = os.path.join(str(out_dir), 'java_' + algo)
         os.makedirs(classes, exist_ok=True)

@@ -34,11 +34,13 @@ public class QuickSort {
         return ((t ^ (t >>> 14)) & 0xFFFFFFFFL) / 4294967296.0;
     }
 
+    // lesson:helpers
     static void swap(int[] arr, int a, int b) {
         int t = arr[a];
         arr[a] = arr[b];
         arr[b] = t;
     }
+    // lesson:end
 
     // lesson:start
     static int partition(int[] arr, int low, int high, int depth) { // @partition

@@ -15,7 +15,9 @@ window.LESSON_CODE.linear_search = {
                 { id: "missing", text: "return -1;", indent: 1 },
                 { id: null, text: "}", indent: 0 }
             ]
-        }
+        },
+        helpers: [
+        ]
     },
     cpp: {
         source: "reference_code/cpp/linear_search.cpp",
@@ -30,7 +32,9 @@ window.LESSON_CODE.linear_search = {
                 { id: "missing", text: "return -1;", indent: 1 },
                 { id: null, text: "}", indent: 0 }
             ]
-        }
+        },
+        helpers: [
+        ]
     },
     java: {
         source: "reference_code/java/LinearSearch.java",
@@ -45,6 +49,8 @@ window.LESSON_CODE.linear_search = {
                 { id: "missing", text: "return -1;", indent: 1 },
                 { id: null, text: "}", indent: 0 }
             ]
-        }
+        },
+        helpers: [
+        ]
     }
 };

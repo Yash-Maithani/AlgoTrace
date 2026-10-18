@@ -18,11 +18,13 @@ public class HeapSort {
         out.append('\n');
     }
 
+    // lesson:helpers
     static void swap(int[] arr, int a, int b) {
         int t = arr[a];
         arr[a] = arr[b];
         arr[b] = t;
     }
+    // lesson:end
 
     // lesson:start
     static void heapify(int[] arr, int n, int i) {

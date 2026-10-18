@@ -24,12 +24,14 @@ static void step(const char *action, const char *line, int pairs, ...)
     printf("\n");
 }
 
+// lesson:helpers
 static void swap(int *a, int *b)
 {
     int t = *a;
     *a = *b;
     *b = t;
 }
+// lesson:end
 
 // lesson:start
 void selection_sort(int arr[], int n) {

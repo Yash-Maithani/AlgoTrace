@@ -180,7 +180,9 @@ generated file: change the program and rerun the tool.
 ```js
 window.LESSON_CODE = window.LESSON_CODE || {};
 window.LESSON_CODE.bubble_sort = {
-    c:    { source: 'reference_code/c/bubble_sort.c', listings: { off: [...], on: [...] } },
+    c:    { source: 'reference_code/c/bubble_sort.c',
+            listings: { off: [...], on: [...] },
+            helpers: [...] },
     cpp:  { ... },
     java: { ... }
 };
@@ -188,8 +190,11 @@ window.LESSON_CODE.bubble_sort = {
 
 Each listing is a list of `{id, text, indent}` lines, the same shape as
 `code.python`. A lesson with a switch has one listing per option id; one
-without has a single listing called `default`. `node tests/validate_lessons.js`
-requires every sorting and searching lesson to have the file, and every listing
-to use exactly the line ids of the matching Python listing, so a step lights up
-the same line in whichever language is shown. Graph lessons gain theirs in
-Phase 13.
+without has a single listing called `default`. `helpers` holds the lines of the
+program's `lesson:helpers` blocks, such as a queue, a binary heap, union-find or
+looking a node up by name: code the algorithm calls but does not teach, for a
+"Show helpers" toggle. Helper lines never carry an id, so showing them cannot
+move the highlight. `node tests/validate_lessons.js` requires every lesson to
+have the file, every listing to use exactly the set of line ids of the matching
+Python listing, so a step lights up the same line in whichever language is
+shown, and every language to list its helpers, even when there are none.

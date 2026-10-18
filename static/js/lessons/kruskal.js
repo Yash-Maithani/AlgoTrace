@@ -23,14 +23,14 @@ window.LESSONS.kruskal = {
             { id: 'take-next', text: 'look at the two ends', indent: 1 },
             { id: 'cycle', text: 'if they are already connected, skip the edge', indent: 2 },
             { id: 'union', text: 'otherwise take it and merge the two groups', indent: 2 },
-            { id: 'mst-complete', text: 'stop once n-1 edges have been taken', indent: 2 }
+            { id: 'mst-complete', text: 'once n-1 edges have been taken, note that the tree is complete', indent: 2 }
         ],
         python: [
             { id: 'sort', text: 'ordered = sorted(clean_edges, key=lambda e: e[2])', indent: 0 },
             { id: null, text: 'for u, v, weight in ordered:', indent: 0 },
             { id: 'take-next', text: 'if union(u, v):', indent: 1 },
             { id: 'union', text: 'mst_edges.append([u, v, weight])', indent: 2 },
-            { id: 'mst-complete', text: 'if len(mst_edges) == spanning_total: break out', indent: 2 },
+            { id: 'mst-complete', text: 'if len(mst_edges) == spanning_total: note it (the loop goes on)', indent: 2 },
             { id: 'cycle', text: 'else: this edge would close a cycle', indent: 1 }
         ]
     },
@@ -59,7 +59,7 @@ window.LESSONS.kruskal = {
         worked: {
             input: 'A-B 4, A-C 2, B-D 5, C-D 8, D-E 6 over nodes A to E',
             comparisons: 5,
-            note: 'E = 5 edges are sorted, then examined in the order 2, 4, 5, 6, 8. The first four are taken, giving a tree of weight 17; C-D 8 is rejected because C and D are already connected. The run stops examining once 4 edges are in, since 5 nodes need 4.'
+            note: 'E = 5 edges are sorted, then examined in the order 2, 4, 5, 6, 8. The first four are taken, giving a tree of weight 17; C-D 8 is rejected because C and D are already connected. Once 4 edges are in the tree is complete, since 5 nodes need 4, but the code still examines every remaining edge, which is how C-D gets its rejection.'
         },
         space: {
             value: 'O(V + E)',

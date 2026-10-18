@@ -29,7 +29,13 @@ window.LESSON_CODE.heap_sort = {
                 { id: null, text: "}", indent: 1 },
                 { id: null, text: "}", indent: 0 }
             ]
-        }
+        },
+        helpers: [
+            { id: null, text: "static void swap(int *a, int *b)", indent: 0 },
+            { id: null, text: "{", indent: 0 },
+            { id: null, text: "int t = *a;", indent: 1 },
+            { id: null, text: "}", indent: 0 }
+        ]
     },
     cpp: {
         source: "reference_code/cpp/heap_sort.cpp",
@@ -59,7 +65,9 @@ window.LESSON_CODE.heap_sort = {
                 { id: null, text: "}", indent: 1 },
                 { id: null, text: "}", indent: 0 }
             ]
-        }
+        },
+        helpers: [
+        ]
     },
     java: {
         source: "reference_code/java/HeapSort.java",
@@ -89,6 +97,13 @@ window.LESSON_CODE.heap_sort = {
                 { id: null, text: "}", indent: 1 },
                 { id: null, text: "}", indent: 0 }
             ]
-        }
+        },
+        helpers: [
+            { id: null, text: "static void swap(int[] arr, int a, int b) {", indent: 0 },
+            { id: null, text: "int t = arr[a];", indent: 1 },
+            { id: null, text: "arr[a] = arr[b];", indent: 1 },
+            { id: null, text: "arr[b] = t;", indent: 1 },
+            { id: null, text: "}", indent: 0 }
+        ]
     }
 };

@@ -45,12 +45,14 @@ static double rand_unit(void)
     return (double)(t ^ (t >> 14)) / 4294967296.0;
 }
 
+// lesson:helpers
 static void swap(int *a, int *b)
 {
     int t = *a;
     *a = *b;
     *b = t;
 }
+// lesson:end
 
 // lesson:start
 int partition(int arr[], int low, int high, int depth) {       // @partition

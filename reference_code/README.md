@@ -1,11 +1,14 @@
 # Reference code: C, C++ and Java
 
 One real, compilable program per algorithm per language, each a line by line
-translation of the Python in `sorting_algorithms/` and `searching_algorithms/`.
-They copy this repository's behaviour, not the textbook's: no early exit in
-bubble sort unless the variant asks for it, `<` in merge sort unless the
-variant says `<=`, the last element as pivot unless the variant says
-otherwise, and the same seeded generator (mulberry32) for the random pivot.
+translation of the Python in `sorting_algorithms/`, `searching_algorithms/`
+and the seven graph endpoints in `app.py`. They copy this repository's
+behaviour, not the textbook's: no early exit in bubble sort unless the variant
+asks for it, `<` in merge sort unless the variant says `<=`, the last element
+as pivot unless the variant says otherwise, the same seeded generator
+(mulberry32) for the random pivot, queue and stack membership checked by a
+linear scan as the endpoints do, Dijkstra's first-listed tie-break, a stable
+sort in Kruskal, and Prim's heap ordered by the whole (weight, u, v) tuple.
 
 | Language | Standard | Folder | File name |
 | --- | --- | --- | --- |
@@ -75,3 +78,67 @@ A file with variants names them on a line `// lesson:variants <default> <other> 
 default first. A hidden line that opens a brace does not indent the listing,
 so a variant's lines read as they would in a program with only that variant.
 Blank lines and comment-only lines inside a block are left out.
+
+## Graph programs (Phase 13)
+
+BFS, DFS, Dijkstra, Prim, Kruskal, Bellman-Ford and Floyd-Warshall copy the
+seven `/run_*` endpoints in `app.py`. They read one graph format:
+
+```
+<number of cases>
+<start node, or - for Kruskal and Floyd-Warshall>
+<k>                                   then k node lines, in input order:
+<name> <d> <neighbour> <weight> ...   d neighbours, in input order
+<m>                                   then m edge lines, in input order:
+<u> <v> <weight>
+```
+
+The node lines are the adjacency the endpoint receives (`graph` in the
+request), keys in order, each with its neighbours in order, because Python
+dicts keep insertion order and the result depends on it. BFS and DFS take
+plain neighbour lists, so their weights are placeholders and ignored.
+Kruskal and Floyd-Warshall take `nodes` and `edges`: their node lines have
+no neighbours and the edges follow. Names are single tokens without spaces
+and weights are whole numbers, as every graph the site sends is.
+
+Each case prints one line per entry in the endpoint's `meta`, then the
+result, then `end`:
+
+```
+step <action> <line id or -> <node> ... | <value> ...
+```
+
+Unreachable distances print as `∞`, the endpoint's wire form. The result
+lines are those of the endpoint's final step (or, for Bellman-Ford, its
+summary fields):
+
+| Program | Result lines |
+| --- | --- |
+| BFS, DFS | `path <nodes in visiting order>` |
+| Dijkstra | `distance <node> <d>` per node, `path <node> <nodes>` per reached node, both by node name |
+| Prim, Kruskal | `edge <u> <v> <w>` per tree edge in order, `total <w>` |
+| Floyd-Warshall | `row <node> <d> ...` per node in input order, `path <from> <to> <d> <nodes>` per pair with a route, by from then to name |
+| Bellman-Ford | `distance <node> <d>` by node name, `negative_cycle true|false`, `iterations <n>` |
+
+Maps come out in order of name because that is how they reach the browser:
+the endpoints answer with Flask's `jsonify`, which sorts object keys. For
+Bellman-Ford it is also the only reproducible order, since the endpoint
+builds its distances from a Python set, whose order changes from one process
+to the next. Lists, such as the meta, the tree edges and the matrix rows,
+keep the order the endpoint built them in.
+
+## Helpers
+
+Code the lesson leans on but does not teach, such as a queue, a stack, a
+binary heap, union-find, a stable sort or looking a node up by name, sits in
+blocks of its own:
+
+```
+// lesson:helpers
+...
+// lesson:end
+```
+
+`tools/extract_code.py` writes those lines to a separate `helpers` listing
+per language, so the Code tab shows the algorithm and offers the helpers
+behind a toggle. Helper lines carry no line ids.

@@ -20,14 +20,16 @@ window.LESSONS.dijkstra = {
         pseudocode: [
             { id: null, text: 'distance to start = 0, every other = infinity', indent: 0 },
             { id: null, text: 'while there are unvisited nodes:', indent: 0 },
-            { id: 'pick-min', text: 'settle the unvisited node with the smallest distance', indent: 1 },
+            { id: 'pick-min', text: 'settle the unvisited node with the smallest distance, the first listed on a tie', indent: 1 },
+            { id: null, text: 'if that distance is infinity, stop: nothing else can be reached', indent: 1 },
             { id: null, text: 'for each unvisited neighbour of it:', indent: 1 },
             { id: 'relax', text: 'if going through it is shorter, write the new distance', indent: 2 }
         ],
         python: [
             { id: null, text: "distances = {node: float('infinity') for node in graph}", indent: 0 },
             { id: null, text: 'while unvisited:', indent: 0 },
-            { id: 'pick-min', text: 'current = min(unvisited, key=lambda node: distances[node])', indent: 1 },
+            { id: 'pick-min', text: 'current = min((n for n in node_order if n in unvisited), key=lambda n: distances[n])', indent: 1 },
+            { id: null, text: "if distances[current] == float('infinity'): break", indent: 1 },
             { id: null, text: 'for neighbor, weight in graph[current].items():', indent: 1 },
             { id: 'relax', text: 'if distances[current] + weight < distances[neighbor]:', indent: 2 },
             { id: null, text: 'distances[neighbor] = distances[current] + weight', indent: 3 }

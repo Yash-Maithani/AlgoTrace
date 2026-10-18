@@ -105,3 +105,67 @@ def test_validator_rejects_a_listing_that_drifts(tmp_path, mutation, replacement
                             capture_output=True, text=True,
                             env=dict(os.environ, LESSON_DIR=str(tmp_path / 'lessons')))
     assert result.returncode != 0, result.stdout
+
+
+# ---------------------------------------------------------------------------
+# Phase 13: helpers behind "Show helpers"
+# ---------------------------------------------------------------------------
+
+def test_prim_listing_shows_the_algorithm_and_hides_the_heap():
+    """The binary heap Prim needs in C is real code in the file, but it is
+    a helper: the listing calls it, the helpers listing defines it."""
+    path = extract_code.source_path('prim', 'c')
+    _, listings = extract_code.parse(path)
+    helpers = extract_code.parse_helpers(path)
+    main = ' '.join(line['text'] for line in listings['default'])
+    extra = ' '.join(line['text'] for line in helpers)
+
+    assert 'heap_push(' in main and 'heap_pop()' in main
+    assert 'static void heap_push' in extra and 'static Edge heap_pop' in extra
+    assert 'static void heap_push' not in main
+    assert all(line['id'] is None for line in helpers)
+
+
+@pytest.mark.parametrize('algo', ['bfs', 'dfs', 'dijkstra', 'prim', 'kruskal',
+                                  'bellman_ford', 'floyd_warshall'])
+def test_graph_helpers_are_recorded_for_every_language(algo):
+    for language in extract_code.LANGUAGES:
+        helpers = extract_code.parse_helpers(extract_code.source_path(algo, language))
+        text = ' '.join(line['text'] for line in helpers)
+        # Every graph program looks nodes up by name through a helper.
+        assert 'node_index' in text or 'nodeIndex' in text, (algo, language)
+
+
+def test_a_helper_line_cannot_carry_a_line_id(tmp_path):
+    path = tmp_path / 'broken.c'
+    path.write_text('// lesson:helpers\nint x; // @loop\n// lesson:end\n'
+                    '// lesson:start\nint y;\n// lesson:end\n', encoding='utf-8')
+    with pytest.raises(extract_code.SourceError) as error:
+        extract_code.parse(str(path))
+    assert 'helper line' in str(error.value)
+
+
+def test_multi_line_comments_stay_out_of_listings():
+    for algo in extract_code.ALGORITHMS:
+        for language in extract_code.LANGUAGES:
+            path = extract_code.source_path(algo, language)
+            _, listings = extract_code.parse(path)
+            lines = [l for listing in listings.values() for l in listing]
+            lines += extract_code.parse_helpers(path)
+            assert not any(l['text'].endswith('*/') and '/*' not in l['text'] for l in lines), (algo, language)
+
+
+@pytest.mark.skipif(NODE is None, reason='node is not installed')
+def test_validator_rejects_a_helper_with_an_id(tmp_path):
+    source = os.path.join(ROOT, 'static', 'js', 'lessons')
+    shutil.copytree(source, tmp_path / 'lessons', ignore=shutil.ignore_patterns('*.md'))
+    target = tmp_path / 'lessons' / 'code' / 'prim.js'
+    text = target.read_text(encoding='utf-8')
+    mutation = '{ id: null, text: "static int heap_size;"'
+    assert mutation in text
+    target.write_text(text.replace(mutation, '{ id: "start", text: "static int heap_size;"', 1),
+                      encoding='utf-8')
+    result = subprocess.run([NODE, os.path.join(HERE, 'validate_lessons.js')],
+                            capture_output=True, text=True,
+                            env=dict(os.environ, LESSON_DIR=str(tmp_path / 'lessons')))
+    assert result.returncode != 0, result.stdout

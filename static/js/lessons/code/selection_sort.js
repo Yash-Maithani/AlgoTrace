@@ -20,7 +20,13 @@ window.LESSON_CODE.selection_sort = {
                 { id: null, text: "}", indent: 1 },
                 { id: null, text: "}", indent: 0 }
             ]
-        }
+        },
+        helpers: [
+            { id: null, text: "static void swap(int *a, int *b)", indent: 0 },
+            { id: null, text: "{", indent: 0 },
+            { id: null, text: "int t = *a;", indent: 1 },
+            { id: null, text: "}", indent: 0 }
+        ]
     },
     cpp: {
         source: "reference_code/cpp/selection_sort.cpp",
@@ -41,7 +47,9 @@ window.LESSON_CODE.selection_sort = {
                 { id: null, text: "}", indent: 1 },
                 { id: null, text: "}", indent: 0 }
             ]
-        }
+        },
+        helpers: [
+        ]
     },
     java: {
         source: "reference_code/java/SelectionSort.java",
@@ -64,6 +72,8 @@ window.LESSON_CODE.selection_sort = {
                 { id: null, text: "}", indent: 1 },
                 { id: null, text: "}", indent: 0 }
             ]
-        }
+        },
+        helpers: [
+        ]
     }
 };

@@ -22,7 +22,9 @@ window.LESSON_CODE.binary_search = {
                 { id: "missing", text: "return -1;", indent: 1 },
                 { id: null, text: "}", indent: 0 }
             ]
-        }
+        },
+        helpers: [
+        ]
     },
     cpp: {
         source: "reference_code/cpp/binary_search.cpp",
@@ -44,7 +46,9 @@ window.LESSON_CODE.binary_search = {
                 { id: "missing", text: "return -1;", indent: 1 },
                 { id: null, text: "}", indent: 0 }
             ]
-        }
+        },
+        helpers: [
+        ]
     },
     java: {
         source: "reference_code/java/BinarySearch.java",
@@ -66,6 +70,8 @@ window.LESSON_CODE.binary_search = {
                 { id: "missing", text: "return -1;", indent: 1 },
                 { id: null, text: "}", indent: 0 }
             ]
-        }
+        },
+        helpers: [
+        ]
     }
 };

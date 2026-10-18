@@ -30,12 +30,19 @@ ALGORITHMS = {
     'heap_sort': 'HeapSort',
     'linear_search': 'LinearSearch',
     'binary_search': 'BinarySearch',
+    'bfs': 'BreadthFirstSearch',
+    'dfs': 'DepthFirstSearch',
+    'dijkstra': 'Dijkstra',
+    'prim': 'Prim',
+    'kruskal': 'Kruskal',
+    'bellman_ford': 'BellmanFord',
+    'floyd_warshall': 'FloydWarshall',
 }
 
 LANGUAGES = ('c', 'cpp', 'java')
 INDENT = 4
 
-START = re.compile(r'^(?P<pad> *)// lesson:start\s*$')
+START = re.compile(r'^(?P<pad> *)// lesson:(?P<kind>start|helpers)\s*$')
 END = re.compile(r'^ *// lesson:end\s*$')
 VARIANTS = re.compile(r'^ *// lesson:variants\s+(?P<ids>.+?)\s*$')
 TAGS = re.compile(r'\s*//\s*(?P<tags>@\S+(?:\s+@\S+)*)\s*$')
@@ -53,7 +60,20 @@ def source_path(algo, language):
 
 
 def parse(path):
-    """Return {variant: [{id, text, indent}]} for one source file."""
+    """Return (path, {variant: [{id, text, indent}]}) for one source file.
+
+    The lines of lesson:helpers blocks are in parse_helpers()."""
+    rel, listings, _ = parse_all(path)
+    return rel, listings
+
+
+def parse_helpers(path):
+    """The lines of a file's lesson:helpers blocks, [{id, text, indent}]."""
+    return parse_all(path)[2]
+
+
+def parse_all(path):
+    """Return (path, listings, helpers) for one source file."""
     try:
         rel = os.path.relpath(path, ROOT).replace(os.sep, '/')
     except ValueError:
@@ -69,10 +89,13 @@ def parse(path):
             variants = m.group('ids').split()
     variants = variants or ['default']
     listings = {v: [] for v in variants}
+    helpers = []
 
     inside = False
+    kind = None
     base = 0
     hidden_depth = 0
+    in_comment = False
     blocks = 0
     for number, raw in enumerate(lines, 1):
         where = '%s:%d' % (rel, number)
@@ -80,7 +103,9 @@ def parse(path):
         if m:
             if inside:
                 raise SourceError('%s: lesson:start inside a block' % where)
-            inside, blocks = True, blocks + 1
+            inside = True
+            kind = m.group('kind')
+            blocks += kind == 'start'
             base = len(m.group('pad')) // INDENT
             hidden_depth = 0
             continue
@@ -101,7 +126,15 @@ def parse(path):
             tags = m.group('tags').split()
             code = code[:m.start()].rstrip()
         stripped = code.strip()
-        if not stripped or stripped.startswith(('//', '/*', '*')):
+        # Comments explain the source file, not the listing: a // line, a
+        # /* ... */ block, and every line of a block that spans several.
+        if in_comment:
+            in_comment = '*/' not in stripped
+            continue
+        if stripped.startswith('/*'):
+            in_comment = '*/' not in stripped
+            continue
+        if not stripped or stripped.startswith(('//', '*')):
             continue
 
         hide = '@hide' in tags
@@ -125,6 +158,8 @@ def parse(path):
             line_id = name
         if hide and (line_id or only):
             raise SourceError('%s: a hidden line cannot carry an id or @only' % where)
+        if kind == 'helpers' and (line_id or only):
+            raise SourceError('%s: a helper line carries no line id and no @only' % where)
 
         if hide:
             # A hidden brace only picks a variant at run time. The lines it
@@ -144,6 +179,9 @@ def parse(path):
         if indent < 0:
             raise SourceError('%s: line sits left of its lesson block' % where)
         entry = {'id': line_id, 'text': stripped, 'indent': indent}
+        if kind == 'helpers':
+            helpers.append(entry)
+            continue
         for variant in (only or variants):
             listings[variant].append(entry)
 
@@ -151,7 +189,7 @@ def parse(path):
         raise SourceError('%s: lesson:start never closed' % rel)
     if not blocks:
         raise SourceError('%s: no lesson:start block' % rel)
-    return rel, listings
+    return rel, listings, helpers
 
 
 def render(algo):
@@ -162,19 +200,26 @@ def render(algo):
         'window.LESSON_CODE = window.LESSON_CODE || {};',
         'window.LESSON_CODE.%s = {' % algo,
     ]
+    def lines_of(lines, pad):
+        for i, line in enumerate(lines):
+            comma = ',' if i < len(lines) - 1 else ''
+            out.append('%s{ id: %s, text: %s, indent: %d }%s' % (
+                pad, json.dumps(line['id']), json.dumps(line['text']), line['indent'], comma))
+
     for k, language in enumerate(LANGUAGES):
-        rel, listings = parse(source_path(algo, language))
+        rel, listings, helpers = parse_all(source_path(algo, language))
         out.append('    %s: {' % language)
         out.append('        source: %s,' % json.dumps(rel))
         out.append('        listings: {')
         for j, (variant, lines) in enumerate(listings.items()):
             out.append('            %s: [' % json.dumps(variant))
-            for i, line in enumerate(lines):
-                comma = ',' if i < len(lines) - 1 else ''
-                out.append('                { id: %s, text: %s, indent: %d }%s' % (
-                    json.dumps(line['id']), json.dumps(line['text']), line['indent'], comma))
+            lines_of(lines, ' ' * 16)
             out.append('            ]%s' % (',' if j < len(listings) - 1 else ''))
-        out.append('        }')
+        out.append('        },')
+        # Lines the lesson leans on but does not teach, for "Show helpers".
+        out.append('        helpers: [')
+        lines_of(helpers, ' ' * 12)
+        out.append('        ]')
         out.append('    }%s' % (',' if k < len(LANGUAGES) - 1 else ''))
     out.append('};')
     return '\n'.join(out) + '\n'
