@@ -214,6 +214,7 @@ def _claims():
     return out
 
 
+@pytest.mark.slow
 @needs_node
 @pytest.mark.parametrize('lesson,option', _claims())
 def test_complexity_claims_match_measured_counts(lesson, option):

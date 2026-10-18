@@ -359,6 +359,7 @@ def _sort_params():
             for case in ('best', 'average', 'worst')]
 
 
+@pytest.mark.slow
 @needs_node
 @pytest.mark.parametrize('lesson,variant,case', _sort_params())
 def test_sorting_cases_grow_as_their_theta(lesson, variant, case):
@@ -381,6 +382,7 @@ def test_sorting_cases_grow_as_their_theta(lesson, variant, case):
     check_growth('%s %s %s' % (lesson, variant or '-', case), theta, samples)
 
 
+@pytest.mark.slow
 @needs_node
 @pytest.mark.parametrize('lesson,case', [(l, c) for l in sorted(SEARCH_CASES)
                                          for c in ('best', 'average', 'worst')])
@@ -403,6 +405,7 @@ def _graph_params():
     return out
 
 
+@pytest.mark.slow
 @needs_node
 @pytest.mark.parametrize('algo,case,family', _graph_params())
 def test_graph_cases_grow_as_their_theta(algo, case, family):
@@ -421,6 +424,7 @@ def test_graph_cases_grow_as_their_theta(algo, case, family):
     check_growth('%s %s family %d' % (algo, case, family), theta, samples)
 
 
+@pytest.mark.slow
 @needs_node
 def test_bellman_ford_average_is_k_passes_of_e_edges():
     """The average case is written Theta(k times E), k being the number of

@@ -79,12 +79,27 @@ internet.
 
 ## Tests
 
+Two ways to run them:
+
 ```bash
 pytest -q
 ```
 
-1,118 tests. Most of them exist to prove that visual work did not change any
-algorithm's behaviour:
+```bash
+pytest -q -m "not slow"
+```
+
+The first runs everything. The second leaves out the tests marked `slow`, the
+ones that measure how counts grow across many input sizes and the ones that
+compile and run the C, C++ and Java reference programs, and finishes in about
+ten seconds. Use it while working; run the full set before a commit. The
+marker is registered in `pytest.ini`.
+
+The compile tests need `gcc`, `g++` and a JDK 17 or newer (`javac` and `java`)
+on the path. Without one, that language's tests skip and say what to install.
+
+Most tests exist to prove that visual work did not change any algorithm's
+behaviour:
 
 | File | What it holds to account |
 |---|---|
@@ -95,18 +110,25 @@ algorithm's behaviour:
 | `test_sorting_workspace.py`, `test_graph_workspace.py` | The ids and hooks the shared workspace code depends on |
 | `test_big_o.py` | Every figure the Big O page quotes, re-derived by running the code |
 | `test_kruskal.py` | Union-find behaviour on disconnected input |
+| `test_variants.py` | Every variant switch: output, counts, stability, seeds, and each lesson claim measured against the code |
+| `test_phase11.py` | Each case's stated Theta, checked by growing the input and counting real work (slow) |
+| `test_reference_code.py` | The C, C++ and Java programs, compiled and run, match the Python step by step (slow) |
+| `test_code_listings.py` | The listings generated from those programs are current and use the lesson's line ids |
 
 Two more checks are not pytest:
 
 ```bash
 python tools/check_banned_patterns.py .
 node tests/validate_lessons.js
+python tools/extract_code.py --check
 ```
 
 The first enforces the project's writing rules against em dashes and emoji. It
 decodes JavaScript escapes, surrogate pairs and HTML entities before it looks,
 because a plain search over the source misses every one of those forms and this
-project has shipped all of them. The second parses every lesson file.
+project has shipped all of them. The second parses every lesson file. The third
+says whether the code listings need regenerating: after editing anything in
+`reference_code/`, run `python tools/extract_code.py`.
 
 ## How it is built
 
@@ -119,6 +141,7 @@ app.py                     every route, and the seven graph algorithms
 teacher.py                 the one builder every step passes through
 sorting_algorithms/        six sorts, each yielding teacher steps
 searching_algorithms/      linear and binary search
+reference_code/            the same eight algorithms in C, C++ and Java
 templates/
   layout.html              the shell every page extends
   landing.html             Home
@@ -138,8 +161,10 @@ static/
   js/theme.js              the light and dark toggle
   js/lessons/*.js          fifteen lesson files, one per algorithm
   js/lessons/README.md     the step contract every phase follows
+  js/lessons/code/*.js     C, C++ and Java listings, generated, never edited
 tests/                     pytest suites and the two recorded baselines
 tools/check_banned_patterns.py
+tools/extract_code.py      writes js/lessons/code/ from reference_code/
 DESIGN.md                  the design spec
 REBUILD_PLAN.md            the plan the rebuild followed
 LAUNCH_CHECKLIST.md        what is left before this goes live

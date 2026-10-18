@@ -290,10 +290,84 @@ function checkVariants(lesson, key, file) {
     });
 }
 
+// Phase 12. The C, C++ and Java listings tools/extract_code.py writes to
+// lessons/code/<algo>.js. Each language gives one listing per variant of the
+// lesson ('default' when it has none), and each listing uses exactly the
+// line ids of that variant's Python listing, so a step lights up the same
+// line whichever language is shown.
+const CODE_DIR = path.join(LESSON_DIR, 'code');
+const CODE_LANGUAGES = ['c', 'cpp', 'java'];
+global.window.LESSON_CODE = {};
+if (fs.existsSync(CODE_DIR)) {
+    fs.readdirSync(CODE_DIR).filter(function (n) { return n.endsWith('.js'); })
+        .forEach(function (name) {
+            try {
+                eval(fs.readFileSync(path.join(CODE_DIR, name), 'utf8'));
+            } catch (error) {
+                complain('code/' + name, 'does not parse: ' + error.message);
+            }
+        });
+}
+const CODE = global.window.LESSON_CODE;
+
+function idsOf(listing) {
+    return listing.map(function (l) { return l.id; }).filter(Boolean).sort();
+}
+
+function checkCode(lesson, key) {
+    const file = 'code/' + key + '.js';
+    const code = CODE[key];
+    if (!code) {
+        if (lesson.family === 'sorting' || lesson.family === 'searching') {
+            complain(file, 'is missing: run python tools/extract_code.py');
+        }
+        return;
+    }
+    const variants = VARIANTS.optionIds(lesson);
+    const wanted = variants.length ? variants : ['default'];
+    CODE_LANGUAGES.forEach(function (language) {
+        const entry = code[language];
+        if (!entry || !entry.listings) {
+            complain(file, 'has no ' + language + ' listings');
+            return;
+        }
+        if (typeof entry.source !== 'string' || !entry.source.startsWith('reference_code/')) {
+            complain(file, language + ' must name its source under reference_code/');
+        }
+        const have = Object.keys(entry.listings);
+        if (have.join(' ') !== wanted.join(' ')) {
+            complain(file, language + ' has listings for ' + have.join(', ') +
+                     ' but the lesson has ' + wanted.join(', '));
+        }
+        wanted.forEach(function (variant) {
+            const listing = entry.listings[variant] || [];
+            const where = file + ' [' + language + ' ' + variant + ']';
+            if (!listing.length) complain(where, 'is empty');
+            listing.forEach(function (line) {
+                if (typeof line.text !== 'string' || !line.text.trim()) complain(where, 'a line has no text');
+                if (typeof line.indent !== 'number' || line.indent < 0) complain(where, 'a line has no indent');
+                if (line.id !== null && typeof line.id !== 'string') complain(where, 'a line id must be text or null');
+            });
+            const python = VARIANTS.resolve(lesson, variants.length ? variant : null).code.python;
+            const mine = idsOf(listing);
+            const theirs = idsOf(python);
+            if (mine.join(' ') !== theirs.join(' ')) {
+                complain(where, 'line ids ' + mine.join(', ') + ' do not match the Python listing ' +
+                         theirs.join(', '));
+            }
+        });
+    });
+}
+
+Object.keys(CODE).forEach(function (key) {
+    if (!lessons[key]) complain('code/' + key + '.js', 'has no lesson ' + key);
+});
+
 Object.keys(lessons).sort().forEach(function (key) {
     const lesson = lessons[key];
     const file = key + '.js';
     checkLesson(lesson, key, file);
+    if (lesson.code) checkCode(lesson, key);
     if (!lesson.complexity) return;
     checkClaims(lesson, file);
     checkVariants(lesson, key, file);
