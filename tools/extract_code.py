@@ -189,7 +189,9 @@ def stale():
     out = []
     for algo in sorted(ALGORITHMS):
         try:
-            with open(target(algo), encoding='utf-8', newline='') as fh:
+            # Universal newlines: a checkout with core.autocrlf turns these
+            # into CRLF, which is not a change worth failing over.
+            with open(target(algo), encoding='utf-8') as fh:
                 current = fh.read()
         except FileNotFoundError:
             current = None
