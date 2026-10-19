@@ -32,6 +32,9 @@ from sorting_algorithms.quick_sort import quick_sort
 from sorting_algorithms.heap_sort import heap_sort
 from searching_algorithms.linear_search import linear_search
 from searching_algorithms.binary_search import binary_search
+from searching_algorithms.jump_search import jump_search
+from sorting_algorithms.counting_sort import counting_sort, KEY_MAX
+from sorting_algorithms.radix_sort import radix_sort
 
 pytestmark = pytest.mark.slow
 
@@ -50,10 +53,15 @@ SORTS = {
                                              'middle': {'pivot_rule': 'middle'},
                                              'random': {'pivot_rule': 'random'}}),
     'heap_sort': (heap_sort, 'HeapSort', {'-': {}}),
+    'counting_sort': (counting_sort, 'CountingSort', {'-': {}}),
+    'radix_sort': (radix_sort, 'RadixSort', {'-': {}}),
 }
+# The sorts that take whole numbers from 0 to KEY_MAX only.
+KEYED = {'counting_sort', 'radix_sort'}
 SEARCHES = {
     'linear_search': (linear_search, 'LinearSearch'),
     'binary_search': (binary_search, 'BinarySearch'),
+    'jump_search': (jump_search, 'JumpSearch'),
 }
 ALGORITHMS = sorted(SORTS) + sorted(SEARCHES)
 sys.path.insert(0, os.path.join(ROOT, 'tools'))
@@ -76,6 +84,15 @@ def _frame(meta):
     text += ''.join(' %d:%d' % (i, v) for i, v in zip(meta['indices'], meta['values']))
     if 'depth' in meta:
         text += ' depth=%d range=%d:%d' % (meta['depth'], meta['range'][0], meta['range'][1])
+    # Counting sort: the slots of the count list the step is about, and the
+    # count in the first of them. Radix sort: the bucket, how many values it
+    # holds as drawn, and the digit place.
+    if meta.get('cells'):
+        lo, hi = meta['cells']
+        text += ' cells=%d:%d count=%d' % (lo, hi, meta['counts'][lo])
+    if meta.get('bucket') is not None:
+        text += ' bucket=%d size=%d place=%d' % (
+            meta['bucket'], len(meta['buckets'][meta['bucket']]), meta['place'])
     return text
 
 
@@ -125,6 +142,21 @@ def shapes():
     return out
 
 
+def keyed_shapes():
+    """The same kinds of input inside 0 to KEY_MAX, the only values counting
+    and radix sort accept, with both ends of the range."""
+    rng = random.Random(19)
+    out = [[], [0], [KEY_MAX], [2, 1], [1, 2], [3, 3], [KEY_MAX, 0], [0, KEY_MAX, 0]]
+    for n in (5, 8, 13, 21, 30, 100):
+        out.append([rng.randint(0, KEY_MAX) for _ in range(n)])
+        out.append(sorted(rng.randint(0, KEY_MAX) for _ in range(n)))
+        out.append(sorted((rng.randint(0, KEY_MAX) for _ in range(n)), reverse=True))
+        out.append([7] * n)
+        out.append([rng.randint(0, 3) for _ in range(n)])
+    out.append(list(range(KEY_MAX + 1)))
+    return out
+
+
 def cases_for(algo):
     """[(variant, seed, target, values, expected lines)]"""
     out = []
@@ -132,13 +164,13 @@ def cases_for(algo):
         for variant in SORTS[algo][2]:
             seeds = SEEDS if variant == 'random' else [0]
             for seed in seeds:
-                for values in shapes():
+                for values in (keyed_shapes() if algo in KEYED else shapes()):
                     out.append((variant, seed, 0, values,
                                 python_sort(algo, variant, seed, values)))
         return out
     rng = random.Random(5)
     for values in shapes():
-        if algo == 'binary_search':
+        if algo in ('binary_search', 'jump_search'):
             values = sorted(values)
         targets = set(values[:3] + values[-2:]) | {-50, 1000}
         if values:
@@ -246,3 +278,14 @@ def test_every_algorithm_has_all_three_files():
                      os.path.join(REF, 'cpp', algo + '.cpp'),
                      os.path.join(REF, 'java', cls + '.java')):
             assert os.path.isfile(path), path
+
+
+@pytest.mark.parametrize('language', ['c', 'cpp', 'java'])
+@pytest.mark.parametrize('algo', sorted(KEYED))
+@pytest.mark.parametrize('value', [-1, KEY_MAX + 1])
+def test_keyed_sorts_refuse_values_outside_the_range(language, algo, value, build_dir):
+    """Counting and radix sort take 0 to KEY_MAX only, as /run_sort does."""
+    run = compile_program(language, algo, build_dir)
+    result = subprocess.run(run, input='1\n- 0 0\n3\n4 %d 2\n' % value, capture_output=True, text=True)
+    assert result.returncode != 0
+    assert 'outside 0 to %d' % KEY_MAX in result.stdout + result.stderr

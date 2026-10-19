@@ -26,7 +26,7 @@ const FIXED_THIS_RUN_GRAPH =
 
 // null is allowed: a figure in two variables, such as O(V times E), is
 // not any single curve, and claiming one would be a different figure.
-const GROWTH_KEYS = ['1', 'logn', 'n', 'nlogn', 'n2', 'n3', null];
+const GROWTH_KEYS = ['1', 'logn', 'sqrtn', 'n', 'nlogn', 'n2', 'n3', null];
 const FAMILIES = ['sorting', 'searching', 'graph'];
 
 global.window = {};
@@ -147,14 +147,18 @@ function checkLesson(lesson, key, file) {
 
 // Phase 11. The bounds a case or the overall line may state, written the
 // way the rest of the lesson writes figures. `k times E` is Bellman-Ford's
-// average, where k is its number of passes.
-const BOUNDS = ['1', 'log n', 'n', 'n log n', 'n squared',
-                'V', 'E', 'V squared', 'V cubed', 'V times E', 'E log E', 'k times E'];
+// average, where k is its number of passes. Phase 19 adds jump search's
+// square root and the two sorts that do not compare: counting sort's
+// n plus k (k the largest key) and radix sort's d times (n plus b) (d digits,
+// b buckets).
+const BOUNDS = ['1', 'log n', 'square root of n', 'n', 'n log n', 'n squared',
+                'V', 'E', 'V squared', 'V cubed', 'V times E', 'E log E', 'k times E',
+                'n plus k', 'd times (n plus b)'];
 
 // Which growth curve a one variable worst case has. A bound missing here
 // names two variables at once, so the lesson draws no curve for it.
 const CURVE_OF = {
-    '1': '1', 'log n': 'logn', 'n': 'n', 'n log n': 'nlogn', 'n squared': 'n2',
+    '1': '1', 'log n': 'logn', 'square root of n': 'sqrtn', 'n': 'n', 'n log n': 'nlogn', 'n squared': 'n2',
     'V': 'n', 'E': 'n', 'V squared': 'n2', 'V cubed': 'n3', 'E log E': 'nlogn'
 };
 

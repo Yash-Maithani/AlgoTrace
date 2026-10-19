@@ -28,6 +28,11 @@
                 <span class="order-note">Halve a sorted list over and over.</span>
                 <span class="order-tag">O(log n)</span>
             </li>
+            <li>
+                <a class="order-name" href="{{ url_for('searching_page') }}?algorithm=jump_search">Jump Search</a>
+                <span class="order-note">Jump ahead in blocks, then scan the one that can hold it.</span>
+                <span class="order-tag">O(&radic;n)</span>
+            </li>
             <li><a class="order-name" href="{{ url_for('sorting_page') }}?algorithm=Bubble+Sort">Bubble Sort</a>
                 <span class="order-note">Swap neighbours until nothing is out of order.</span>
                 <span class="order-tag">O(n&sup2;)</span></li>
@@ -46,6 +51,12 @@
             <li><a class="order-name" href="{{ url_for('sorting_page') }}?algorithm=Heap+Sort">Heap Sort</a>
                 <span class="order-note">Build a heap, pull the largest off the top.</span>
                 <span class="order-tag">O(n log n)</span></li>
+            <li><a class="order-name" href="{{ url_for('sorting_page') }}?algorithm=Counting+Sort">Counting Sort</a>
+                <span class="order-note">Count each value, then write them back in order. No comparisons.</span>
+                <span class="order-tag">O(n + k)</span></li>
+            <li><a class="order-name" href="{{ url_for('sorting_page') }}?algorithm=Radix+Sort">Radix Sort</a>
+                <span class="order-note">Bucket by the ones digit, then by the tens. No comparisons.</span>
+                <span class="order-tag">O(d(n + b))</span></li>
             <li><a class="order-name" href="{{ url_for('graph_page') }}?algo=bfs">Breadth-First Search</a>
                 <span class="order-note">Explore a network one ring at a time.</span>
                 <span class="order-tag">O(V&middot;E)</span></li>
@@ -70,7 +81,7 @@
         </ol>
 
         <h2>Searching</h2>
-        <p>Two algorithms. Both figures below describe the implementations in
+        <p>Three algorithms. All figures below describe the implementations in
            <code>searching_algorithms/</code>.</p>
         <div class="card-grid">
             <a class="algo-card" data-accent="1" href="{{ url_for('searching_page') }}?algorithm=linear_search">
@@ -95,11 +106,22 @@
                 <p class="algo-note">The iterative form keeps three markers and no
                    recursion, so its extra memory does not grow with the list.</p>
             </a>
+            <a class="algo-card" data-accent="3" href="{{ url_for('searching_page') }}?algorithm=jump_search">
+                <h3>Jump Search</h3>
+                <p>Jump ahead a block of about &radic;n values at a time, then scan one block. Needs a sorted list.</p>
+                <dl class="algo-facts">
+                    <dt>Best</dt><dd>O(1)</dd>
+                    <dt>Worst</dt><dd>O(&radic;n)</dd>
+                    <dt>Space</dt><dd>O(1)</dd>
+                </dl>
+                <p class="algo-note">Between linear and binary search: at n = 1024 its
+                   worst case is 64 comparisons, against 1024 and 11.</p>
+            </a>
         </div>
 
         <h2>Sorting</h2>
-        <p>Six algorithms. All figures below describe the implementations in
-           <code>sorting_algorithms/</code>.</p>
+        <p>Eight algorithms. All figures below describe the implementations in
+           <code>sorting_algorithms/</code>. The last two never compare two values.</p>
         <div class="card-grid">
             <a class="algo-card" data-accent="1" href="{{ url_for('sorting_page') }}?algorithm=Bubble+Sort">
                 <h3>Bubble Sort</h3>
@@ -166,6 +188,28 @@
                 </dl>
                 <p class="algo-note">Heapify here is recursive, so the call stack is the
                    extra memory rather than the usual O(1).</p>
+            </a>
+            <a class="algo-card" data-accent="1" href="{{ url_for('sorting_page') }}?algorithm=Counting+Sort">
+                <h3>Counting Sort</h3>
+                <p>Count how often each value from 0 to 99 appears, then write the list back from the counts.</p>
+                <dl class="algo-facts">
+                    <dt>Best</dt><dd>O(n + k)</dd>
+                    <dt>Worst</dt><dd>O(n + k)</dd>
+                    <dt>Space</dt><dd>O(k)</dd>
+                </dl>
+                <p class="algo-note">No comparisons at all, which is how it gets under the
+                   n log n limit for comparison sorts. It only takes whole numbers 0 to 99.</p>
+            </a>
+            <a class="algo-card" data-accent="2" href="{{ url_for('sorting_page') }}?algorithm=Radix+Sort">
+                <h3>Radix Sort</h3>
+                <p>Deal the values into ten buckets by the ones digit, collect them, then do the tens.</p>
+                <dl class="algo-facts">
+                    <dt>Best</dt><dd>O(d(n + b))</dd>
+                    <dt>Worst</dt><dd>O(d(n + b))</dd>
+                    <dt>Space</dt><dd>O(n + b)</dd>
+                </dl>
+                <p class="algo-note">d is the digits per value, here 2, and b the 10 buckets.
+                   No comparisons, and equal values keep their order.</p>
             </a>
         </div>
 

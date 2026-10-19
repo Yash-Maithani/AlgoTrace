@@ -61,6 +61,7 @@ NAMES = sorted(LESSON_DATA)
 CURVE_OF = {
     '1': lambda n: 1.0,
     'logn': lambda n: math.log2(n + 1),
+    'sqrtn': lambda n: math.sqrt(n),
     'n': lambda n: float(n),
     'nlogn': lambda n: n * math.log2(n + 1),
     'n2': lambda n: float(n * n),
@@ -73,6 +74,7 @@ CURVE_OF = {
 SHAPE = {
     'O(1)': '1',
     'O(log n)': 'logn',
+    'O(square root of n)': 'sqrtn',
     'O(n)': 'n',
     'O(n log n)': 'nlogn',
     'O(n squared)': 'n2',
@@ -84,11 +86,13 @@ SHAPE = {
     # Two variables at once. No single curve on an axis of one variable is
     # this figure, so a lesson stating it must draw none.
     'O(V times E)': None,
+    'O(n plus k)': None,
+    'O(d times (n plus b))': None,
 }
 
 
 def test_every_lesson_was_read():
-    assert len(NAMES) == 15, 'expected 15 lessons, read %d' % len(NAMES)
+    assert len(NAMES) == 18, 'expected 18 lessons, read %d' % len(NAMES)
 
 
 @pytest.mark.parametrize('name', NAMES)
@@ -160,7 +164,7 @@ def test_the_drawn_curve_outgrows_the_slower_ones(name):
     if key is None:
         return
 
-    order = ['1', 'logn', 'n', 'nlogn', 'n2', 'n3']
+    order = ['1', 'logn', 'sqrtn', 'n', 'nlogn', 'n2', 'n3']
     at = order.index(key)
     for slower in order[:at]:
         assert CURVE_OF[key](64) > CURVE_OF[slower](64), (

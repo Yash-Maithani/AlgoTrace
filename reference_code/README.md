@@ -53,7 +53,13 @@ end
 ```
 
 `depth` and `range` appear on merge sort and quick sort frames, as in their
-step meta.
+step meta. Counting sort frames add `cells=<lo>:<hi> count=<count[lo]>`, the
+slots of the count list the frame is about; radix sort frames add
+`bucket=<b> size=<values in it as drawn> place=<1 or 10>`.
+
+Counting sort and radix sort take whole numbers from 0 to 99 only, like
+`/run_sort`. A value outside that range is an error: the program prints
+`error value <v> is outside 0 to 99` and exits with a non-zero status.
 
 ## Markers
 

@@ -27,7 +27,8 @@ pytestmark = pytest.mark.skipif(not available(), reason=SKIP_REASON)
 
 THETA = {'1': '1', 'log n': 'log n', 'n': 'n', 'n log n': 'n log n', 'n squared': 'n²',
          'V': 'V', 'E': 'E', 'V squared': 'V²', 'V cubed': 'V³',
-         'V times E': 'V·E', 'E log E': 'E log E', 'k times E': 'k·E'}
+         'V times E': 'V·E', 'E log E': 'E log E', 'k times E': 'k·E',
+         'square root of n': '√n', 'n plus k': 'n + k', 'd times (n plus b)': 'd(n + b)'}
 
 
 def run_sort(page, algorithm, values='5, 3, 8, 3, 9, 1, 7, 5'):

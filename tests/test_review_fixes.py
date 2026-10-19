@@ -116,7 +116,7 @@ def test_merge_sort_writes_even_when_nothing_moves():
 
 
 def test_the_sorts_that_do_not_swap_say_so():
-    """Merge sort writes, insertion sort shifts. The other four swap."""
+    """Merge, counting and radix sort write, insertion sort shifts. The other four swap."""
     script = (
         "global.window = {};"
         "const fs = require('fs'), path = require('path');"
@@ -133,8 +133,12 @@ def test_the_sorts_that_do_not_swap_say_so():
     lessons = json.loads(out.stdout.decode('utf-8'))
     renamed = {k: v['countLabel'] for k, v in lessons.items() if 'countLabel' in v}
 
+    # Counting and radix sort (Phase 19) write values back from their count
+    # list or buckets, so they count writes too.
     assert renamed == {'merge_sort': 'writes',
-                       'insertion_sort': 'shifts'}, renamed
+                       'insertion_sort': 'shifts',
+                       'counting_sort': 'writes',
+                       'radix_sort': 'writes'}, renamed
     for key in renamed:
         assert lessons[key]['complexity']['countsNote'], (
             '%s renames its counter without explaining it' % key)

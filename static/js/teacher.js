@@ -347,7 +347,10 @@
         'V squared': ['V²', 'V squared'],
         'V cubed': ['V³', 'V cubed'],
         'V times E': ['V·E', 'V times E'],
-        'k times E': ['k·E', 'k times E']
+        'k times E': ['k·E', 'k times E'],
+        'square root of n': ['√n', 'square root of n'],
+        'n plus k': ['n + k', 'n plus k'],
+        'd times (n plus b)': ['d(n + b)', 'd times n plus b']
     };
 
     function figure(token) {

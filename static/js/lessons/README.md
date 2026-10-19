@@ -27,6 +27,12 @@ Two more fields belong to particular sorts (Phase 10):
 | `origins` | list of ints | every sorting step, added by app.py: `origins[k]` is the position in the input that the value now at `k` started from. The page tags equal values 5a, 5b from it. Halfway through a merge sort copy back one value can sit in two places, so it is a permutation on every frame except `overwrite` ones |
 | `depth`, `range` | int, `[lo, hi]` | every Merge Sort and Quick Sort step: how many calls deep the step is (the first call is 0) and the inclusive range that call owns. The `done` frame is depth 0 over `[0, n-1]`; an empty list's is `[0, -1]` |
 | `taken` | `'left'` or `'right'` | Merge Sort `compare` steps only: which half the comparison takes from, so Predict mode can ask about it without guessing. It is not drawn on the stage, and no step array or count depends on it |
+| `counts`, `cells` | list of ints, `[lo, hi]` | every Counting Sort step (Phase 19): the count list as it stands, one slot per value from 0 to 99, and the inclusive slots the step is about. A run of empty slots read in a row is one step with `lo < hi`. The strip under the bars draws these |
+| `buckets`, `bucket`, `place` | ten lists, int or null, 1 or 10 | every Radix Sort step (Phase 19): the ten buckets as drawn (a bucket being emptied without the values already taken from its front), the bucket the step is about, and the digit place of the pass. The `done` frame has `bucket` and `place` null |
+
+Counting Sort rebuilds its values from the counts, so a value it writes back
+started nowhere: its entry in `origins` is `null`, and its run's
+`kept_equal_order` is `null`, because there is no starting order to keep.
 
 ### `action` vocabulary
 
@@ -35,9 +41,11 @@ Two more fields belong to particular sorts (Phase 10):
 | `compare` | two values were read and compared. Nothing moved |
 | `swap` | two cells exchanged contents |
 | `overwrite` | one cell was written with a value from somewhere else, as in an insertion shift or a merge write back |
-| `select` | a position or a candidate was marked, for example the next slot to fill or a new running minimum |
+| `select` | a position or a candidate was marked, for example the next slot to fill or a new running minimum. Counting Sort uses it for reading slots of its count list |
 | `place` | a value reached its final position, as with a quick sort pivot |
 | `done` | the final frame. The array is sorted and nothing is highlighted |
+| `count` | Counting Sort: a value was read and one slot of the count list went up. Nothing moved |
+| `bucket` | Radix Sort: a value was dealt to the back of the bucket for its digit. Nothing moved |
 
 Graph algorithms add their own, because none of the above fits a traversal:
 
@@ -89,7 +97,7 @@ window.LESSONS.bubble_sort = { /* the object below */ };
 | `code.pseudocode` | list of `{id, text, indent}` | `id` is null for a line no step ever lands on |
 | `code.python` | list of `{id, text, indent}` | the same ids, matching the real file in `sorting_algorithms/` |
 | `complexity.time` | `{best, average, worst}` | each `{value, reason}`, the reason tied to the code |
-| `complexity.time.<case>.theta` | string | Phase 11. The tight bound for that case, derived from this repository's code and measured by `tests/test_phase11.py`. One of `1`, `log n`, `n`, `n log n`, `n squared`, `V`, `E`, `V squared`, `V cubed`, `V times E`, `E log E`, `k times E` (Bellman-Ford's average, k being its number of passes). The case's `value` must read `O(<theta>)` |
+| `complexity.time.<case>.theta` | string | Phase 11. The tight bound for that case, derived from this repository's code and measured by `tests/test_phase11.py`. One of `1`, `log n`, `square root of n`, `n`, `n log n`, `n squared`, `V`, `E`, `V squared`, `V cubed`, `V times E`, `E log E`, `k times E` (Bellman-Ford's average, k being its number of passes), `n plus k` (Counting Sort, k the largest key) or `d times (n plus b)` (Radix Sort, d digits and b buckets). The case's `value` must read `O(<theta>)` |
 | `complexity.overall` | `{O, Omega, Theta}` | the bounds across every input. `O` equals the worst case's theta, `Omega` the best case's, and `Theta` is that bound when the two agree and `null` when they differ |
 | `complexity.misconception` | string | the shared note that cases (best, average, worst) and bounds (O, Omega, Theta) are different ideas. Same wording in every lesson, exactly as in `tests/validate_lessons.js` |
 | `complexity.caseScope` | string | graph lessons only, required. Which graphs the cases range over, for example graphs where the start reaches every node |
@@ -97,7 +105,7 @@ window.LESSONS.bubble_sort = { /* the object below */ };
 | `complexity.space` | `{value, what}` | `what` names the memory, for example "the recursion stack" |
 | `complexity.auxiliaryNote` | string | the fixed explanation of what auxiliary means |
 | `complexity.thisRun` | string | the fixed sentence for the "this run" box. Two of them: one for a counted family, one for graphs, which show no counted work |
-| `complexity.growth` | string or null | which reference curve has this algorithm's shape: `1`, `logn`, `n`, `nlogn`, `n2` or `n3`. `null` when the figure needs two numbers at once, such as `O(V times E)`, because no curve on an axis of one variable is that figure |
+| `complexity.growth` | string or null | which reference curve has this algorithm's shape: `1`, `logn`, `sqrtn`, `n`, `nlogn`, `n2` or `n3`. `null` when the figure needs two numbers at once, such as `O(V times E)`, because no curve on an axis of one variable is that figure |
 | `complexity.growthBasis` | string or null | what `n` on the axis stands for when the figure is written in another letter, for example `'V, the number of nodes'`. `null` when the figure is already in `n` |
 | `complexity.growthNote` | string or null | why no curve fits. Required when `growth` is null, forbidden otherwise, and it must name the figure it is explaining |
 | `complexity.countsNote` | string or null | an explanation of a counter the learner will find surprising, shown under the "this run" box |

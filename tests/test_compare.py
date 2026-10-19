@@ -143,6 +143,12 @@ def test_what_to_try_claims_hold(index):
         elif index == 4:   # same swaps, fewer comparisons with the early exit
             assert ra['swaps'] == rb['swaps']
             assert rb['comparisons'] < ra['comparisons']
+        elif index == 5:   # none against over a hundred, and fewer steps
+            assert ra['comparisons'] == 0
+            assert rb['comparisons'] > 100
+            assert len(a['steps']) < len(b['steps'])
+        else:
+            pytest.fail('try %d states a claim this test does not check' % index)
 
 
 def test_every_try_names_real_algorithms_and_variants():

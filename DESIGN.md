@@ -380,6 +380,16 @@ The three column layout from section 3. Identical structure across all three, so
 who understands one understands the others. Only the stage contents differ: bars, array
 cells, or a node and edge canvas.
 
+Counting Sort and Radix Sort (Phase 19) show their working memory in a strip **inside the
+stage, under the bars**: the count list as a hundred square (row r, column c is the slot
+for 10r + c, every slot drawn because every slot is read), or the ten buckets of the
+current digit pass, one value per line with the front at the top. Inside the stage, so
+the control bar is still the element immediately below it. While the strip shows, the bar
+area keeps its full 324px (a 99 is 297px tall plus its label) and the stage grows to fit,
+rather than squeezing the bars; the strip scrolls inside itself past 320px and keeps the
+active slot or bucket in view. Jump Search adds an `end` pointer, the block end it is
+checking, next to `low` and `high` on the searching stage.
+
 ### `/compare` Compare mode (Phase 17)
 
 Two sorting algorithms on one input. Not a three column workspace: there is no Learn

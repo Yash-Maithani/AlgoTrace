@@ -212,17 +212,36 @@
             nameA = 'Left, ' + nameA;
             nameB = 'Right, ' + nameB;
         }
-        var text;
-        if (a.comparisons === b.comparisons) {
-            text = 'Both used ' + plural(a.comparisons, 'comparisons') + '.';
+        /* Counting Sort and Radix Sort never compare two values, so 0 against
+           anything says nothing about who did less work. When either side
+           made no comparisons the banner compares the steps each side drew
+           instead, and says so. */
+        var measure = 'comparisons';
+        var x = a.comparisons, y = b.comparisons;
+        var text = '';
+        if (x === 0 || y === 0) {
+            measure = 'steps';
+            x = left.ws.payload.steps.length;
+            y = right.ws.payload.steps.length;
+            var zero = a.comparisons === 0 && b.comparisons === 0
+                ? 'Neither side compares two values, '
+                : (a.comparisons === 0 ? nameA : nameB) + ' never compares two values, ';
+            text = zero + 'so comparisons cannot say which did less. This compares the total ' +
+                'steps each side showed instead. ';
+        }
+        if (x === y) {
+            text += 'Both used ' + plural(x, measure) + '.';
         } else {
-            var leftWins = a.comparisons < b.comparisons;
-            var few = leftWins ? a : b;
-            var many = leftWins ? b : a;
-            text = (leftWins ? nameA : nameB) + ' used ' +
-                plural(many.comparisons - few.comparisons, 'comparisons').replace(/^(\d+) /, '$1 fewer ') +
-                ' than ' + (leftWins ? nameB : nameA) + ': ' + few.comparisons + ' against ' +
-                many.comparisons + '.';
+            var leftWins = x < y;
+            var few = leftWins ? x : y;
+            var many = leftWins ? y : x;
+            text += (leftWins ? nameA : nameB) + ' used ' +
+                plural(many - few, measure).replace(/^(\d+) /, '$1 fewer ') +
+                ' than ' + (leftWins ? nameB : nameA) + ': ' + few + ' against ' + many + '.';
+        }
+        if (measure === 'steps') {
+            text += ' ' + nameA + ' made ' + plural(a.comparisons, 'comparisons') + ', ' +
+                nameB + ' made ' + plural(b.comparisons, 'comparisons') + '.';
         }
         text += ' ' + nameA + ' made ' + plural(a.swaps, countNoun(left.lesson())) + ', ' +
             nameB + ' made ' + plural(b.swaps, countNoun(right.lesson())) + '.';

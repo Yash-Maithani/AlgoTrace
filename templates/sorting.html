@@ -60,6 +60,14 @@
                             <p class="setup-hint" id="values-hint">Whole numbers, separated by commas.</p>
                         </div>
 
+                        <!-- The two sorts that never compare are told their key range
+                             in advance, so it is shown whichever input is chosen. -->
+                        <div class="setup-field" id="key-range-hint" hidden>
+                            <p class="setup-hint">
+                                Counting Sort and Radix Sort take whole numbers from 0 to {{ key_max }} only.
+                            </p>
+                        </div>
+
                         <!-- One switch per algorithm that has one. The first
                              option of each is the version the site has always
                              run. Only the chosen algorithm's switch shows. -->
@@ -118,6 +126,13 @@
                     Choose an algorithm and an input, then run the sort.
                 </p>
                 <div class="bar-container" id="array-container" hidden></div>
+                <!-- Counting Sort's count list or Radix Sort's buckets, drawn
+                     from the step under the bars. Hidden for the other sorts. -->
+                <div class="sort-strip" id="sort-strip" hidden>
+                    <p class="sort-strip-title" data-part="strip-title"></p>
+                    <p class="sort-strip-caption" data-part="strip-caption"></p>
+                    <div class="sort-strip-body" data-part="strip-body"></div>
+                </div>
             </div>
 
             <div class="control-bar" role="group" aria-label="Playback">
@@ -231,6 +246,7 @@
     <script src="{{ url_for('static', filename='js/presets.js') }}"></script>
     <script src="{{ url_for('static', filename='js/variants.js') }}"></script>
     <script src="{{ url_for('static', filename='js/sortstage.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/sortstrip.js') }}"></script>
     <script src="{{ url_for('static', filename='js/calltree.js') }}"></script>
     <script src="{{ url_for('static', filename='js/codeview.js') }}"></script>
     <script src="{{ url_for('static', filename='js/teacher.js') }}"></script>
@@ -268,6 +284,12 @@
             /* The bars: static/js/sortstage.js, shared with /compare. */
             var stage = SortStage.create(document.getElementById('array-container'),
                                          document.getElementById('stage-empty'));
+
+            /* The count list or the buckets under the bars: static/js/sortstrip.js. */
+            var strip = SortStrip.create(document.getElementById('sort-strip'),
+                                         document.getElementById('stage'));
+            var KEYED = {{ keyed_sorts|tojson }};
+            var keyHint = document.getElementById('key-range-hint');
 
             var methodRandom = document.getElementById('random-input');
             var methodManual = document.getElementById('manual-input-choice');
@@ -359,6 +381,7 @@
                 lessons: lessonsByDisplayName(),
                 onAlgorithmChange: function (name) {
                     syncVariantUi(name);
+                    keyHint.hidden = KEYED.indexOf(name) === -1;
                     callTree.select(isRecursive(name));
                     if (presetUi) presetUi.refresh();
                 },
@@ -408,6 +431,7 @@
                 renderStep: function (step, context) {
                     var data = step.array;
                     stage.render(step, context.payload);
+                    strip.render(step);
                     callTree.show(context.index);
                     /* The counts this step has reached, not the run's totals:
                        a box headed "this run" that already showed the final
@@ -457,6 +481,7 @@
 
                 clearStage: function () {
                     stage.clear();
+                    strip.clear();
                     callTree.clear();
                 },
 
@@ -490,6 +515,7 @@
 
             var initialRun = {{ initial_run|tojson }};
             syncVariantUi(Workspace.current.algorithm);
+            keyHint.hidden = KEYED.indexOf(Workspace.current.algorithm) === -1;
             if (initialRun) {
                 /* A form POST may have chosen a variant: put the switch on it. */
                 if (initialRun.variant) {

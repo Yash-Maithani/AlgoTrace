@@ -28,7 +28,9 @@
         /* Not a reference curve: /big-o teaches five, and this one is only
            drawn when an algorithm actually has that shape. Floyd-Warshall
            does. */
-        'n3': { label: 'O(n cubed)', of: function (n) { return n * n * n; } }
+        'n3': { label: 'O(n cubed)', of: function (n) { return n * n * n; } },
+        /* Not a reference curve either: jump search has this shape. */
+        'sqrtn': { label: 'O(square root of n)', of: function (n) { return Math.sqrt(n); } }
     };
 
     var ORDER = ['1', 'logn', 'n', 'nlogn', 'n2'];

@@ -13,6 +13,7 @@
  *   compare            -> comparing
  *   swap, place        -> swapping
  *   select             -> pivot
+ *   count, bucket      -> pivot (a value read into the count list or a bucket)
  *   overwrite          -> swapping when a pair moved, else pivot
  *   done               -> every bar sorted
  */
@@ -24,7 +25,9 @@
             case 'compare': return 'comparing';
             case 'swap':
             case 'place': return 'swapping';
-            case 'select': return 'pivot';
+            case 'select':
+            case 'count':
+            case 'bucket': return 'pivot';
             case 'overwrite':
                 return (step.compared || []).length >= 2 ? 'swapping' : 'pivot';
             default: return null;

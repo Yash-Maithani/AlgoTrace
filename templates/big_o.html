@@ -348,7 +348,10 @@
                 <span class="curve-example">On this site:
                 <a href="{{ url_for('searching_page') }}?algorithm=binary_search">binary
                 search</a>. On 1,024 sorted values it rules out a missing target in 10
-                comparisons. Linear search needs all 1,024.</span>
+                comparisons. Linear search needs all 1,024.
+                <a href="{{ url_for('searching_page') }}?algorithm=jump_search">Jump
+                search</a> sits between the two at O(square root of n): 64 comparisons at
+                worst on the same list.</span>
             </dd>
 
             <dt><code>O(n)</code> linear</dt>
@@ -357,13 +360,20 @@
                 <span class="curve-example">On this site:
                 <a href="{{ url_for('searching_page') }}?algorithm=linear_search">linear
                 search</a>, which checks every value before it can report that one is
-                missing.</span>
+                missing. Also
+                <a href="{{ url_for('sorting_page') }}?algorithm=Counting+Sort">counting</a>
+                and
+                <a href="{{ url_for('sorting_page') }}?algorithm=Radix+Sort">radix</a>
+                sort: their figures are O(n + k) and O(d(n + b)), and here k, d and b are
+                fixed (99, 2 and 10), so the work grows in a straight line with n.</span>
             </dd>
 
             <dt><code>O(n log n)</code> linearithmic</dt>
             <dd>
                 A linear amount of work, repeated once per halving. This is the best
-                any sort can do when it works by comparing pairs.
+                any sort can do when it works by comparing pairs. Counting and radix
+                sort beat it only because they never compare: they need whole numbers
+                in a known range instead.
                 <span class="curve-example">On this site:
                 <a href="{{ url_for('sorting_page') }}?algorithm=Merge+Sort">merge
                 sort</a> and

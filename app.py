@@ -8,8 +8,11 @@ from sorting_algorithms.insertion_sort import insertion_sort
 from sorting_algorithms.heap_sort import heap_sort
 from sorting_algorithms.merge_sort import merge_sort
 from sorting_algorithms.quick_sort import quick_sort
+from sorting_algorithms.counting_sort import counting_sort, KEY_MAX
+from sorting_algorithms.radix_sort import radix_sort
 from searching_algorithms.linear_search import linear_search
 from searching_algorithms.binary_search import binary_search, is_sorted
+from searching_algorithms.jump_search import jump_search
 
 app = Flask(__name__)
 
@@ -20,8 +23,14 @@ sorting_algo_dict = {
     "Insertion Sort": insertion_sort,
     "Heap Sort": heap_sort,
     "Merge Sort": merge_sort,
-    "Quick Sort": quick_sort
+    "Quick Sort": quick_sort,
+    "Counting Sort": counting_sort,
+    "Radix Sort": radix_sort,
 }
+
+# The two sorts that never compare values. Both are told the range of their
+# keys in advance, whole numbers from 0 to KEY_MAX, and refuse anything else.
+KEYED_SORTS = {"Counting Sort", "Radix Sort"}
 
 # Dictionary of graph algorithms
 graph_algo_dict = {
@@ -71,6 +80,18 @@ sorting_algo_details = {
         "time_complexity": {"Best": "O(n log n)", "Average/Worst": "O(n^2)"},
         "space_complexity": "O(n)",
         "stable": False
+    },
+    "Counting Sort": {
+        "description": "Counting Sort counts how many times each value from 0 to 99 appears, then rewrites the list from those counts. It never compares two values.",
+        "time_complexity": {"Best": "O(n + k)", "Average/Worst": "O(n + k)"},
+        "space_complexity": "O(k)",
+        "stable": None
+    },
+    "Radix Sort": {
+        "description": "Radix Sort deals the values into ten buckets by their ones digit, collects them in order, then does the same by the tens digit. It never compares two values.",
+        "time_complexity": {"Best": "O(d(n + b))", "Average/Worst": "O(d(n + b))"},
+        "space_complexity": "O(n + b)",
+        "stable": True
     }
 }
 
@@ -169,6 +190,8 @@ def sorting_page():
             lesson_ids=SORT_LESSON_IDS,
             pick_notes=SORT_PICK_NOTES,
             sort_variants=_variants_for_template(),
+            keyed_sorts=sorted(KEYED_SORTS),
+            key_max=KEY_MAX,
             initial_run=None,
             error="",
         )
@@ -190,6 +213,16 @@ SEARCH_ACTIONS = {"compare", "discard", "found", "missing"}
 SEARCH_ALGORITHMS = {
     "linear_search": linear_search,
     "binary_search": binary_search,
+    "jump_search": jump_search,
+}
+
+# The searches that are only correct on a sorted list, and the one sentence
+# that says why when a run is refused.
+NEEDS_SORTED = {
+    "binary_search": "Binary search only works on a sorted list, because it "
+                     "throws away half the range based on the value in the middle.",
+    "jump_search": "Jump search only works on a sorted list, because it skips a "
+                   "whole block once the block's last value is smaller than the target.",
 }
 
 MAX_SEARCH_SIZE = 30
@@ -232,6 +265,8 @@ SORT_LESSON_IDS = {
     "Merge Sort": "merge_sort",
     "Quick Sort": "quick_sort",
     "Heap Sort": "heap_sort",
+    "Counting Sort": "counting_sort",
+    "Radix Sort": "radix_sort",
 }
 
 SORT_PICK_NOTES = {
@@ -241,6 +276,8 @@ SORT_PICK_NOTES = {
     "Merge Sort": "Split, sort the halves, merge them back.",
     "Quick Sort": "Partition around a pivot, then recurse.",
     "Heap Sort": "Build a heap, pull the largest off the top.",
+    "Counting Sort": "Count each value, then write them back in order.",
+    "Radix Sort": "Bucket by the ones digit, then by the tens.",
 }
 
 
@@ -391,7 +428,9 @@ def _sort_payload(name, values, variant=None, seed=None):
             "array": [int(v) for v in array_state],
             "compared": compared_indices[:] if compared_indices else [],
             # Where each value on screen started, for the stability tags.
-            "origins": [v.origin for v in array_state],
+            # Counting sort writes new copies made from its tallies, which
+            # started nowhere, so their origin is None.
+            "origins": [getattr(v, "origin", None) for v in array_state],
         }
         if meta:
             step_data.update(_plain(meta))
@@ -438,6 +477,10 @@ def _kept_equal_order(final):
 
     None when the input had no equal values, because then there was nothing
     for a sort to keep or break."""
+    if any(not hasattr(item, "origin") for item in final):
+        # Rebuilt from counts: no value on screen is one that was read, so
+        # there is no starting order to keep or break.
+        return None
     seen = {}
     for item in final:
         seen.setdefault(int(item), []).append(item.origin)
@@ -456,9 +499,38 @@ def _kept_equal_order(final):
 # functions, so neither can drift from the other.
 # ---------------------------------------------------------------------------
 
-SORT_ACTIONS = {"compare", "swap", "overwrite", "select", "place", "done"}
+SORT_ACTIONS = {"compare", "swap", "overwrite", "select", "place", "done",
+                "count", "bucket"}
 
 MAX_SORT_SIZE = 100
+
+
+def _random_values(name, size):
+    """A random input. The keyed sorts draw inside the range they accept,
+    1 to 99 like the presets, rather than the usual 1 to 100."""
+    top = KEY_MAX if name in KEYED_SORTS else 100
+    return [random.randint(1, top) for _ in range(size)]
+
+
+def _check_keys(name, values):
+    """Counting and Radix Sort take whole numbers from 0 to KEY_MAX only.
+    Returns the message for the first value outside that range, or None."""
+    if name not in KEYED_SORTS:
+        return None
+    for v in values:
+        if v < 0 or v > KEY_MAX:
+            return ("%s takes whole numbers from 0 to %d only, and %d is %s. "
+                    "%s" % (name, KEY_MAX, v, "negative" if v < 0 else "too big",
+                            KEY_PROBLEM[name]))
+    return None
+
+
+KEY_PROBLEM = {
+    "Counting Sort": "Its count list has one slot for each value from 0 to %d, "
+                     "so a value outside that range has nowhere to be counted." % KEY_MAX,
+    "Radix Sort": "It sorts by the ones digit and then the tens digit, so it "
+                  "needs values of at most two digits and no minus sign.",
+}
 
 
 @app.route("/run_sort", methods=["POST"])
@@ -478,9 +550,12 @@ def run_sort():
                 return jsonify({
                     "error": "Array size must be between 5 and %d." % MAX_SORT_SIZE
                 }), 400
-            values = [random.randint(1, 100) for _ in range(size)]
+            values = _random_values(name, size)
         else:
             values, problem = _parse_values(data.get("values"), MAX_SORT_SIZE)
+            if problem:
+                return jsonify({"error": problem}), 400
+            problem = _check_keys(name, values)
             if problem:
                 return jsonify({"error": problem}), 400
 
@@ -524,6 +599,11 @@ COMPARE_TRIES = [
      "preset": "nearly", "size": 20, "title": "Bubble vs Bubble with early exit on Nearly sorted",
      "text": "The same swaps on both sides, but the early exit stops after the first pass "
              "that changes nothing."},
+    {"left": "Counting Sort", "left_variant": None, "right": "Merge Sort", "right_variant": "lt",
+     "preset": "random", "size": 30, "title": "Counting vs Merge on Random",
+     "text": "Counting Sort never compares two values, so the banner compares the steps "
+             "each side shows instead. Merge Sort makes over a hundred comparisons on 30 "
+             "values; Counting Sort makes none and still finishes first."},
 ]
 
 
@@ -548,6 +628,7 @@ def compare_page():
 SEARCH_PICKER = [
     ("linear_search", "Linear Search", "Check every value until you find it."),
     ("binary_search", "Binary Search", "Halve a sorted list over and over."),
+    ("jump_search", "Jump Search", "Jump ahead in blocks, then scan one."),
 ]
 
 
@@ -592,11 +673,9 @@ def run_search():
         # Binary search is only correct on a sorted list, so the run is
         # blocked rather than quietly returning a wrong answer. The sorted
         # copy travels with the refusal so the page can offer to fix it.
-        if name == "binary_search" and not is_sorted(values):
+        if name in NEEDS_SORTED and not is_sorted(values):
             return jsonify({
-                "error": "Binary search only works on a sorted list, because "
-                         "it throws away half the range based on the value in "
-                         "the middle.",
+                "error": NEEDS_SORTED[name],
                 "unsorted": True,
                 "sorted_array": sorted(values),
             }), 400
@@ -684,6 +763,8 @@ def handle_sorting():
     if input_method == "manual":
         values, error = _parse_values(request.form.get("manual_input", ""),
                                       MAX_SORT_SIZE)
+        if not error:
+            error = _check_keys(selected_algo, values) or ""
         if error:
             values = []
     else:
@@ -696,7 +777,7 @@ def handle_sorting():
             if not 5 <= size <= MAX_SORT_SIZE:
                 error = "Array size must be between 5 and %d." % MAX_SORT_SIZE
             else:
-                values = [random.randint(1, 100) for _ in range(size)]
+                values = _random_values(selected_algo, size)
 
     variant, seed = None, None
     if not error:
@@ -713,6 +794,8 @@ def handle_sorting():
         lesson_ids=SORT_LESSON_IDS,
         pick_notes=SORT_PICK_NOTES,
         sort_variants=_variants_for_template(),
+        keyed_sorts=sorted(KEYED_SORTS),
+        key_max=KEY_MAX,
         initial_run=None if error else _sort_payload(selected_algo, values, variant, seed),
         error=error,
     )

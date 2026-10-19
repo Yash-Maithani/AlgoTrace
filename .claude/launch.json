@@ -32,6 +32,17 @@
       "port": 5056,
       "autoPort": false,
       "url": "http://localhost:5056"
+    },
+    {
+      "name": "flask-5057",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-c",
+        "from app import app; app.config[\"TEMPLATES_AUTO_RELOAD\"] = True; app.jinja_env.auto_reload = True; app.run(port=5057, use_reloader=False)"
+      ],
+      "port": 5057,
+      "autoPort": false,
+      "url": "http://localhost:5057"
     }
   ]
 }

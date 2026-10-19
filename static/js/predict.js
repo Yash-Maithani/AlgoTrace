@@ -21,7 +21,10 @@
  *   merge sort      "Which value is written next: the left half's or the right's?"
  *   quick sort      "Is this smaller than the pivot, so it moves to the left side?"
  *   heap sort       "Will the parent move down?"
+ *   counting sort   "Which count goes up?"
+ *   radix sort      "Which bucket does this value go into?"
  *   searching       "Found it, go left, or go right?" (linear: "or keep looking?")
+ *   jump search     "Jump again or scan back?", then "Found it, keep scanning, or stop?"
  *   BFS, DFS, Dijkstra, Prim   "Which node is visited next?" (joins the tree)
  *   Kruskal         "Will this edge be added, or would it make a cycle?"
  *   Bellman-Ford    "Will this edge shorten the distance?"
@@ -64,6 +67,8 @@
        a pivot). Every answer is read off the steps that follow, or off a fact
        the compare step itself records. */
     function sortingKind(step) {
+        if (step.action === 'count' && step.line === 'tally') return 'counting';
+        if (step.action === 'bucket' && step.line === 'drop') return 'radix';
         if (step.action !== 'compare') return null;
         var vars = step.vars || {};
         if (step.line === 'cmp-left') return 'heap';
@@ -195,6 +200,57 @@
         };
     };
 
+    /* Counting: a value is read and one slot of the count list goes up. The
+       count step records which (`cells`). The other options are the slots a
+       learner mixes it up with, all real slots of this run's list: the
+       position the value was read from, and the slot the previous read sent
+       up. Asked about the count step itself, before it plays. */
+    SORTING.counting = function (ctx, asked) {
+        var value = asked.values[0], at = asked.indices[0];
+        var size = (asked.counts || []).length;
+        if (!asked.cells || asked.cells[0] !== value || value >= size) return null;
+        var before = ctx.meta(ctx.next - 1);
+        var picks = [value];
+        if (at < size) picks.push(at);
+        if (before && before.action === 'count') picks.push(before.cells[0]);
+        picks = unique(picks);
+        if (picks.length < 2) return null;
+        picks.sort(function (a, b) { return a - b; });
+        return {
+            kind: 'counting-slot',
+            prompt: 'Next the sort reads position ' + at + ', which holds ' + value +
+                '. Which count goes up?',
+            options: picks.map(function (v) { return option(v, 'count[' + v + ']'); }),
+            answer: String(value),
+            explain: asked.explain.beginner + ' The slot is picked by the value, not by the position it was read from.'
+        };
+    };
+
+    /* Radix: a value is dealt into the bucket of its digit at this pass's
+       place. The step records which (`bucket`). The other options are the
+       buckets a learner mixes it up with: the value's other digit, and the
+       bucket the previous value went into. */
+    SORTING.radix = function (ctx, asked) {
+        var value = asked.values[0], place = asked.place;
+        if (typeof asked.bucket !== 'number' || (place !== 1 && place !== 10)) return null;
+        var name = place === 1 ? 'ones' : 'tens';
+        var other = place === 1 ? Math.floor(value / 10) % 10 : value % 10;
+        var before = ctx.meta(ctx.next - 1);
+        var picks = [asked.bucket, other];
+        if (before && before.action === 'bucket') picks.push(before.bucket);
+        picks = unique(picks);
+        if (picks.length < 2) return null;
+        picks.sort(function (a, b) { return a - b; });
+        return {
+            kind: 'radix-bucket',
+            prompt: 'Next the sort deals ' + value + ' by its ' + name + ' digit. ' +
+                'Which bucket does this value go into?',
+            options: picks.map(function (d) { return option(d, 'Bucket ' + d); }),
+            answer: String(asked.bucket),
+            explain: asked.explain.beginner
+        };
+    };
+
     function buildSorting(ctx) {
         var asked = ctx.meta(ctx.next);
         var after = ctx.meta(ctx.next + 1);
@@ -220,10 +276,61 @@
         return found;
     }
 
+    /* Jump search asks two questions of its own, read off the line ids of
+       searching_algorithms/jump_search.py. At a block end: jump again, or
+       scan back through this block (at the last block, stop instead of
+       jumping, because there is nothing left to jump to). In the scan:
+       found it, keep scanning, or stop because the value is too big. */
+    function buildJump(ctx, asked, after) {
+        var where = asked.indices[0], value = asked.values[0];
+        var target = asked.vars.target;
+        var answer;
+        if (asked.line === 'jump-check') {
+            var last = asked.vars.end === asked.vars.n - 1;
+            if (after.action === 'discard' && after.line === 'jump') answer = 'jump';
+            else if (after.action === 'missing' && after.line === 'past-end') answer = 'stop';
+            else if (after.action === 'compare' && after.line === 'scan') answer = 'scan';
+            else return null;
+            return {
+                step: ctx.next,
+                kind: 'jump-block',
+                prompt: 'Next the search looks at position ' + where + ', the last of the block from ' +
+                    asked.vars.low + ' to ' + where + '. It holds ' + value + '. The target is ' + target +
+                    '. Jump again or scan back?',
+                options: [last ? option('stop', 'Stop, it is not in the list') : option('jump', 'Jump again'),
+                          option('scan', 'Scan back through this block')],
+                answer: answer,
+                explain: answer === 'scan'
+                    ? value + ' is not smaller than ' + target + ', so if ' + target +
+                      ' is in the list it is in this block. The search goes back to position ' +
+                      asked.vars.low + ' and scans forward.'
+                    : after.explain.beginner
+            };
+        }
+        if (asked.line !== 'scan') return null;
+        if (after.action === 'found') answer = 'found';
+        else if (after.action === 'compare' && after.line === 'scan') answer = 'onward';
+        else if (after.action === 'missing') answer = 'stop';
+        else return null;
+        return {
+            step: ctx.next,
+            kind: 'jump-scan',
+            prompt: 'Next the scan checks position ' + where + ', which holds ' + value +
+                '. The target is ' + target + '. Found it, keep scanning, or stop?',
+            options: [option('found', 'Found it'), option('onward', 'Keep scanning'),
+                      option('stop', 'Stop, it is not in the list')],
+            answer: answer,
+            explain: answer === 'onward'
+                ? value + ' is smaller than ' + target + ', so the scan moves on to the next position.'
+                : after.explain.beginner
+        };
+    }
+
     function buildSearching(ctx) {
         var asked = ctx.meta(ctx.next);
         var after = ctx.meta(ctx.next + 1);
         if (!asked || !after || asked.action !== 'compare' || !asked.indices.length) return null;
+        if (asked.line === 'jump-check' || asked.line === 'scan') return buildJump(ctx, asked, after);
 
         var halves = searchHasDiscards(ctx);
         var where = asked.indices[0];

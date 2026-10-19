@@ -15,24 +15,32 @@ Yash Maithani
 |---|---|
 | `/` | Home, with a hero that runs a real bubble sort on eight bars and a player that reads one run three ways |
 | `/learn` | Every algorithm, grouped, in a suggested beginner order |
-| `/sorting` | Sorting workspace, six algorithms |
+| `/sorting` | Sorting workspace, eight algorithms |
 | `/compare` | Two sorts side by side on one input, one transport for both |
-| `/searching` | Searching workspace, two algorithms |
+| `/searching` | Searching workspace, three algorithms |
 | `/graph?algo=...` | Graph workspace, seven algorithms |
 | `/big-o` | How complexity works, with a growth chart you can drive |
 | `/privacy`, `/terms` | Legal pages |
 
 ### Sorting
 
-Bubble, Selection, Insertion, Heap, Merge and Quick, in `sorting_algorithms/`.
-Each one yields a step for every comparison, swap and write, and the page
-replays those steps rather than guessing what changed between frames.
+Bubble, Selection, Insertion, Heap, Merge, Quick, Counting and Radix, in
+`sorting_algorithms/`. Each one yields a step for every comparison, swap and
+write, and the page replays those steps rather than guessing what changed
+between frames.
+
+Counting Sort and Radix Sort (least significant digit first, base 10) never
+compare two values. Both are told their key range in advance, whole numbers
+from 0 to 99, refuse anything outside it with a message that says why, and
+draw their working memory in a strip under the bars: the count list as a
+hundred square, or the ten buckets of the current digit pass.
 
 ### Searching
 
-Linear and Binary (iterative), in `searching_algorithms/`. Binary search
-refuses an unsorted array instead of answering wrongly, explains why, and
-offers to sort it for you.
+Linear, Binary (iterative) and Jump, in `searching_algorithms/`. Binary and
+jump search refuse an unsorted array instead of answering wrongly, explain
+why, and offer to sort it for you. Jump search jumps a block of floor(sqrt n)
+values at a time, then scans the one block that can hold the target.
 
 ### Graphs
 
@@ -55,7 +63,9 @@ the shared shell only asks it whether a step may play. Every algorithm has a
 question: bubble sort "will these two swap?", selection sort "is this the new
 smallest value?", insertion sort "will this value shift right?", merge sort
 "which half is written next?", quick sort "is it smaller than the pivot?", heap
-sort "will the parent move down?", Kruskal "added, or a cycle?", Bellman-Ford
+sort "will the parent move down?", counting sort "which count goes up?", radix
+sort "which bucket does this value go into?", jump search "jump again or scan
+back?", Kruskal "added, or a cycle?", Bellman-Ford
 "will this edge shorten the distance?" and Floyd-Warshall "is the path through
 k shorter?". A run with no step that can be asked about says so instead.
 
@@ -163,6 +173,7 @@ behaviour:
 | `test_browser_phase14.py` | In a real browser: reduced motion, the Code panel in every language, the Complexity tab for every algorithm and variant, no sideways scroll at 375, 768 and 1440 in both themes |
 | `test_phase15.py`, `test_browser_phase15.py` | The Home player: its steps are the real `/run_sort` steps, all four cards change together on every step, it starts and pauses with the viewport, and under emulated reduced motion it stays on its frozen step while Step still works |
 | `test_phase16.py`, `test_browser_phase16.py` | Predict mode: every question the builders ask, over real runs of every algorithm, has an answer that matches the step that really follows and options taken from the run; in a browser, the flow, the score, Step back, autoplay waiting, keyboard, widths and themes |
+| `test_phase19.py`, `test_browser_phase19.py` | Jump, Counting and Radix: sorted output and found index against Python's `sorted` and `index` on random, sorted, reversed, all equal, duplicate and edge-size inputs; zero comparisons; the 0 to 99 rule and its messages; every worked figure; Theta per case measured (n + k over a grid of n and k, d(n + b) as n and d grow, 1 and square root of n); the three new Predict questions against the real steps; in a browser, the strips at 375, 768 and 1440 in both themes with no bar clipped, reduced motion, and the Compare banner counting steps when a side never compares |
 | `test_phase18.py`, `test_browser_phase18.py` | The call tree matches the recursion the real merge and quick sort functions made (found by profiling them, not from the step meta) for 200 runs across every variant; in a browser, the toggle, stepping forward and back, large arrays, both themes, and the seven item navbar at desktop widths |
 
 Two more checks are not pytest:
@@ -189,9 +200,9 @@ file.
 ```
 app.py                     every route, and the seven graph algorithms
 teacher.py                 the one builder every step passes through
-sorting_algorithms/        six sorts, each yielding teacher steps
-searching_algorithms/      linear and binary search
-reference_code/            all fifteen algorithms in C, C++ and Java
+sorting_algorithms/        eight sorts, each yielding teacher steps
+searching_algorithms/      linear, binary and jump search
+reference_code/            all eighteen algorithms in C, C++ and Java
 templates/
   layout.html              the shell every page extends
   landing.html             Home
@@ -209,7 +220,7 @@ static/
   js/growth.js             the growth chart, shared by /big-o and the panel
   js/nav.js                the narrow header menu
   js/theme.js              the light and dark toggle
-  js/lessons/*.js          fifteen lesson files, one per algorithm
+  js/lessons/*.js          eighteen lesson files, one per algorithm
   js/lessons/README.md     the step contract every phase follows
   js/lessons/code/*.js     C, C++ and Java listings, generated, never edited
 tests/                     pytest suites and the two recorded baselines
