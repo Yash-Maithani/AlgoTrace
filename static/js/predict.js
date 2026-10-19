@@ -458,7 +458,8 @@
     function mount(ws, options) {
         var family = options.family;
         var panel = ws.panel;
-        var bar = document.querySelector('.control-bar');
+        // The workspace's own control bar, so a page with two never mixes them.
+        var bar = ws.controlBar || document.querySelector('.control-bar');
         if (!panel || !bar || !builders[family]) return null;
 
         var state;

@@ -39,7 +39,7 @@ One shared shell, built in Phase 2, used by every route.
 | skip link (visually hidden until focused)                 |
 +----------------------------------------------------------+
 | HEADER  sticky, 56px                                      |
-|  logo        Home Learn Sorting Searching Graphs Complexity |
+|  logo  Home Learn Sorting Compare Searching Graphs Complexity |
 |                                               theme toggle|
 +----------------------------------------------------------+
 |                                                           |
@@ -379,6 +379,28 @@ the algorithm accent on a left rule.
 The three column layout from section 3. Identical structure across all three, so a learner
 who understands one understands the others. Only the stage contents differ: bars, array
 cells, or a node and edge canvas.
+
+### `/compare` Compare mode (Phase 17)
+
+Two sorting algorithms on one input. Not a three column workspace: there is no Learn
+panel, because the point of the page is the side by side.
+
+```
+SETUP          left pick (algorithm, variant, seed) | right pick
+               one input: random or typed, the /sorting presets, Run both
+STAGES         left stage            | right stage        (stacked below 900px)
+               counters, status      | counters, status
+CONTROL BAR    one transport for both, then the legend and the finish banner
+WHAT TO TRY    pairs that make one idea visible, each a button that sets up and runs
+```
+
+- The one exception to the four breakpoints: the stages go side by side from 900px,
+  because below that two stages of bars are too narrow to read.
+- Both sides' rows are aligned (CSS subgrid), so a title that wraps on one side does not
+  push its stage below the other's.
+- Each side is a workspace in its own root, found by `data-part` rather than by id; the
+  shared transport is a `Workspace.group`. When one side finishes it holds its last step
+  while the other carries on.
 
 ### `/big-o` guide
 

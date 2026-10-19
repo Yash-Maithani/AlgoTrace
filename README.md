@@ -16,6 +16,7 @@ Yash Maithani
 | `/` | Home, with a hero that runs a real bubble sort on eight bars and a player that reads one run three ways |
 | `/learn` | Every algorithm, grouped, in a suggested beginner order |
 | `/sorting` | Sorting workspace, six algorithms |
+| `/compare` | Two sorts side by side on one input, one transport for both |
 | `/searching` | Searching workspace, two algorithms |
 | `/graph?algo=...` | Graph workspace, seven algorithms |
 | `/big-o` | How complexity works, with a growth chart you can drive |
@@ -121,9 +122,9 @@ pytest -q -m "not slow"
 ```
 
 The first runs everything. The second leaves out the tests marked `slow`, the
-ones that measure how counts grow across many input sizes and the ones that
-compile and run the C, C++ and Java reference programs, and finishes in about
-ten seconds. Use it while working; run the full set before a commit. The
+ones that measure how counts grow across many input sizes, the ones that
+compile and run the C, C++ and Java reference programs, and every test that
+drives a real browser, and finishes in about fifteen seconds. Use it while working; run the full set before a commit. The
 marker is registered in `pytest.ini`.
 
 The compile tests need `gcc`, `g++` and a JDK 17 or newer (`javac` and `java`)
@@ -144,6 +145,7 @@ behaviour:
 | `test_variants.py` | Every variant switch: output, counts, stability, seeds, and each lesson claim measured against the code |
 | `test_phase11.py` | Each case's stated Theta, checked by growing the input and counting real work (slow) |
 | `test_reference_code.py` | The C, C++ and Java sorts and searches, compiled and run, match the Python step by step (slow) |
+| `test_compare.py`, `test_browser_phase17.py` | `/compare`: counts equal `/run_sort`'s, both sides finish and the shorter waits, every "What to try" sentence holds, layout at 375 to 1440 in both themes, reduced motion, and the three workspaces still run after the refactor (browser half slow) |
 | `test_reference_graphs.py` | The C, C++ and Java graph programs match every `/run_*` endpoint step by step on the recorded graphs and on generated ones built to hit ties, negative weights and negative cycles (slow) |
 | `test_code_listings.py` | The listings generated from those programs are current and use the lesson's line ids |
 | `test_phase14b.py` | Every visible source line is in its generated listing, and a statement over several lines carries its id on all of them |

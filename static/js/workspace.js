@@ -6,6 +6,8 @@
  * enabled state of the transport, and wiring the Learn panel to the step.
  *
  *   Workspace.start({
+ *     root,                     optional, the element this workspace lives in.
+ *                               Omitted, it is the whole document (see below)
  *     endpoint,                 where to POST the run
  *     lessons,                  window.LESSONS, keyed by algorithm id
  *     readRequest(ui),          build the POST body, or return {field, message}
@@ -25,6 +27,8 @@
  *                               before its first step is drawn
  *     onError(payload, ui),     optional, return true if the page handled it
  *     delayFor(sliderValue)     optional, milliseconds between frames
+ *     shortcuts                 optional, false to leave the keyboard alone,
+ *                               as a workspace inside a group does
  *     predict                   optional, {family}. Turns on Predict mode
  *                               (static/js/predict.js), which asks a question
  *                               before some forward steps. The shell only
@@ -32,10 +36,22 @@
  *                               knows nothing about what is asked
  *   })
  *
- * The template must provide these ids: run-button, play-pause, step-back,
- * step-forward, reset, speed, step-counter. An algo-picker list and a
- * learn-panel are optional; with a picker, its links carry data-algorithm,
- * and without a panel the Learn tabs are simply not built.
+ * Finding the parts. With no root, the page has one workspace and the parts
+ * are these ids, the contract the three workspace templates were built on:
+ * run-button, play-pause, step-back, step-forward, reset, speed,
+ * step-counter, and optionally algo-picker, learn-panel and run-banner.
+ * Inside a root, the same names are given as data-part="play-pause" and so
+ * on, so two workspaces on one page never share an id. A part a workspace
+ * lacks is simply not wired: a workspace inside a group has no transport of
+ * its own.
+ *
+ *   Workspace.group([a, b], { root, delayFor, onTick })
+ *
+ * One transport for several workspaces, as /compare has. The group keeps one
+ * tick: each member shows its own step at that tick, or its last step once
+ * it has run out, so a member that finishes first waits while the others
+ * carry on. Step back, step forward, reset, play and the keyboard all move
+ * the tick.
  *
  * Playback is a plain interval. The transport is pressed often, so none of
  * its buttons animates anything beyond the press feedback in CSS.
@@ -43,32 +59,154 @@
 (function () {
     'use strict';
 
-    function byId(id) { return document.getElementById(id); }
+    var PARTS = ['algo-picker', 'run-button', 'play-pause', 'step-back',
+                 'step-forward', 'reset', 'speed', 'step-counter',
+                 'learn-panel', 'run-banner'];
+
+    /* One part of a workspace: an id on a page with one workspace, a
+       data-part inside a root. */
+    function partOf(root, name) {
+        if (!root || root === document) return document.getElementById(name);
+        return root.querySelector('[data-part="' + name + '"]');
+    }
+
+    function within(root, selector) {
+        return (root || document).querySelector(selector);
+    }
+
+    function withinAll(root, selector) {
+        return (root || document).querySelectorAll(selector);
+    }
+
+    /* The transport buttons and the keyboard, shared by a lone workspace and
+       a group. The owner provides togglePlay, stepBack, stepForward, toStart,
+       restartTimer, and the parts it found. */
+    function wireTransport(owner) {
+        var p = owner.parts;
+        if (p['play-pause']) p['play-pause'].addEventListener('click', function () { owner.togglePlay(); });
+        if (p['step-back']) p['step-back'].addEventListener('click', function () { owner.stepBack(); });
+        if (p['step-forward']) p['step-forward'].addEventListener('click', function () { owner.stepForward(); });
+        if (p.reset) p.reset.addEventListener('click', function () { owner.toStart(); });
+        if (p.speed) p.speed.addEventListener('input', function () { owner.restartTimer(); });
+    }
+
+    /* Space plays or pauses, Left and Right step, R resets. */
+    function wireShortcuts(owner) {
+        var p = owner.parts;
+        [[p['play-pause'], 'Space'], [p['step-back'], 'ArrowLeft'],
+         [p['step-forward'], 'ArrowRight'], [p.reset, 'R']]
+            .forEach(function (pair) {
+                if (pair[0]) pair[0].setAttribute('aria-keyshortcuts', pair[1]);
+            });
+
+        var bar = owner.controlBar;
+        if (bar && !bar.querySelector('.shortcuts')) bar.appendChild(shortcutsDisclosure());
+
+        document.addEventListener('keydown', function (event) {
+            if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
+            var target = event.target;
+            var tag = target && target.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' ||
+                (target && target.isContentEditable)) return;
+            // The Learn tabs use the arrow keys to move between themselves.
+            if (target && target.closest && target.closest('[role="tablist"], dialog')) return;
+
+            var key = event.key;
+            if (key === ' ') {
+                // On a button or link Space already means "press it".
+                if (tag === 'BUTTON' || tag === 'A' || tag === 'SUMMARY') return;
+                event.preventDefault();
+                owner.togglePlay();
+            } else if (key === 'ArrowLeft') {
+                event.preventDefault();
+                owner.stepBack();
+            } else if (key === 'ArrowRight') {
+                event.preventDefault();
+                owner.stepForward();
+            } else if (key === 'r' || key === 'R') {
+                event.preventDefault();
+                owner.toStart();
+            }
+        });
+    }
+
+    function shortcutsDisclosure() {
+        var box = document.createElement('details');
+        box.className = 'shortcuts';
+        var summary = document.createElement('summary');
+        summary.textContent = 'Keyboard shortcuts';
+        box.appendChild(summary);
+        var list = document.createElement('dl');
+        [['Space', 'Play or pause'], ['Left arrow', 'Step back'],
+         ['Right arrow', 'Step forward'], ['R', 'Back to the first step']]
+            .forEach(function (row) {
+                var dt = document.createElement('dt');
+                var kbd = document.createElement('kbd');
+                kbd.textContent = row[0];
+                dt.appendChild(kbd);
+                var dd = document.createElement('dd');
+                dd.textContent = row[1];
+                list.appendChild(dt);
+                list.appendChild(dd);
+            });
+        box.appendChild(list);
+        return box;
+    }
+
+    /* Enable, disable and label the transport for a position in a run. */
+    function syncButtons(parts, has, atStart, atEnd, playing, label) {
+        if (parts['play-pause']) {
+            parts['play-pause'].disabled = !has || (atEnd && !playing);
+            parts['play-pause'].setAttribute('data-playing', playing ? 'true' : 'false');
+            parts['play-pause'].setAttribute('aria-label', playing ? 'Pause' : 'Play');
+        }
+        if (parts['step-back']) parts['step-back'].disabled = !has || atStart;
+        if (parts['step-forward']) parts['step-forward'].disabled = !has || atEnd;
+        if (parts.reset) parts.reset.disabled = !has || atStart;
+        if (parts['step-counter']) parts['step-counter'].textContent = label;
+    }
+
+    /* Milliseconds between frames for a slider. A page whose slider has a
+       different range, or a different feel, supplies delayFor(value); the
+       default suits a 1 to 10 slider. */
+    function delayFrom(speed, delayFor) {
+        var value = speed ? Number(speed.value) : 5;
+        if (delayFor) return delayFor(value);
+        // 1 is slowest, 10 is fastest.
+        return 1100 - (value * 100);
+    }
 
     function Workspace(options) {
+        var self = this;
         this.options = options;
+        this.root = options.root || document;
         this.steps = [];
         this.index = 0;
         this.timer = null;
         this.payload = null;
         this.resultShown = false;
 
-        this.picker = byId('algo-picker');
-        this.runButton = byId('run-button');
-        this.playPause = byId('play-pause');
-        this.back = byId('step-back');
-        this.forward = byId('step-forward');
-        this.resetButton = byId('reset');
-        this.speed = byId('speed');
-        this.counter = byId('step-counter');
+        this.parts = {};
+        PARTS.forEach(function (name) { self.parts[name] = partOf(self.root, name); });
+        this.controlBar = within(this.root, '.control-bar');
+
+        // The names the rest of the code and the other scripts already use.
+        this.picker = this.parts['algo-picker'];
+        this.runButton = this.parts['run-button'];
+        this.playPause = this.parts['play-pause'];
+        this.back = this.parts['step-back'];
+        this.forward = this.parts['step-forward'];
+        this.resetButton = this.parts.reset;
+        this.speed = this.parts.speed;
+        this.counter = this.parts['step-counter'];
 
         // A page whose picker is a set of links to other pages, rather than an
         // in place switch, names the algorithm it is showing instead.
         this.algorithm = options.algorithm || this.firstAlgorithm();
 
-        // The Learn panel is optional: a page without a #learn-panel element
-        // gets the shell and the transport and nothing else.
-        var panelHost = byId('learn-panel');
+        // The Learn panel is optional: a page without a learn-panel gets the
+        // shell and the transport and nothing else.
+        var panelHost = this.parts['learn-panel'];
         this.panel = panelHost && window.Teacher
             ? window.Teacher.mount({
                 panel: panelHost,
@@ -83,7 +221,7 @@
         this.gateStepping = false;
 
         this.bind();
-        this.bindShortcuts();
+        if (options.shortcuts !== false) wireShortcuts(this);
         this.syncTransport();
     }
 
@@ -109,91 +247,15 @@
         if (this.runButton) {
             this.runButton.addEventListener('click', function () { self.run(); });
         }
-        if (this.playPause) {
-            this.playPause.addEventListener('click', function () { self.togglePlay(); });
-        }
-        if (this.back) {
-            this.back.addEventListener('click', function () { self.pause(); self.go(self.index - 1); });
-        }
-        if (this.forward) {
-            this.forward.addEventListener('click', function () { self.pause(); self.advance(false); });
-        }
-        if (this.resetButton) {
-            this.resetButton.addEventListener('click', function () { self.pause(); self.go(0); });
-        }
-        if (this.speed) {
-            this.speed.addEventListener('input', function () {
-                if (self.timer) { self.pause(); self.play(); }
-            });
-        }
+        wireTransport(this);
     };
 
-    /* Space plays or pauses, Left and Right step, R resets. One listener for
-       every workspace, because they all have this transport. */
-    Workspace.prototype.bindShortcuts = function () {
-        var self = this;
-        [[this.playPause, 'Space'], [this.back, 'ArrowLeft'],
-         [this.forward, 'ArrowRight'], [this.resetButton, 'R']]
-            .forEach(function (pair) {
-                if (pair[0]) pair[0].setAttribute('aria-keyshortcuts', pair[1]);
-            });
-
-        var bar = document.querySelector('.control-bar');
-        if (bar && !bar.querySelector('.shortcuts')) bar.appendChild(shortcutsDisclosure());
-
-        document.addEventListener('keydown', function (event) {
-            if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
-            var target = event.target;
-            var tag = target && target.tagName;
-            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' ||
-                (target && target.isContentEditable)) return;
-            // The Learn tabs use the arrow keys to move between themselves.
-            if (target && target.closest && target.closest('[role="tablist"], dialog')) return;
-
-            var key = event.key;
-            if (key === ' ') {
-                // On a button or link Space already means "press it".
-                if (tag === 'BUTTON' || tag === 'A' || tag === 'SUMMARY') return;
-                event.preventDefault();
-                self.togglePlay();
-            } else if (key === 'ArrowLeft') {
-                event.preventDefault();
-                self.pause();
-                self.go(self.index - 1);
-            } else if (key === 'ArrowRight') {
-                event.preventDefault();
-                self.pause();
-                self.advance(false);
-            } else if (key === 'r' || key === 'R') {
-                event.preventDefault();
-                self.pause();
-                self.go(0);
-            }
-        });
+    Workspace.prototype.stepBack = function () { this.pause(); this.go(this.index - 1); };
+    Workspace.prototype.stepForward = function () { this.pause(); this.advance(false); };
+    Workspace.prototype.toStart = function () { this.pause(); this.go(0); };
+    Workspace.prototype.restartTimer = function () {
+        if (this.timer) { this.pause(); this.play(); }
     };
-
-    function shortcutsDisclosure() {
-        var box = document.createElement('details');
-        box.className = 'shortcuts';
-        var summary = document.createElement('summary');
-        summary.textContent = 'Keyboard shortcuts';
-        box.appendChild(summary);
-        var list = document.createElement('dl');
-        [['Space', 'Play or pause'], ['Left arrow', 'Step back'],
-         ['Right arrow', 'Step forward'], ['R', 'Back to the first step']]
-            .forEach(function (row) {
-                var dt = document.createElement('dt');
-                var kbd = document.createElement('kbd');
-                kbd.textContent = row[0];
-                dt.appendChild(kbd);
-                var dd = document.createElement('dd');
-                dd.textContent = row[1];
-                list.appendChild(dt);
-                list.appendChild(dd);
-            });
-        box.appendChild(list);
-        return box;
-    }
 
     Workspace.prototype.selectAlgorithm = function (name) {
         if (!name || name === this.algorithm) return;
@@ -214,12 +276,12 @@
 
     Workspace.prototype.clearErrors = function () {
         Array.prototype.forEach.call(
-            document.querySelectorAll('.field-error'),
+            withinAll(this.root, '.field-error'),
             function (node) { node.textContent = ''; });
     };
 
     Workspace.prototype.showError = function (field, message) {
-        var box = byId(field) || document.querySelector('.field-error');
+        var box = (field && partOf(this.root, field)) || within(this.root, '.field-error');
         if (!box) return;
         box.textContent = message;
     };
@@ -227,7 +289,7 @@
     Workspace.prototype.run = function () {
         var self = this;
         this.clearErrors();
-        var banner = byId('run-banner');
+        var banner = this.parts['run-banner'];
         if (banner) { banner.textContent = ''; banner.removeAttribute('data-outcome'); }
 
         // A page that has to do more than post one body, because it builds a
@@ -373,33 +435,13 @@
 
     Workspace.prototype.syncTransport = function () {
         var has = this.steps.length > 0;
-        var atStart = this.index <= 0;
-        var atEnd = this.index >= this.steps.length - 1;
-
-        if (this.playPause) {
-            this.playPause.disabled = !has || (atEnd && !this.timer);
-            var playing = !!this.timer;
-            this.playPause.setAttribute('data-playing', playing ? 'true' : 'false');
-            this.playPause.setAttribute('aria-label', playing ? 'Pause' : 'Play');
-        }
-        if (this.back) this.back.disabled = !has || atStart;
-        if (this.forward) this.forward.disabled = !has || atEnd;
-        if (this.resetButton) this.resetButton.disabled = !has || atStart;
-        if (this.counter) {
-            this.counter.textContent = has
-                ? 'Step ' + (this.index + 1) + ' of ' + this.steps.length
-                : 'Step 0 of 0';
-        }
+        syncButtons(this.parts, has, this.index <= 0, this.index >= this.steps.length - 1,
+                    !!this.timer,
+                    has ? 'Step ' + (this.index + 1) + ' of ' + this.steps.length : 'Step 0 of 0');
     };
 
-    /* How long to wait between frames, read from the speed slider. A page
-       whose slider has a different range, or a different feel, supplies its
-       own delayFor(value); the default suits a 1 to 10 slider. */
     Workspace.prototype.delay = function () {
-        var value = this.speed ? Number(this.speed.value) : 5;
-        if (this.options.delayFor) return this.options.delayFor(value);
-        // 1 is slowest, 10 is fastest.
-        return 1100 - (value * 100);
+        return delayFrom(this.speed, this.options.delayFor);
     };
 
     Workspace.prototype.play = function () {
@@ -428,11 +470,113 @@
         else this.play();
     };
 
+    /* ---------------------------------------------------------------------
+       A group: one transport driving several workspaces in step.
+       --------------------------------------------------------------------- */
+
+    function Group(members, options) {
+        var self = this;
+        this.members = members;
+        this.options = options || {};
+        this.root = this.options.root || document;
+        this.tick = 0;
+        this.timer = null;
+        this.parts = {};
+        PARTS.forEach(function (name) { self.parts[name] = partOf(self.root, name); });
+        this.controlBar = within(this.root, '.control-bar');
+        wireTransport(this);
+        if (this.options.shortcuts !== false) wireShortcuts(this);
+        this.sync();
+    }
+
+    /* How many ticks the longest loaded run needs. */
+    Group.prototype.length = function () {
+        return this.members.reduce(function (most, ws) {
+            return Math.max(most, ws.steps.length);
+        }, 0);
+    };
+
+    Group.prototype.ready = function () {
+        return this.members.length > 0 && this.members.every(function (ws) {
+            return ws.steps.length > 0;
+        });
+    };
+
+    /* Every member to the tick, each stopping at its own last step. */
+    Group.prototype.go = function (tick) {
+        var length = this.length();
+        if (!length) return;
+        this.tick = Math.max(0, Math.min(tick, length - 1));
+        var self = this;
+        this.members.forEach(function (ws) {
+            if (!ws.steps.length) return;
+            var want = Math.min(self.tick, ws.steps.length - 1);
+            if (want !== ws.index || self.tick === 0) ws.go(want);
+        });
+        if (this.options.onTick) this.options.onTick(this.tick, length);
+        this.sync();
+    };
+
+    /* After the members have loaded new runs: back to the start. */
+    Group.prototype.restart = function () {
+        this.pause();
+        this.tick = 0;
+        this.go(0);
+        this.sync();
+    };
+
+    Group.prototype.sync = function () {
+        var length = this.length();
+        var has = this.ready();
+        syncButtons(this.parts, has, this.tick <= 0, this.tick >= length - 1, !!this.timer,
+                    has ? 'Step ' + (this.tick + 1) + ' of ' + length : 'Step 0 of 0');
+    };
+
+    Group.prototype.stepBack = function () { this.pause(); this.go(this.tick - 1); };
+    Group.prototype.stepForward = function () { this.pause(); this.go(this.tick + 1); };
+    Group.prototype.toStart = function () { this.pause(); this.go(0); };
+    Group.prototype.restartTimer = function () {
+        if (this.timer) { this.pause(); this.play(); }
+    };
+
+    Group.prototype.play = function () {
+        var self = this;
+        if (this.timer || !this.ready()) return;
+        if (this.tick >= this.length() - 1) this.go(0);
+        this.timer = window.setInterval(function () {
+            if (self.tick >= self.length() - 1) { self.pause(); return; }
+            self.go(self.tick + 1);
+        }, delayFrom(this.parts.speed, this.options.delayFor));
+        this.sync();
+    };
+
+    Group.prototype.pause = function () {
+        if (this.timer) {
+            window.clearInterval(this.timer);
+            this.timer = null;
+        }
+        this.sync();
+    };
+
+    Group.prototype.togglePlay = function () {
+        if (this.timer) this.pause();
+        else this.play();
+    };
+
     window.Workspace = {
+        /* The one workspace of a page. Workspace.current is it. */
         start: function (options) {
             var instance = new Workspace(options);
             window.Workspace.current = instance;
             return instance;
+        },
+        /* A workspace that shares its page with others, as /compare's two
+           sides do. Give it a root. */
+        create: function (options) {
+            return new Workspace(options);
+        },
+        group: function (members, options) {
+            return new Group(members, options);
         }
     };
 })();

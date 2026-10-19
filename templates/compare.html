@@ -1,0 +1,244 @@
+{% extends "layout.html" %}
+
+{% block title %}Compare sorts | Algorithm Visualizer{% endblock %}
+
+{% block content %}
+    <main class="compare" id="main">
+
+        <h1 class="workspace-title">Compare two sorts</h1>
+        <p class="compare-intro">
+            Run two sorting algorithms on the same input, one step at a time on
+            both, and see which does less work on it.
+        </p>
+
+        <!-- SETUP ------------------------------------------------------- -->
+        <section class="panel compare-setup" aria-labelledby="compare-setup-heading">
+            <h2 class="panel-title" id="compare-setup-heading">Set up the comparison</h2>
+
+            <div class="compare-picks">
+                {% for side, label, chosen in [('left', 'Left', left), ('right', 'Right', right)] %}
+                <fieldset class="compare-pick" data-side="{{ side }}">
+                    <legend>{{ label }}</legend>
+                    <div class="setup-field">
+                        <label for="{{ side }}-algorithm">Algorithm</label>
+                        <select id="{{ side }}-algorithm" data-role="algorithm">
+                            {% for name in sorting_algorithms %}
+                            <option value="{{ name }}" {{ 'selected' if name == chosen }}>{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% for name, spec in sort_variants.items() %}
+                    <fieldset class="radio-row variant-switch" data-variant-for="{{ name }}"
+                              data-variant-key="{{ spec.key }}" hidden>
+                        <legend>{{ spec.label }}</legend>
+                        {% for option in spec.options %}
+                        <label class="radio-option" for="{{ side }}-variant-{{ spec.key }}-{{ option[0] }}">
+                            <input type="radio" name="{{ side }}-variant-{{ spec.key }}"
+                                   id="{{ side }}-variant-{{ spec.key }}-{{ option[0] }}"
+                                   value="{{ option[0] }}" {{ 'checked' if loop.first }}>
+                            {{ option[1] }}
+                        </label>
+                        {% endfor %}
+                    </fieldset>
+                    {% endfor %}
+                    <div class="seed-row" data-role="seed-row" hidden>
+                        <label for="{{ side }}-seed">Seed</label>
+                        <input type="number" id="{{ side }}-seed" data-role="seed" min="0" max="2147483647"
+                               inputmode="numeric" placeholder="New one each run"
+                               aria-describedby="{{ side }}-seed-hint">
+                        <button type="button" class="btn btn-secondary btn-sm" data-role="new-seed">
+                            New seed
+                        </button>
+                        <p class="setup-hint" id="{{ side }}-seed-hint">
+                            The seed of the last run stays here, so running again replays it.
+                        </p>
+                    </div>
+                    <p class="setup-hint variant-note" data-role="variant-note"></p>
+                </fieldset>
+                {% endfor %}
+            </div>
+
+            <div class="compare-input">
+                <div class="setup-field">
+                    <fieldset class="input-method">
+                        <legend>One input for both</legend>
+                        <label class="radio-option">
+                            <input type="radio" name="input_method" value="random"
+                                   id="random-input" checked>
+                            Random array
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="input_method" value="manual"
+                                   id="manual-input-choice">
+                            Type the values
+                        </label>
+                    </fieldset>
+                </div>
+
+                <div class="setup-field" id="size-field">
+                    <label for="array-size">Array size</label>
+                    <input type="number" id="array-size" min="5" max="{{ max_size }}" value="20"
+                           aria-describedby="size-hint">
+                    <p class="setup-hint" id="size-hint">Between 5 and {{ max_size }} bars. Two stages share the width, so 20 to 40 reads best.</p>
+                </div>
+
+                <div class="setup-field" id="values-field" hidden>
+                    <label for="manual-input">Values</label>
+                    <input type="text" id="manual-input" autocomplete="off"
+                           spellcheck="false" value="42, 17, 93, 8, 61, 29, 75, 36"
+                           aria-describedby="values-hint">
+                    <p class="setup-hint" id="values-hint">Whole numbers, separated by commas. A random run fills this in, so you can replay it.</p>
+                </div>
+
+                <div class="setup-field" id="preset-host">
+                    <span class="setup-label" id="preset-label">Or start from a shape</span>
+                </div>
+
+                <div class="field-error" id="setup-error" role="alert"></div>
+
+                <button type="button" class="btn btn-primary" id="run-button">
+                    Run both
+                </button>
+            </div>
+        </section>
+
+        <!-- THE TWO STAGES ---------------------------------------------- -->
+        <section class="compare-stages" aria-label="The two runs">
+            {% for side, label, chosen in [('left', 'Left', left), ('right', 'Right', right)] %}
+            <article class="compare-side" id="compare-{{ side }}" data-side="{{ side }}"
+                     aria-labelledby="{{ side }}-title">
+                <header class="compare-side-head">
+                    <h2 class="compare-side-title" id="{{ side }}-title">
+                        <span class="compare-side-label">{{ label }}</span>
+                        <span data-role="title">{{ chosen }}</span>
+                    </h2>
+                    <a class="compare-open" data-role="open"
+                       href="{{ url_for('sorting_page', algorithm=chosen) }}">Open in Sorting</a>
+                </header>
+                <dl class="compare-counts">
+                    <div>
+                        <dt>Comparisons</dt>
+                        <dd data-role="comparisons">0</dd>
+                    </div>
+                    <div>
+                        <dt data-role="second-label">Swaps</dt>
+                        <dd data-role="second">0</dd>
+                    </div>
+                    <div data-role="seed-shown" hidden>
+                        <dt>Seed</dt>
+                        <dd data-role="seed-value"></dd>
+                    </div>
+                </dl>
+                <div class="stage compare-stage" tabindex="0" role="group"
+                     aria-labelledby="{{ side }}-title">
+                    <p class="stage-empty" data-part="empty">Run both to see this side.</p>
+                    <div class="bar-container" data-part="bars" hidden></div>
+                </div>
+                <p class="compare-status" data-role="status" role="status" aria-live="polite"></p>
+            </article>
+            {% endfor %}
+        </section>
+
+        <!-- ONE TRANSPORT FOR BOTH -------------------------------------- -->
+        <section class="compare-transport" aria-label="Playback for both sides">
+            <div class="control-bar" role="group" aria-label="Playback">
+                <div class="transport">
+                    <button type="button" class="transport-btn" id="step-back"
+                            aria-label="Step back" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
+                    <button type="button" class="transport-btn is-primary" id="play-pause"
+                            data-playing="false" aria-label="Play" disabled>
+                        <svg class="icon-play" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <polygon points="7 5 19 12 7 19"></polygon>
+                        </svg>
+                        <svg class="icon-pause" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <rect x="7" y="5" width="4" height="14"></rect>
+                            <rect x="13" y="5" width="4" height="14"></rect>
+                        </svg>
+                    </button>
+                    <button type="button" class="transport-btn" id="step-forward"
+                            aria-label="Step forward" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
+                    <button type="button" class="transport-btn" id="reset"
+                            aria-label="Reset to the first step" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="1 4 1 10 7 10"></polyline>
+                            <path d="M3.5 15a9 9 0 1 0 2.1-9.4L1 10"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="speed-field">
+                    <label for="speed">Speed</label>
+                    <input type="range" id="speed" class="speed-slider"
+                           min="1" max="200" value="60">
+                </div>
+
+                <div class="step-counter" id="step-counter" role="status" aria-live="polite">
+                    Step 0 of 0
+                </div>
+            </div>
+
+            <ul class="legend" aria-label="Bar colour key">
+                <li class="legend-item">
+                    <span class="legend-swatch" style="--swatch: var(--idle-sort)"></span>
+                    Not yet placed
+                </li>
+                <li class="legend-item">
+                    <span class="legend-swatch" style="--swatch: var(--active)"></span>
+                    Being compared
+                </li>
+                <li class="legend-item">
+                    <span class="legend-swatch" style="--swatch: var(--reject)"></span>
+                    Swapped or written
+                </li>
+                <li class="legend-item">
+                    <span class="legend-swatch" style="--swatch: var(--pivot)"></span>
+                    Marked or placed
+                </li>
+                <li class="legend-item">
+                    <span class="legend-swatch" style="--swatch: var(--done)"></span>
+                    Sorted
+                </li>
+            </ul>
+
+            <div class="run-banner" id="run-banner" role="status" aria-live="polite"></div>
+        </section>
+
+        <!-- WHAT TO TRY ------------------------------------------------- -->
+        <section class="panel compare-tries" aria-labelledby="tries-heading">
+            <h2 class="panel-title" id="tries-heading">What to try</h2>
+            <ul class="compare-try-list">
+                {% for t in tries %}
+                <li>
+                    <button type="button" class="btn btn-secondary compare-try"
+                            data-try="{{ loop.index0 }}">{{ t.title }}</button>
+                    <p class="setup-hint">{{ t.text }}</p>
+                </li>
+                {% endfor %}
+            </ul>
+        </section>
+    </main>
+{% endblock %}
+
+{% block page_js %}
+    {% for lesson in lesson_ids.values() %}
+    <script src="{{ url_for('static', filename='js/lessons/' + lesson + '.js') }}"></script>
+    {% endfor %}
+    <script src="{{ url_for('static', filename='js/presets.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/variants.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/sortstage.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
+    <script type="application/json" id="compare-config">{{ {
+        'lessonIds': lesson_ids,
+        'tries': tries,
+        'maxSize': max_size
+    }|tojson }}</script>
+    <script src="{{ url_for('static', filename='js/compare.js') }}"></script>
+{% endblock %}

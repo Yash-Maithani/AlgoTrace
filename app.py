@@ -493,6 +493,58 @@ def run_sort():
         return jsonify({"error": "An error occurred: %s" % e}), 500
 
 
+# ---------------------------------------------------------------------------
+# Compare mode (Phase 17).
+#
+# Two sorts on one input with one transport. Each side runs through
+# /run_sort, the same endpoint /sorting uses, so the counts on /compare are
+# the counts /sorting shows for that input and variant.
+# ---------------------------------------------------------------------------
+
+# The "What to try" pairs. Each sentence states only what the code does on
+# that kind of input, and tests/test_compare.py runs every pair to check it.
+COMPARE_TRIES = [
+    {"left": "Bubble Sort", "left_variant": "off", "right": "Merge Sort", "right_variant": "lt",
+     "preset": "reversed", "size": 20, "title": "Bubble vs Merge on Reversed",
+     "text": "Bubble Sort compares every neighbouring pair on every pass; Merge Sort "
+             "halves the list. Merge Sort finishes long before Bubble Sort does."},
+    {"left": "Insertion Sort", "left_variant": None, "right": "Quick Sort", "right_variant": "last",
+     "preset": "sorted", "size": 20, "title": "Insertion vs Quick on Already sorted",
+     "text": "Already sorted is Insertion Sort's best case, n-1 comparisons, and the worst "
+             "case for Quick Sort with the last element as pivot."},
+    {"left": "Quick Sort", "left_variant": "last", "right": "Quick Sort", "right_variant": "middle",
+     "preset": "sorted", "size": 20, "title": "Quick (last pivot) vs Quick (middle pivot) on Already sorted",
+     "text": "The same partition with a different pivot. The middle pivot splits a sorted "
+             "list evenly, so it needs far fewer comparisons."},
+    {"left": "Merge Sort", "left_variant": "lt", "right": "Merge Sort", "right_variant": "le",
+     "preset": "equal", "size": 12, "title": "Merge < vs Merge <= on All equal",
+     "text": "On equal values < takes the right value first and <= the left. Watch the "
+             "letter tags: only <= keeps them in order, and it needs fewer comparisons."},
+    {"left": "Bubble Sort", "left_variant": "off", "right": "Bubble Sort", "right_variant": "on",
+     "preset": "nearly", "size": 20, "title": "Bubble vs Bubble with early exit on Nearly sorted",
+     "text": "The same swaps on both sides, but the early exit stops after the first pass "
+             "that changes nothing."},
+]
+
+
+@app.route("/compare")
+def compare_page():
+    """Two sorting algorithms side by side on the same input."""
+    names = list(sorting_algo_dict.keys())
+    left = request.args.get("left", "Bubble Sort")
+    right = request.args.get("right", "Merge Sort")
+    return render_template(
+        "compare.html",
+        sorting_algorithms=names,
+        lesson_ids=SORT_LESSON_IDS,
+        sort_variants=_variants_for_template(),
+        left=left if left in sorting_algo_dict else "Bubble Sort",
+        right=right if right in sorting_algo_dict else "Merge Sort",
+        tries=COMPARE_TRIES,
+        max_size=MAX_SORT_SIZE,
+    )
+
+
 SEARCH_PICKER = [
     ("linear_search", "Linear Search", "Check every value until you find it."),
     ("binary_search", "Binary Search", "Halve a sorted list over and over."),

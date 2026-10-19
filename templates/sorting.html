@@ -206,6 +206,7 @@
     <script src="{{ url_for('static', filename='js/growth.js') }}"></script>
     <script src="{{ url_for('static', filename='js/presets.js') }}"></script>
     <script src="{{ url_for('static', filename='js/variants.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/sortstage.js') }}"></script>
     <script src="{{ url_for('static', filename='js/codeview.js') }}"></script>
     <script src="{{ url_for('static', filename='js/teacher.js') }}"></script>
     <script src="{{ url_for('static', filename='js/predict.js') }}"></script>
@@ -239,55 +240,9 @@
                 return out;
             }
 
-            /* Letter tags for equal values: the first 5 in the input is 5a,
-               the next 5b, and so on, so a learner can see whether a sort
-               kept equal values in their starting order. A value that occurs
-               once gets no tag. Indexed by starting position. */
-            function letters(k) {
-                var out = '';
-                k += 1;
-                while (k > 0) {
-                    k -= 1;
-                    out = String.fromCharCode(97 + (k % 26)) + out;
-                    k = Math.floor(k / 26);
-                }
-                return out;
-            }
-
-            function tagsFor(input) {
-                var count = {}, seen = {}, tags = [];
-                input.forEach(function (v) { count[v] = (count[v] || 0) + 1; });
-                input.forEach(function (v, origin) {
-                    if (count[v] < 2) { tags[origin] = ''; return; }
-                    seen[v] = seen[v] || 0;
-                    tags[origin] = letters(seen[v]);
-                    seen[v] += 1;
-                });
-                return tags;
-            }
-
-            /* Which bar class each action paints. This reproduces exactly what
-               the old page worked out by diffing arrays, now read from the
-               step itself:
-                 compare            -> comparing
-                 swap, place        -> swapping
-                 select             -> pivot
-                 overwrite          -> swapping when a pair moved, else pivot
-                 done               -> every bar sorted */
-            function classFor(step) {
-                switch (step.action) {
-                    case 'compare': return 'comparing';
-                    case 'swap':
-                    case 'place': return 'swapping';
-                    case 'select': return 'pivot';
-                    case 'overwrite':
-                        return (step.compared || []).length >= 2 ? 'swapping' : 'pivot';
-                    default: return null;
-                }
-            }
-
-            var tags = [];
-            var lastTagged = null;
+            /* The bars: static/js/sortstage.js, shared with /compare. */
+            var stage = SortStage.create(document.getElementById('array-container'),
+                                         document.getElementById('stage-empty'));
 
             var methodRandom = document.getElementById('random-input');
             var methodManual = document.getElementById('manual-input-choice');
@@ -417,60 +372,8 @@
                 },
 
                 renderStep: function (step, context) {
-                    var container = document.getElementById('array-container');
                     var data = step.array;
-
-                    var payload = context.payload || {};
-                    if (payload !== lastTagged) {
-                        lastTagged = payload;
-                        tags = tagsFor(payload.array || data);
-                    }
-                    var origins = step.origins || [];
-
-                    if (container.childElementCount !== data.length) {
-                        container.innerHTML = '';
-                        data.forEach(function (value) {
-                            var bar = document.createElement('div');
-                            bar.className = 'bar';
-                            var label = document.createElement('span');
-                            label.className = 'bar-value';
-                            label.textContent = value;
-                            bar.appendChild(label);
-                            container.appendChild(bar);
-                        });
-                    }
-
-                    var painted = classFor(step);
-                    var marked = step.compared || [];
-                    var finished = step.action === 'done';
-
-                    Array.prototype.forEach.call(container.children, function (bar, i) {
-                        // Same height formula and the same transition as before.
-                        bar.style.height = Math.max(data[i] * 3, 5) + 'px';
-                        bar.classList.remove('comparing', 'swapping', 'pivot', 'sorted');
-                        if (finished) {
-                            bar.classList.add('sorted');
-                        } else if (painted && marked.indexOf(i) !== -1) {
-                            bar.classList.add(painted);
-                        }
-                        var tag = tags[origins[i]] || '';
-                        var label = bar.querySelector('.bar-value');
-                        label.textContent = data[i];
-                        if (tag) {
-                            var mark = document.createElement('span');
-                            mark.className = 'bar-tag';
-                            mark.textContent = tag;
-                            label.appendChild(mark);
-                        }
-                    });
-
-                    /* Narrow screens hide the bar values, because at 30 bars
-                       they overlap. At this many they fit, and the Explain
-                       text refers to them by value. */
-                    container.classList.toggle('shows-values', data.length <= 12);
-
-                    document.getElementById('stage-empty').hidden = true;
-                    container.hidden = false;
+                    stage.render(step, context.payload);
                     /* The counts this step has reached, not the run's totals:
                        a box headed "this run" that already showed the final
                        numbers on step 1 gave the answer away. */
@@ -518,10 +421,7 @@
                 },
 
                 clearStage: function () {
-                    var container = document.getElementById('array-container');
-                    container.innerHTML = '';
-                    container.hidden = true;
-                    document.getElementById('stage-empty').hidden = false;
+                    stage.clear();
                 },
 
                 onError: function (payload) {

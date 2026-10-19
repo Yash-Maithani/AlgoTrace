@@ -94,6 +94,11 @@ def test_each_stage_knows_how_to_empty_itself(page):
 
     assert 'clearStage: function ()' in source, '%s cannot empty its stage' % page
     body = source.split('clearStage: function () {', 1)[1].split('},', 1)[0]
+    if 'stage.clear()' in body:
+        # Phase 17: sorting's bars live in static/js/sortstage.js, shared
+        # with /compare, and clear() is where the empty message comes back.
+        stage = read('static', 'js', 'sortstage.js')
+        body = stage.split('function clear() {', 1)[1].split('\n        }', 1)[0]
     assert "hidden = false" in body, '%s does not restore its empty message' % page
 
 
@@ -101,12 +106,16 @@ def test_an_empty_run_disables_the_transport():
     """With no steps the buttons are off, so a refused run cannot be played."""
     workspace = read('static', 'js', 'workspace.js')
     body = workspace.split('Workspace.prototype.syncTransport', 1)[1]
+    # Phase 17: a lone workspace and a /compare group share one function
+    # that sets the buttons, so the rule is checked there.
+    buttons = workspace.split('function syncButtons', 1)[1].split('\n    }\n', 1)[0]
 
     assert 'var has = this.steps.length > 0;' in body
-    for button in ('this.back.disabled = !has', 'this.forward.disabled = !has',
-                   'this.resetButton.disabled = !has'):
-        assert button in body, 'the transport stays live without steps'
     assert "'Step 0 of 0'" in body
+    assert 'syncButtons(this.parts, has,' in body
+    for button in ("parts['step-back'].disabled = !has", "parts['step-forward'].disabled = !has",
+                   'parts.reset.disabled = !has', "parts['play-pause'].disabled = !has"):
+        assert button in buttons, 'the transport stays live without steps'
 
 
 # ---------------------------------------------------------------------------
@@ -303,7 +312,11 @@ def test_the_server_does_not_print_on_every_request():
 
 def test_bar_values_come_back_when_there_is_room():
     css = read('static', 'styles.css')
-    page = read('templates', 'sorting.html')
+    # Phase 17 moved the bars into static/js/sortstage.js, shared by
+    # /sorting and /compare; both pages load it.
+    page = read('static', 'js', 'sortstage.js')
+    for template in ('sorting.html', 'compare.html'):
+        assert 'js/sortstage.js' in read('templates', template), template
 
     assert '.bar-container.shows-values .bar-value { display: block; }' in css
     assert "classList.toggle('shows-values'" in page

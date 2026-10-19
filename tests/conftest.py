@@ -12,6 +12,14 @@ import pytest
 import browser_helpers as bh
 
 
+def pytest_collection_modifyitems(config, items):
+    """A browser test starts a real browser, so it counts as slow: the quick
+    run, `pytest -m "not slow"`, leaves every one of them out."""
+    for item in items:
+        if 'browser' in getattr(item, 'fixturenames', ()):
+            item.add_marker(pytest.mark.slow)
+
+
 def pytest_report_header(config):
     if bh.sync_playwright is None:
         return 'browser tests: DISABLED, Playwright is not installed. Run: ' + bh.INSTALL
