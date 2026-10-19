@@ -424,19 +424,110 @@ def test_prim_asks_which_node_joins_the_tree(browser, base_url):
     page.ctx.close()
 
 
-@pytest.mark.parametrize('path,run', [('/sorting', 'sort'), ('/graph?algo=kruskal', 'graph')])
-def test_an_algorithm_with_nothing_to_predict_says_so_and_never_asks(browser, base_url, path, run):
-    page = page_for(browser, base_url, path)
-    if run == 'sort':
-        start_sort(page, 'Selection Sort')
-    else:
-        graph_run(page, 'kruskal')
+def truth(page, fact):
+    """What the next step really does, read by the test from the run itself."""
+    return page.evaluate(fact)
+
+
+def test_selection_sort_asks_whether_this_is_the_new_smallest(browser, base_url):
+    page = page_for(browser, base_url, '/sorting')
+    start_sort(page, 'Selection Sort', '5, 3, 8, 1, 9, 2')
     predict_on(page)
-    assert 'nothing to predict' in page.inner_text('.predict-note')
-    total = page.evaluate('Workspace.current.steps.length')
-    for _ in range(total - 1):
-        page.click('#step-forward')
-        assert page.query_selector(CARD) is None
+    assert 'questions in this run' in page.inner_text('.predict-note')
+    assert forward_to_question(page)
+    prompt = page.inner_text('.predict-prompt')
+    meta = page.evaluate("Workspace.current.metaAt(Workspace.current.index + 1)")
+    smallest, candidate = meta['values']
+    assert 'Is %s the new smallest value?' % candidate in prompt and 'smallest value so far, %s' % smallest in prompt
+    assert option_ids(page) == ['yes', 'no']
+
+    expected = 'yes' if candidate < smallest else 'no'
+    page.click('.predict-option[data-option="%s"]' % expected)
+    assert page.get_attribute('.predict-result', 'data-correct') == 'true'
+    # The whole run can be played through, answering from the data.
+    for _ in range(80):
+        if forward_to_question(page, limit=40):
+            m = page.evaluate("Workspace.current.metaAt(Workspace.current.index + 1)")
+            page.click('.predict-option[data-option="%s"]' % ('yes' if m['values'][1] < m['values'][0] else 'no'))
+        else:
+            break
+    total, correct = page.inner_text('.predict-score').split(' correct')[0].split(' of ')
+    assert total == correct                                          # every answer taken from the data was right
+    page.ctx.close()
+
+
+def test_merge_sort_asks_which_half_is_written_next_and_names_the_values(browser, base_url):
+    page = page_for(browser, base_url, '/sorting')
+    start_sort(page, 'Merge Sort', '5, 3, 8, 3, 9, 1')
+    predict_on(page)
+    assert forward_to_question(page)
+    meta = page.evaluate("Workspace.current.metaAt(Workspace.current.index + 1)")
+    l, r = meta['values']
+    assert option_ids(page) == ['left', 'right']
+    labels = page.evaluate("[...document.querySelectorAll('.predict-option')].map(b => b.textContent)")
+    assert str(l) in labels[0] and str(r) in labels[1]
+    assert 'Which value is written next' in page.inner_text('.predict-prompt')
+    page.click('.predict-option[data-option="%s"]' % meta['taken'])
+    assert page.get_attribute('.predict-result', 'data-correct') == 'true'
+    page.ctx.close()
+
+
+def test_quick_sort_asks_about_the_pivot_the_variant_chose(browser, base_url):
+    page = page_for(browser, base_url, '/sorting')
+    page.click('#algo-picker [data-algorithm="Quick Sort"]')
+    page.click('[data-variant-for="Quick Sort"] input[value="middle"]')
+    page.check('#manual-input-choice')
+    page.fill('#manual-input', '5, 3, 8, 1, 9, 2')
+    page.click('#run-button')
+    page.wait_for_function('Workspace.current.steps.length > 0')
+    predict_on(page)
+    assert forward_to_question(page)
+    meta = page.evaluate("Workspace.current.metaAt(Workspace.current.index + 1)")
+    assert 'with the pivot, %s' % meta['vars']['pivot'] in page.inner_text('.predict-prompt')
+    assert meta['vars']['pivot'] == 8                                  # the middle value, not the last (2)
+    page.ctx.close()
+
+
+def test_kruskal_asks_whether_the_edge_is_added_or_makes_a_cycle(browser, base_url):
+    page = page_for(browser, base_url, '/graph?algo=kruskal')
+    graph_run(page, 'kruskal')
+    predict_on(page)
+    assert 'questions in this run' in page.inner_text('.predict-note')
+    seen = set()
+    for _ in range(40):
+        if not forward_to_question(page, limit=40):
+            break
+        assert 'Will it be added, or would it make a cycle?' in page.inner_text('.predict-prompt')
+        assert option_ids(page) == ['add', 'cycle']
+        after = page.evaluate("Workspace.current.metaAt(Workspace.current.index + 2).action")
+        answer = 'add' if after == 'include' else 'cycle'
+        page.click('.predict-option[data-option="%s"]' % answer)
+        assert page.get_attribute('.predict-result', 'data-correct') == 'true'
+        seen.add(answer)
+    assert seen == {'add', 'cycle'}
+    page.ctx.close()
+
+
+@pytest.mark.parametrize('algo', ['bellman_ford', 'floyd_warshall'])
+def test_the_other_weighted_graph_algorithms_ask_too(browser, base_url, algo):
+    page = page_for(browser, base_url, '/graph?algo=' + algo)
+    graph_run(page, algo)
+    predict_on(page)
+    assert forward_to_question(page, limit=80)
+    prompt = page.inner_text('.predict-prompt')
+    assert ('shorten the distance' if algo == 'bellman_ford' else 'shorter?') in prompt
+    after = page.evaluate("Workspace.current.metaAt(Workspace.current.index + 2).action")
+    page.click('.predict-option[data-option="%s"]' % ('yes' if after == 'relax' else 'no'))
+    assert page.get_attribute('.predict-result', 'data-correct') == 'true'
+    page.ctx.close()
+
+
+def test_the_fallback_note_appears_only_for_a_run_with_nothing_to_ask(browser, base_url):
+    page = page_for(browser, base_url, '/sorting')
+    start_sort(page, 'Bubble Sort', '7')                               # one value: nothing is compared
+    predict_on(page)
+    assert 'No step in this run can be predicted' in page.inner_text('.predict-note')
+    assert 'nothing to predict' not in page.inner_text('body')
     page.ctx.close()
 
 

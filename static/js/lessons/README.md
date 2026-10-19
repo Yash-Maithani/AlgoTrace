@@ -26,6 +26,7 @@ Two more fields belong to particular sorts (Phase 10):
 | --- | --- | --- |
 | `origins` | list of ints | every sorting step, added by app.py: `origins[k]` is the position in the input that the value now at `k` started from. The page tags equal values 5a, 5b from it. Halfway through a merge sort copy back one value can sit in two places, so it is a permutation on every frame except `overwrite` ones |
 | `depth`, `range` | int, `[lo, hi]` | every Merge Sort and Quick Sort step: how many calls deep the step is (the first call is 0) and the inclusive range that call owns. The `done` frame is depth 0 over `[0, n-1]`; an empty list's is `[0, -1]` |
+| `taken` | `'left'` or `'right'` | Merge Sort `compare` steps only: which half the comparison takes from, so Predict mode can ask about it without guessing. It is not drawn on the stage, and no step array or count depends on it |
 
 ### `action` vocabulary
 

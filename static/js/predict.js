@@ -13,15 +13,23 @@
  *     workspace asks before it plays a step. It renders nothing family
  *     specific; the Learn panel draws whatever question object it is given.
  *
- * A question is asked BEFORE its step, about the step after it:
+ * A question is asked BEFORE its step, about what that step does:
  *
- *   sorting    the next step compares two values. "Will these two swap?"
- *              The answer is whether the step after that swaps exactly them.
- *   searching  the next step compares the target with one value. "Found it,
- *              go left, or go right?" (linear search: "found, or keep
- *              looking?"). The answer is the step after that.
- *   graph      the next step visits (or, in Prim, joins) a node. "Which node
- *              is visited next?" Options are the frontier now.
+ *   bubble sort     "Will these two swap?"
+ *   selection sort  "Is this the new smallest value?"
+ *   insertion sort  "Will this value shift right?"
+ *   merge sort      "Which value is written next: the left half's or the right's?"
+ *   quick sort      "Is this smaller than the pivot, so it moves to the left side?"
+ *   heap sort       "Will the parent move down?"
+ *   searching       "Found it, go left, or go right?" (linear: "or keep looking?")
+ *   BFS, DFS, Dijkstra, Prim   "Which node is visited next?" (joins the tree)
+ *   Kruskal         "Will this edge be added, or would it make a cycle?"
+ *   Bellman-Ford    "Will this edge shorten the distance?"
+ *   Floyd-Warshall  "Is the path through k shorter?"
+ *
+ * The answer is read off the step that follows (or, for merge sort, a fact the
+ * compare step records) and the explanation is that step's own text. A step
+ * is never asked about unless it has a step before it to ask from.
  *
  * Question object:
  *   { step, kind, prompt, options: [{id, label}], answer, explain }
@@ -50,43 +58,153 @@
 
     /* --- sorting -------------------------------------------------------------- */
 
-    /* Only a run in which a comparison is sometimes followed by a swap of the
-       same two cells is asked about: that is the thing "will these two swap?"
-       can truthfully mean. Selection, insertion, merge and quick sort never do
-       that (they select, shift, write or swap a different pair), so asking
-       would invent an answer. */
-    function sortingHasPairSwaps(ctx) {
-        if (ctx.cache.pairSwaps !== undefined) return ctx.cache.pairSwaps;
-        var found = false;
-        for (var i = 0; i + 1 < ctx.length && !found; i++) {
-            var a = ctx.meta(i), b = ctx.meta(i + 1);
-            found = !!a && !!b && a.action === 'compare' && a.indices.length === 2 &&
-                b.action === 'swap' && sameSet(a.indices, b.indices);
-        }
-        ctx.cache.pairSwaps = found;
-        return found;
+    /* Each sort has its own natural question, and the step meta says which sort
+       this is: the line id of the comparison, and the variables it carries
+       (a selection sort has min_idx, an insertion sort a held key, a quick sort
+       a pivot). Every answer is read off the steps that follow, or off a fact
+       the compare step itself records. */
+    function sortingKind(step) {
+        if (step.action !== 'compare') return null;
+        var vars = step.vars || {};
+        if (step.line === 'cmp-left') return 'heap';
+        if (step.line === 'merge-compare') return 'merge';
+        if (step.line !== 'compare') return null;
+        if (vars.min_idx !== undefined) return 'selection';
+        if (vars.key !== undefined) return 'insertion';
+        if (vars.pivot !== undefined) return 'quick';
+        return 'bubble';
     }
 
-    function buildSorting(ctx) {
-        var asked = ctx.meta(ctx.next);
-        var after = ctx.meta(ctx.next + 1);
-        if (!asked || !after || asked.action !== 'compare' || asked.indices.length !== 2) return null;
-        if (asked.values.length !== 2 || !sortingHasPairSwaps(ctx)) return null;
+    var SORTING = {};
 
+    /* Bubble: two neighbours are compared and either swap or do not. */
+    SORTING.bubble = function (ctx, asked, after) {
+        if (asked.indices.length !== 2 || asked.values.length !== 2) return null;
         var swaps = after.action === 'swap' && sameSet(after.indices, asked.indices);
         var a = asked.values[0], b = asked.values[1];
         return {
-            step: ctx.next,
             kind: 'sorting-swap',
             prompt: 'Next the sort compares ' + a + ' and ' + b + ' (positions ' +
                 asked.indices[0] + ' and ' + asked.indices[1] + '). Will these two swap?',
             options: [option('yes', 'Yes, they swap'), option('no', 'No, they stay')],
             answer: swaps ? 'yes' : 'no',
-            // What really happened next, in the run's own words.
             explain: swaps
                 ? after.explain.beginner
                 : 'They stay where they are. What the sort does next: ' + after.explain.beginner
         };
+    };
+
+    /* Selection: a candidate is compared with the smallest value so far, and
+       either becomes the new smallest (a `select` step) or does not. */
+    SORTING.selection = function (ctx, asked, after) {
+        if (asked.values.length !== 2) return null;
+        var smallest = asked.values[0], candidate = asked.values[1];
+        var yes = after.action === 'select' && after.line === 'update-min';
+        return {
+            kind: 'selection-min',
+            prompt: 'Next the sort compares ' + candidate + ' (position ' + asked.indices[1] +
+                ') with the smallest value so far, ' + smallest + '. Is ' + candidate +
+                ' the new smallest value?',
+            options: [option('yes', 'Yes, new smallest'), option('no', 'No, ' + smallest + ' stays')],
+            answer: yes ? 'yes' : 'no',
+            explain: yes
+                ? after.explain.beginner
+                : candidate + ' is not smaller than ' + smallest + ', so ' + smallest + ' stays the smallest so far.'
+        };
+    };
+
+    /* Insertion: the held value meets a value to its left, which either
+       shifts one place right (a `shift` write) or stops the held value. */
+    SORTING.insertion = function (ctx, asked, after) {
+        if (asked.values.length !== 1 || asked.vars.key === undefined) return null;
+        var key = asked.vars.key, value = asked.values[0];
+        var yes = after.action === 'overwrite' && after.line === 'shift';
+        if (!yes && !(after.action === 'overwrite' && after.line === 'place')) return null;
+        return {
+            kind: 'insertion-shift',
+            prompt: 'Next the held value ' + key + ' is compared with ' + value + ' (position ' +
+                asked.indices[0] + '). Will ' + value + ' shift one place right?',
+            options: [option('yes', 'Yes, it shifts'), option('no', 'No, it stays')],
+            answer: yes ? 'yes' : 'no',
+            explain: yes ? after.explain.beginner : value + ' stays. ' + after.explain.beginner
+        };
+    };
+
+    /* Merge: the front values of the two halves are compared, and one is taken.
+       The compare step records which (`taken`); it is not shown on the stage. */
+    SORTING.merge = function (ctx, asked) {
+        if (asked.values.length !== 2 || (asked.taken !== 'left' && asked.taken !== 'right')) return null;
+        var l = asked.values[0], r = asked.values[1];
+        var reason;
+        if (l < r) reason = l + ' is smaller than ' + r + ', so the left half’s ' + l + ' goes next.';
+        else if (r < l) reason = r + ' is smaller than ' + l + ', so the right half’s ' + r + ' goes next.';
+        else {
+            var tie = /They are equal.*$/.exec(asked.explain.beginner);
+            reason = (tie ? tie[0] : 'They are equal, so the tie rule decides.') + ' The ' +
+                asked.taken + ' half’s ' + (asked.taken === 'left' ? l : r) + ' goes next.';
+        }
+        return {
+            kind: 'merge-take',
+            prompt: 'Next the merge compares the left half’s ' + l + ' with the right half’s ' + r +
+                '. Which value is written next: the left half’s or the right half’s?',
+            options: [option('left', 'The left half’s ' + l), option('right', 'The right half’s ' + r)],
+            answer: asked.taken,
+            explain: reason
+        };
+    };
+
+    /* Quick: a value is compared with the pivot and is swapped to the left
+       side if it is smaller. The pivot is whichever the run chose (the last
+       value, the middle or a seeded random one), read from the step. */
+    SORTING.quick = function (ctx, asked, after) {
+        if (asked.values.length !== 2) return null;
+        var value = asked.values[0], pivot = asked.vars.pivot;
+        var yes = after.action === 'swap';
+        return {
+            kind: 'quick-left',
+            prompt: 'Next the sort compares ' + value + ' (position ' + asked.indices[0] + ') with the pivot, ' +
+                pivot + '. Is ' + value + ' smaller than the pivot, so it moves to the left side?',
+            options: [option('yes', 'Yes, to the left'), option('no', 'No, it stays')],
+            answer: yes ? 'yes' : 'no',
+            explain: yes
+                ? after.explain.beginner
+                : value + ' is not smaller than the pivot, ' + pivot + ', so it stays where it is.'
+        };
+    };
+
+    /* Heap: a parent is compared with its children, one or two comparisons
+       in all, and then either swaps with the larger child (`swap-down`) or
+       stays. Asked at the first comparison; answered by what follows the last. */
+    SORTING.heap = function (ctx, asked) {
+        var parent = asked.vars.i;
+        var at = ctx.next + 1;
+        var m = ctx.meta(at);
+        while (m && m.action === 'compare' && m.line === 'cmp-right' && m.vars.i === parent) m = ctx.meta(++at);
+        if (!m) return null;
+        var moves = m.action === 'swap' && m.line === 'swap-down' && m.vars.i === parent;
+        var value = asked.values[1];
+        return {
+            kind: 'heap-down',
+            prompt: 'Next the heap compares position ' + parent + ' (value ' + value + ') with its children. ' +
+                'Will the parent move down?',
+            options: [option('yes', 'Yes, it moves down'), option('no', 'No, it stays')],
+            answer: moves ? 'yes' : 'no',
+            explain: moves
+                ? m.explain.beginner
+                : value + ' stays where it is. What the sort does next: ' + m.explain.beginner
+        };
+    };
+
+    function buildSorting(ctx) {
+        var asked = ctx.meta(ctx.next);
+        var after = ctx.meta(ctx.next + 1);
+        if (!asked || !after) return null;
+        var kind = sortingKind(asked);
+        if (!kind) return null;
+        var q = SORTING[kind](ctx, asked, after);
+        if (!q) return null;
+        q.step = ctx.next;
+        return q;
     }
 
     /* --- searching ------------------------------------------------------------ */
@@ -176,28 +294,110 @@
         frontier: 'Waiting to join the tree: '
     };
 
-    function buildGraph(ctx) {
-        var now = ctx.meta(ctx.at);
-        var next = ctx.meta(ctx.next);
-        if (!now || !next) return null;
+    var GRAPH = {};
 
-        var joins = next.action === 'consider' && next.indices.length === 2;
-        var visits = next.action === 'visit' && next.indices.length === 1;
-        if (!joins && !visits) return null;
-
-        var answer = String(joins ? next.indices[1] : next.indices[0]);
+    /* Traversals and Dijkstra: which waiting node comes off next. */
+    GRAPH.visit = function (ctx, now, next) {
+        var answer = String(next.indices[0]);
         var held = frontier(ctx, now);
         if (!held || held.nodes.length < 2 || held.nodes.indexOf(answer) === -1) return null;
-
         return {
-            step: ctx.next,
-            kind: joins ? 'graph-join' : 'graph-visit',
-            prompt: FRONTIER_LABEL[held.key] + held.nodes.join(', ') + '. ' +
-                (joins ? 'Which node joins the tree next?' : 'Which node is visited next?'),
+            kind: 'graph-visit',
+            prompt: FRONTIER_LABEL[held.key] + held.nodes.join(', ') + '. Which node is visited next?',
             options: held.nodes.map(function (n) { return option(n, n); }),
             answer: answer,
             explain: next.explain.beginner
         };
+    };
+
+    /* Prim: which waiting node the cheapest edge brings into the tree. */
+    GRAPH.join = function (ctx, now, next) {
+        var answer = String(next.indices[1]);
+        var held = frontier(ctx, now);
+        if (!held || held.nodes.length < 2 || held.nodes.indexOf(answer) === -1) return null;
+        return {
+            kind: 'graph-join',
+            prompt: FRONTIER_LABEL[held.key] + held.nodes.join(', ') + '. Which node joins the tree next?',
+            options: held.nodes.map(function (n) { return option(n, n); }),
+            answer: answer,
+            explain: next.explain.beginner
+        };
+    };
+
+    /* Kruskal: the next cheapest edge either joins two separate groups or
+       closes a loop. The step after it says which. */
+    GRAPH.edge = function (ctx, now, next, after) {
+        if (!after || (after.action !== 'include' && after.action !== 'reject')) return null;
+        var add = after.action === 'include';
+        return {
+            kind: 'kruskal-edge',
+            prompt: 'Next the cheapest edge left, ' + next.indices[0] + ' to ' + next.indices[1] +
+                ' (weight ' + next.values[0] + '), is considered. The forest holds ' +
+                (now.vars.tree_edges || 0) + ' of ' + now.vars.needed + ' edges. Will it be added, or would it make a cycle?',
+            options: [option('add', 'Added to the forest'), option('cycle', 'Makes a cycle, skipped')],
+            answer: add ? 'add' : 'cycle',
+            explain: after.explain.beginner
+        };
+    };
+
+    /* Bellman-Ford: an edge is checked against the distances on record, and
+       either shortens the far end's distance (a `relax` step) or does not. */
+    GRAPH.relax = function (ctx, now, next, after) {
+        if (!after || (after.action !== 'relax' && after.action !== 'reject')) return null;
+        var from = next.indices[0], to = next.indices[1], w = next.values[0];
+        var yes = after.action === 'relax';
+        return {
+            kind: 'bellman-relax',
+            prompt: 'Next the edge ' + from + ' to ' + to + ' (weight ' + w + ') is checked. ' + from +
+                ' is at distance ' + next.vars.from + ' now and ' + to + ' at ' + next.vars.to +
+                '. Will this edge shorten the distance to ' + to + '?',
+            options: [option('yes', 'Yes, it shortens it'), option('no', 'No, it does not')],
+            answer: yes ? 'yes' : 'no',
+            explain: after.explain.beginner
+        };
+    };
+
+    /* Floyd-Warshall: the direct distance i to j is weighed against going
+       through k. The numbers are the three pieces; adding two of them is the
+       prediction. */
+    GRAPH.through = function (ctx, now, next, after) {
+        if (!after || (after.action !== 'relax' && after.action !== 'reject') || next.values.length < 3) return null;
+        var i = next.indices[0], j = next.indices[1], k = next.indices[2];
+        var yes = after.action === 'relax';
+        return {
+            kind: 'floyd-through',
+            prompt: 'Next ' + i + ' to ' + j + ' (' + next.values[0] + ' now) is tested against the path through ' + k +
+                ': ' + i + ' to ' + k + ' is ' + next.values[1] + ' and ' + k + ' to ' + j + ' is ' + next.values[2] +
+                '. Is the path through ' + k + ' shorter?',
+            options: [option('yes', 'Yes, shorter'), option('no', 'No, keep ' + next.values[0])],
+            answer: yes ? 'yes' : 'no',
+            explain: after.explain.beginner
+        };
+    };
+
+    /* Which question a step asks is told by what the step is: its action and
+       the line id it carries. */
+    function graphKind(next) {
+        if (next.action === 'visit' && next.indices.length === 1) return 'visit';
+        if (next.action === 'consider') {
+            if (next.line === 'pop-min' && next.indices.length === 2) return 'join';
+            if (next.line === 'take-next' && next.indices.length === 2) return 'edge';
+            if (next.line === 'edge-loop' && next.indices.length === 2) return 'relax';
+            if (next.line === 'compare' && next.indices.length === 3) return 'through';
+        }
+        return null;
+    }
+
+    function buildGraph(ctx) {
+        var now = ctx.meta(ctx.at);
+        var next = ctx.meta(ctx.next);
+        if (!now || !next) return null;
+        var kind = graphKind(next);
+        if (!kind) return null;
+        var q = GRAPH[kind](ctx, now, next, ctx.meta(ctx.next + 1));
+        if (!q) return null;
+        q.step = ctx.next;
+        return q;
     }
 
     var builders = { sorting: buildSorting, searching: buildSearching, graph: buildGraph };
@@ -305,7 +505,7 @@
                 var count = questionsFor(family, metas()).length;
                 note.textContent = count
                     ? count + (count === 1 ? ' question' : ' questions') + ' in this run'
-                    : 'This algorithm has nothing to predict yet';
+                    : 'No step in this run can be predicted';
             }
         }
 

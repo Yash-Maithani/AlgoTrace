@@ -33,7 +33,8 @@ def merge_sort(arr, draw_func, delay, stats=None, stable=False):
             # hand value really is at start_index + len(left) + j. The stage
             # used to be sent start_index + j, which pointed into the left
             # half: the second gap recorded in the lessons README.
-            draw_func(arr, [start_index + i, start_index + len(left) + j], located(step(
+            takes_left = (left[i] <= right[j]) if stable else (left[i] < right[j])
+            compare_step = located(step(
                 'compare',
                 [start_index + i, start_index + len(left) + j],
                 [left[i], right[j]],
@@ -43,8 +44,12 @@ def merge_sort(arr, draw_func, delay, stats=None, stable=False):
                 told,
                 'Both halves are already sorted, so whichever of these two is '
                 'smaller is the smallest value left anywhere in the pair.'),
-                depth, lo, hi))
-            if (left[i] <= right[j]) if stable else (left[i] < right[j]):
+                depth, lo, hi)
+            # Which half this comparison takes from. It is a fact of the step,
+            # not shown on the stage, and Predict mode asks about it.
+            compare_step['taken'] = 'left' if takes_left else 'right'
+            draw_func(arr, [start_index + i, start_index + len(left) + j], compare_step)
+            if takes_left:
                 result.append(left[i])
                 i += 1
             else:

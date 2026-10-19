@@ -50,9 +50,13 @@ node a graph search visits or joins next. The answer is read from the step that
 really follows and the options come from the run's own queue, stack or
 unvisited set. A score counts the run, Skip is always there, and Step back never
 re-asks an answered question. The questions are built in `static/js/predict.js`;
-the shared shell only asks it whether a step may play. Selection, insertion,
-merge and quick sort, and Kruskal, Floyd-Warshall and Bellman-Ford, have nothing
-true to ask at this level, and Predict says so.
+the shared shell only asks it whether a step may play. Every algorithm has a
+question: bubble sort "will these two swap?", selection sort "is this the new
+smallest value?", insertion sort "will this value shift right?", merge sort
+"which half is written next?", quick sort "is it smaller than the pivot?", heap
+sort "will the parent move down?", Kruskal "added, or a cycle?", Bellman-Ford
+"will this edge shorten the distance?" and Floyd-Warshall "is the path through
+k shorter?". A run with no step that can be asked about says so instead.
 
 ### The Learn panel
 
