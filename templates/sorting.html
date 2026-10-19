@@ -208,6 +208,7 @@
     <script src="{{ url_for('static', filename='js/variants.js') }}"></script>
     <script src="{{ url_for('static', filename='js/codeview.js') }}"></script>
     <script src="{{ url_for('static', filename='js/teacher.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/predict.js') }}"></script>
     <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
     <script>
         /* Everything below is the sorting workspace only. The shell, the
@@ -367,6 +368,7 @@
 
             Workspace.start({
                 endpoint: '/run_sort',
+                predict: { family: 'sorting' },
                 lessons: lessonsByDisplayName(),
                 onAlgorithmChange: function (name) {
                     syncVariantUi(name);

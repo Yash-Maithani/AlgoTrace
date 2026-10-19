@@ -149,6 +149,104 @@
         this.renderExplainShell();
     };
 
+    /* --- Predict mode ----------------------------------------------------------
+       The panel draws any question of the shape static/js/predict.js
+       documents, and knows nothing about what it asks. */
+
+    Panel.prototype.announce = function (text) {
+        if (!this.predictLive) return;
+        // Clear first so an identical message is announced again.
+        var live = this.predictLive;
+        live.textContent = '';
+        window.setTimeout(function () { live.textContent = text; }, 30);
+    };
+
+    Panel.prototype.clearQuestion = function () {
+        if (this.questionCard && this.questionCard.parentNode) {
+            this.questionCard.parentNode.removeChild(this.questionCard);
+        }
+        this.questionCard = null;
+    };
+
+    Panel.prototype.clearResult = function () {
+        if (this.resultCard && this.resultCard.parentNode) {
+            this.resultCard.parentNode.removeChild(this.resultCard);
+        }
+        this.resultCard = null;
+    };
+
+    Panel.prototype.focusQuestion = function () {
+        if (this.questionCard) this.questionCard.focus();
+    };
+
+    Panel.prototype.showQuestion = function (question, number, handlers) {
+        this.clearQuestion();
+        this.clearResult();
+        if (this.active !== 'explain') this.select('explain', false);
+
+        var card = el('section', 'predict-card');
+        card.tabIndex = -1;
+        card.setAttribute('role', 'group');
+        var kickerId = 'predict-kicker-' + number;
+        var promptId = 'predict-prompt-' + number;
+        card.setAttribute('aria-labelledby', kickerId + ' ' + promptId);
+
+        var kicker = el('h3', 'predict-kicker', 'Predict, question ' + number);
+        kicker.id = kickerId;
+        var prompt = el('p', 'predict-prompt', question.prompt);
+        prompt.id = promptId;
+
+        var group = el('div', 'predict-options');
+        group.setAttribute('role', 'group');
+        group.setAttribute('aria-label', 'Your answer');
+        var buttons = question.options.map(function (o) {
+            var b = el('button', 'predict-option', o.label);
+            b.type = 'button';
+            b.setAttribute('data-option', o.id);
+            b.addEventListener('click', function () { handlers.answer(o.id); });
+            group.appendChild(b);
+            return b;
+        });
+        // Arrow keys move between the answers. They are handled here and
+        // stopped, so they are not also read as Step back and Step forward.
+        group.addEventListener('keydown', function (event) {
+            var at = buttons.indexOf(document.activeElement);
+            var to = null;
+            if (event.key === 'ArrowRight' || event.key === 'ArrowDown') to = (at + 1) % buttons.length;
+            else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') to = (at - 1 + buttons.length) % buttons.length;
+            if (to === null) return;
+            event.preventDefault();
+            event.stopPropagation();
+            buttons[to].focus();
+        });
+
+        var skip = el('button', 'predict-skip', 'Skip');
+        skip.type = 'button';
+        skip.addEventListener('click', function () { handlers.skip(); });
+
+        var actions = el('div', 'predict-actions');
+        actions.appendChild(group);
+        actions.appendChild(skip);
+        card.appendChild(kicker);
+        card.appendChild(prompt);
+        card.appendChild(actions);
+        this.predictHost.appendChild(card);
+        this.questionCard = card;
+        // The prompt is read as the card takes focus. Focus goes to the card,
+        // not to an answer, so a stray key press cannot choose one.
+        card.focus();
+    };
+
+    Panel.prototype.showResult = function (result) {
+        this.clearResult();
+        var card = el('div', 'predict-result');
+        card.setAttribute('data-correct', result.right ? 'true' : 'false');
+        card.appendChild(el('strong', 'predict-verdict', result.right ? 'Correct' : 'Not quite'));
+        card.appendChild(el('p', null, result.text));
+        this.predictHost.appendChild(card);
+        this.resultCard = card;
+    };
+
     Panel.prototype.renderExplainShell = function () {
         var body = this.bodies.explain;
         clear(body);
@@ -157,6 +255,17 @@
         this.explainText = el('p', 'explain-text');
         this.explainWhy = el('p', 'explain-why');
         this.explainAction = el('span', 'explain-action');
+        // Predict mode draws here: a question before a step, its result after.
+        // The live region exists before anything is said in it, or a screen
+        // reader would not announce the first message.
+        this.predictHost = el('div', 'predict-host');
+        this.predictLive = el('p', 'sr-only');
+        this.predictLive.setAttribute('role', 'status');
+        this.predictLive.setAttribute('aria-live', 'polite');
+        body.appendChild(this.predictLive);
+        body.appendChild(this.predictHost);
+        this.questionCard = null;
+        this.resultCard = null;
         var head = el('div', 'explain-head');
         head.appendChild(this.explainAction);
         body.appendChild(head);

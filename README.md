@@ -41,14 +41,27 @@ uses `heapq`, Kruskal uses union-find and returns a spanning forest when the
 graph is disconnected, and Bellman-Ford reports a negative cycle rather than
 looping on one.
 
+### Predict mode
+
+The control bar on every workspace has a **Predict** switch, off by default. When it
+is on, the run pauses before some steps and asks what happens next: whether a
+compared pair will swap, whether a search finds, goes left or goes right, which
+node a graph search visits or joins next. The answer is read from the step that
+really follows and the options come from the run's own queue, stack or
+unvisited set. A score counts the run, Skip is always there, and Step back never
+re-asks an answered question. The questions are built in `static/js/predict.js`;
+the shared shell only asks it whether a step may play. Selection, insertion,
+merge and quick sort, and Kruskal, Floyd-Warshall and Bellman-Ford, have nothing
+true to ask at this level, and Predict says so.
+
 ### The Learn panel
 
 Four tabs beside every visualization, driven by `static/js/teacher.js`:
 
 - **Explain**: the current step in one sentence, with the real values, plus a
   one line reason. Updates on every step, forwards and backwards.
-- **Code**: pseudocode or Python, the running line highlighted, and the live
-  variables beside it.
+- **Code**: pseudocode, Python, C, C++ or Java, the running line highlighted, and
+  the live variables beside it.
 - **Complexity**: best, average and worst, each tied to a line of the code; a
   worked example at n = 5; auxiliary space; and the count from this run beside
   what the formula predicts for this n.
@@ -132,6 +145,7 @@ behaviour:
 | `test_phase14b.py` | Every visible source line is in its generated listing, and a statement over several lines carries its id on all of them |
 | `test_browser_phase14.py` | In a real browser: reduced motion, the Code panel in every language, the Complexity tab for every algorithm and variant, no sideways scroll at 375, 768 and 1440 in both themes |
 | `test_phase15.py`, `test_browser_phase15.py` | The Home player: its steps are the real `/run_sort` steps, all four cards change together on every step, it starts and pauses with the viewport, and under emulated reduced motion it stays on its frozen step while Step still works |
+| `test_phase16.py`, `test_browser_phase16.py` | Predict mode: every question the builders ask, over real runs of every algorithm, has an answer that matches the step that really follows and options taken from the run; in a browser, the flow, the score, Step back, autoplay waiting, keyboard, widths and themes |
 
 Two more checks are not pytest:
 

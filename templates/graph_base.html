@@ -690,6 +690,7 @@ A</pre>
     <script src="{{ url_for('static', filename='js/growth.js') }}"></script>
     <script src="{{ url_for('static', filename='js/codeview.js') }}"></script>
     <script src="{{ url_for('static', filename='js/teacher.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/predict.js') }}"></script>
     <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
     <script>
         let graph = {};
@@ -1826,6 +1827,7 @@ A</pre>
         function startWorkspace() {
             Workspace.start({
                 onRun: function () { visualize(); },
+                predict: { family: 'graph' },
 
                 /* The picker here is a set of links to other pages, so the
                    algorithm is named rather than read off a switch. */

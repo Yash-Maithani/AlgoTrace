@@ -164,12 +164,14 @@
     <script src="{{ url_for('static', filename='js/presets.js') }}"></script>
     <script src="{{ url_for('static', filename='js/codeview.js') }}"></script>
     <script src="{{ url_for('static', filename='js/teacher.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/predict.js') }}"></script>
     <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
     <script>
         /* Everything below is the searching workspace only. The shell, the
            control bar and the Learn panel come from the shared pieces. */
         Workspace.start({
             endpoint: '/run_search',
+            predict: { family: 'searching' },
             lessons: window.LESSONS,
             onAlgorithmChange: function () { if (window.presetUi) window.presetUi.refresh(); },
 

@@ -25,6 +25,11 @@
  *                               before its first step is drawn
  *     onError(payload, ui),     optional, return true if the page handled it
  *     delayFor(sliderValue)     optional, milliseconds between frames
+ *     predict                   optional, {family}. Turns on Predict mode
+ *                               (static/js/predict.js), which asks a question
+ *                               before some forward steps. The shell only
+ *                               asks the gate whether a step may play; it
+ *                               knows nothing about what is asked
  *   })
  *
  * The template must provide these ids: run-button, play-pause, step-back,
@@ -71,6 +76,12 @@
             })
             : null;
 
+        // Predict mode is a gate in front of every forward step.
+        this.gate = options.predict && window.Predict && this.panel
+            ? window.Predict.mount(this, options.predict)
+            : null;
+        this.gateStepping = false;
+
         this.bind();
         this.bindShortcuts();
         this.syncTransport();
@@ -105,7 +116,7 @@
             this.back.addEventListener('click', function () { self.pause(); self.go(self.index - 1); });
         }
         if (this.forward) {
-            this.forward.addEventListener('click', function () { self.pause(); self.go(self.index + 1); });
+            this.forward.addEventListener('click', function () { self.pause(); self.advance(false); });
         }
         if (this.resetButton) {
             this.resetButton.addEventListener('click', function () { self.pause(); self.go(0); });
@@ -152,7 +163,7 @@
             } else if (key === 'ArrowRight') {
                 event.preventDefault();
                 self.pause();
-                self.go(self.index + 1);
+                self.advance(false);
             } else if (key === 'r' || key === 'R') {
                 event.preventDefault();
                 self.pause();
@@ -269,6 +280,7 @@
        banner, and a transport that cannot be pressed. */
     Workspace.prototype.discard = function () {
         this.pause();
+        if (this.gate) this.gate.reset();
         this.payload = null;
         this.steps = [];
         this.index = 0;
@@ -286,15 +298,47 @@
         this.steps = payload.steps || [];
         this.index = 0;
         this.resultShown = false;
+        if (this.gate) this.gate.reset();
         if (this.options.clearResult) this.options.clearResult();
         if (this.options.onLoad) this.options.onLoad(payload);
         this.go(0);
         this.syncTransport();
     };
 
+    /* The teacher payload of step i: the step itself, or where the page keeps
+       it (graphs send it in a parallel list). */
+    Workspace.prototype.metaAt = function (i) {
+        var step = this.steps[i];
+        return this.options.metaFor ? this.options.metaFor(step, i, this.payload) : step;
+    };
+
+    /* Play the next step, unless the gate holds it back for a question. The
+       gate plays it itself, through resume(), once the question is answered or
+       skipped. `auto` says the step was due from playback, which should carry
+       on afterwards. */
+    Workspace.prototype.advance = function (auto) {
+        var next = this.index + 1;
+        if (next >= this.steps.length) return false;
+        if (this.gate && this.gate.intercept(next, !!auto)) {
+            this.pause();
+            return false;
+        }
+        this.go(next);
+        return true;
+    };
+
+    Workspace.prototype.resume = function (index, auto) {
+        this.gateStepping = true;
+        this.go(index);
+        this.gateStepping = false;
+        if (auto) this.play();
+    };
+
     Workspace.prototype.go = function (index) {
         if (!this.steps.length) return;
+        var previous = this.index;
         this.index = Math.max(0, Math.min(index, this.steps.length - 1));
+        if (this.gate) this.gate.onGo(this.index, previous);
         var step = this.steps[this.index];
         var self = this;
         this.options.renderStep(step, {
@@ -364,7 +408,7 @@
         if (this.index >= this.steps.length - 1) this.go(0);
         this.timer = window.setInterval(function () {
             if (self.index >= self.steps.length - 1) { self.pause(); return; }
-            self.go(self.index + 1);
+            self.advance(true);
         }, this.delay());
         this.syncTransport();
     };
@@ -378,6 +422,8 @@
     };
 
     Workspace.prototype.togglePlay = function () {
+        // A question is waiting: Play and Space are not an answer.
+        if (this.gate && this.gate.pending) { this.gate.nudge(); return; }
         if (this.timer) this.pause();
         else this.play();
     };
