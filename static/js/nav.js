@@ -66,7 +66,7 @@
     // Once the viewport is wide enough that the links are on the row again,
     // the button is hidden, so leave the attribute in its closed state rather
     // than hiding a list that is now visible.
-    var wide = window.matchMedia('(min-width: 901px)');
+    var wide = window.matchMedia('(min-width: 1024px)');
     if (wide.addEventListener) {
         wide.addEventListener('change', function (event) {
             if (event.matches) close(false);

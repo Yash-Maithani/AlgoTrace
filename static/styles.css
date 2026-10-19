@@ -454,8 +454,10 @@ nav {
    screen reader reads anyway, and the sibling selector styles from it. No
    second source of truth, and no class for JS to keep in step.
 
-   900px, not 768px, because the finished nav is six items plus the logo and
-   two buttons, which needs about 770px before it wraps. */
+   1024px. The nav is seven items (Compare joined the six) plus the logo and
+   two buttons, and a measured sweep shows it still wraps to a second row at
+   991px and fits from 1024px, so the menu takes over below 1024px rather than
+   leaving a two row header between 900px and there. */
 
 .nav-toggle {
     display: none;
@@ -486,7 +488,7 @@ nav {
     display: block;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1023px) {
     nav {
         flex-wrap: wrap;
     }
@@ -3663,14 +3665,6 @@ pre.sample {
 
 .player-controls [hidden] { display: none; }
 
-/* Last in the file on purpose: it must come after every rule that sets a
-   transition for these elements, or the rule it overrides would win. */
-@media (prefers-reduced-motion: reduce) {
-    .lang-thumb,
-    .code-stage,
-    .band-stage.is-live .band-cell { transition: none; }
-}
-
 /* --- Predict mode ------------------------------------------------------------ */
 
 .predict-control {
@@ -3938,4 +3932,143 @@ pre.sample {
 @media (min-width: 1024px) {
     .compare { padding: 0 var(--space-8); }
     .compare-try-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* --- Call tree ---------------------------------------------------------------- */
+
+.call-tree {
+    min-width: 0;
+    margin-top: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.call-tree[hidden] { display: none; }
+
+.call-tree-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+}
+
+.call-tree-title { margin: 0; font-size: var(--text-lg); }
+
+.call-tree-toggle {
+    min-height: var(--target, 44px);
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background-color: var(--surface);
+    color: var(--text);
+    font-family: inherit;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.call-tree-toggle:hover { border-color: var(--accent); }
+
+.call-tree-toggle:focus-visible,
+.call-tree-scroll:focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+}
+
+.call-tree-caption,
+.call-tree-empty {
+    margin: var(--space-2) 0 var(--space-3);
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+}
+
+.call-tree-empty[hidden] { display: none; }
+
+/* The tree can be far wider than the page. It scrolls inside this box and
+   never widens the page. */
+.call-tree-scroll {
+    max-width: 100%;
+    max-height: 340px;
+    overflow: auto;
+    padding: var(--space-2);
+    background-color: var(--sunken);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.call-tree-scroll[hidden] { display: none; }
+
+.ct-svg { display: block; }
+
+.ct-edge {
+    fill: none;
+    stroke: var(--border-strong);
+    stroke-width: 1.5;
+    opacity: 1;
+    transition: opacity 150ms var(--ease-out);
+}
+
+.ct-edge[data-state="pending"] { opacity: 0; }
+.ct-edge[data-state="finished"] { opacity: 0.55; }
+
+.ct-node {
+    opacity: 1;
+    transition: opacity 150ms var(--ease-out);
+}
+
+.ct-node rect {
+    fill: var(--surface);
+    stroke: var(--border-strong);
+    stroke-width: 1.5;
+}
+
+.ct-label {
+    fill: var(--text);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.ct-values {
+    fill: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 10px;
+}
+
+/* Not started: there, so the tree does not move, but not drawn. */
+.ct-node[data-state="pending"] { opacity: 0; }
+
+/* Started and waiting on the calls beneath it. */
+.ct-node[data-state="waiting"] rect { stroke: var(--accent); }
+
+/* The call at work: a heavier outline and a filled box, so it is not told by colour alone. */
+.ct-node[data-state="active"] rect {
+    fill: var(--active-solid);
+    stroke: var(--active-solid);
+    stroke-width: 3;
+}
+
+.ct-node[data-state="active"] .ct-label,
+.ct-node[data-state="active"] .ct-values { fill: var(--on-state); }
+
+/* Finished: dimmed, and a box with its result shows the result. */
+.ct-node[data-state="finished"] { opacity: 0.55; }
+.ct-node[data-result="true"] .ct-values { fill: var(--text); }
+.ct-node[data-state="active"][data-result="true"] .ct-values { fill: var(--on-state); }
+
+.ct-node[data-leaf="true"] rect { stroke-dasharray: 3 2; }
+.ct-node[data-leaf="true"] .ct-values { fill: var(--text); font-size: 11px; }
+.ct-node[data-leaf="true"][data-state="active"] rect { stroke-dasharray: none; }
+
+/* Last in the file on purpose: a media query adds no specificity, so it must come
+   after every rule that sets a transition for these elements, or the rule it
+   overrides would win. */
+@media (prefers-reduced-motion: reduce) {
+    .lang-thumb,
+    .code-stage,
+    .band-stage.is-live .band-cell,
+    .ct-node,
+    .ct-edge { transition: none; }
 }

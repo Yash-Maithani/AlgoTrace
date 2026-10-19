@@ -188,6 +188,30 @@
             </ul>
 
             <div class="run-banner" id="run-banner" role="status" aria-live="polite"></div>
+
+            <!-- CALL TREE: the recursion of Merge Sort and Quick Sort, drawn from
+                 the steps. Hidden for the sorts that do not recurse. -->
+            <section class="call-tree" id="call-tree" aria-labelledby="call-tree-heading" hidden>
+                <div class="call-tree-head">
+                    <h2 class="call-tree-title" id="call-tree-heading">Call tree</h2>
+                    <button type="button" class="call-tree-toggle" id="call-tree-toggle"
+                            aria-expanded="true" aria-controls="call-tree-body">Hide call tree</button>
+                </div>
+                <div class="call-tree-body" id="call-tree-body">
+                    <p class="call-tree-caption">
+                        Each box is one call of the sort, labelled with the positions it works on.
+                        Depth is how many calls deep a box is: the first call is depth 0, and every
+                        call it makes is one deeper. A box appears when its call starts and dims
+                        when it finishes.
+                    </p>
+                    <p class="call-tree-empty">Run the sort to see its calls.</p>
+                    <div class="call-tree-scroll" tabindex="0" role="region" data-keys="own"
+                         aria-label="Call tree, scrolls inside this box">
+                        <div class="call-tree-canvas"></div>
+                    </div>
+                    <p class="sr-only call-tree-live" role="status" aria-live="polite"></p>
+                </div>
+            </section>
         </section>
 
         <!-- LEARN PANEL -------------------------------------------------- -->
@@ -207,6 +231,7 @@
     <script src="{{ url_for('static', filename='js/presets.js') }}"></script>
     <script src="{{ url_for('static', filename='js/variants.js') }}"></script>
     <script src="{{ url_for('static', filename='js/sortstage.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/calltree.js') }}"></script>
     <script src="{{ url_for('static', filename='js/codeview.js') }}"></script>
     <script src="{{ url_for('static', filename='js/teacher.js') }}"></script>
     <script src="{{ url_for('static', filename='js/predict.js') }}"></script>
@@ -321,12 +346,20 @@
                 seedInput.focus();
             });
 
+            /* The call tree under the stage. It follows the run's own steps, so it
+               needs only these four hooks and changes nothing the stage does. */
+            var callTree = CallTree.mount({ root: document.getElementById('call-tree') });
+            function isRecursive(name) {
+                return LESSON_FOR[name] === 'merge_sort' || LESSON_FOR[name] === 'quick_sort';
+            }
+
             Workspace.start({
                 endpoint: '/run_sort',
                 predict: { family: 'sorting' },
                 lessons: lessonsByDisplayName(),
                 onAlgorithmChange: function (name) {
                     syncVariantUi(name);
+                    callTree.select(isRecursive(name));
                     if (presetUi) presetUi.refresh();
                 },
 
@@ -338,6 +371,7 @@
                         seedInput.value = payload.seed;
                     }
                     syncVariantUi(payload.algorithm);
+                    callTree.load(payload);
                 },
 
                 /* The old page's speed curve, kept exactly so a run at a given
@@ -374,6 +408,7 @@
                 renderStep: function (step, context) {
                     var data = step.array;
                     stage.render(step, context.payload);
+                    callTree.show(context.index);
                     /* The counts this step has reached, not the run's totals:
                        a box headed "this run" that already showed the final
                        numbers on step 1 gave the answer away. */
@@ -422,6 +457,7 @@
 
                 clearStage: function () {
                     stage.clear();
+                    callTree.clear();
                 },
 
                 onError: function (payload) {
@@ -450,6 +486,8 @@
 
             /* POST /sorting still runs the sort server side. When it did, the
                workspace opens on that run rather than throwing it away. */
+            callTree.select(isRecursive(Workspace.current.algorithm));
+
             var initialRun = {{ initial_run|tojson }};
             syncVariantUi(Workspace.current.algorithm);
             if (initialRun) {

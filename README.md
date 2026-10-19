@@ -59,6 +59,17 @@ sort "will the parent move down?", Kruskal "added, or a cycle?", Bellman-Ford
 "will this edge shorten the distance?" and Floyd-Warshall "is the path through
 k shorter?". A run with no step that can be asked about says so instead.
 
+### The call tree
+
+Under the stage on /sorting, Merge Sort and Quick Sort draw their recursion as a
+tree of boxes (`static/js/calltree.js`). It is built only from the `depth` and
+`range` every step of those two sorts already carries, so it agrees with the
+stage by construction and works for every variant. A box appears when its call
+starts, the call at work is highlighted and announced in words, finished calls
+dim, and a merge call shows its merged result when it finishes. It is open by
+default from 900px up and collapsed below, and a large tree scrolls inside its
+own box.
+
 ### The Learn panel
 
 Four tabs beside every visualization, driven by `static/js/teacher.js`:
@@ -152,6 +163,7 @@ behaviour:
 | `test_browser_phase14.py` | In a real browser: reduced motion, the Code panel in every language, the Complexity tab for every algorithm and variant, no sideways scroll at 375, 768 and 1440 in both themes |
 | `test_phase15.py`, `test_browser_phase15.py` | The Home player: its steps are the real `/run_sort` steps, all four cards change together on every step, it starts and pauses with the viewport, and under emulated reduced motion it stays on its frozen step while Step still works |
 | `test_phase16.py`, `test_browser_phase16.py` | Predict mode: every question the builders ask, over real runs of every algorithm, has an answer that matches the step that really follows and options taken from the run; in a browser, the flow, the score, Step back, autoplay waiting, keyboard, widths and themes |
+| `test_phase18.py`, `test_browser_phase18.py` | The call tree matches the recursion the real merge and quick sort functions made (found by profiling them, not from the step meta) for 200 runs across every variant; in a browser, the toggle, stepping forward and back, large arrays, both themes, and the seven item navbar at desktop widths |
 
 Two more checks are not pytest:
 

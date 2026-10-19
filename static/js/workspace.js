@@ -109,7 +109,7 @@
             if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' ||
                 (target && target.isContentEditable)) return;
             // The Learn tabs use the arrow keys to move between themselves.
-            if (target && target.closest && target.closest('[role="tablist"], dialog')) return;
+            if (target && target.closest && target.closest('[role="tablist"], dialog, [data-keys="own"]')) return;
 
             var key = event.key;
             if (key === ' ') {

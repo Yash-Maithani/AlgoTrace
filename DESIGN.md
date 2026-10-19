@@ -394,6 +394,8 @@ CONTROL BAR    one transport for both, then the legend and the finish banner
 WHAT TO TRY    pairs that make one idea visible, each a button that sets up and runs
 ```
 
+- The nav is its own exception: seven items need 1024px to stay on one row, so the
+  menu button takes over below 1024px (measured: it wrapped at 991px).
 - The one exception to the four breakpoints: the stages go side by side from 900px,
   because below that two stages of bars are too narrow to read.
 - Both sides' rows are aligned (CSS subgrid), so a title that wraps on one side does not

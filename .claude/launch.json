@@ -4,7 +4,9 @@
     {
       "name": "flask-dev",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["app.py"],
+      "runtimeArgs": [
+        "app.py"
+      ],
       "port": 5002,
       "autoPort": false,
       "url": "http://localhost:5002"
@@ -12,10 +14,24 @@
     {
       "name": "flask-5055",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-c", "from app import app; app.config[\"TEMPLATES_AUTO_RELOAD\"] = True; app.jinja_env.auto_reload = True; app.run(port=5055, use_reloader=False)"],
+      "runtimeArgs": [
+        "-c",
+        "from app import app; app.config[\"TEMPLATES_AUTO_RELOAD\"] = True; app.jinja_env.auto_reload = True; app.run(port=5055, use_reloader=False)"
+      ],
       "port": 5055,
       "autoPort": false,
       "url": "http://localhost:5055"
+    },
+    {
+      "name": "flask-5056",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-c",
+        "from app import app; app.config[\"TEMPLATES_AUTO_RELOAD\"] = True; app.jinja_env.auto_reload = True; app.run(port=5056, use_reloader=False)"
+      ],
+      "port": 5056,
+      "autoPort": false,
+      "url": "http://localhost:5056"
     }
   ]
 }
