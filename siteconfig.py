@@ -18,18 +18,25 @@ Environment (all optional; see README.md):
                 it today; it is read from here so that a future feature never
                 tempts anyone into committing one.
   FLASK_DEBUG   1 turns Flask's debug mode on (local development only).
-  TRUST_PROXY   1 to believe X-Forwarded-Proto and X-Forwarded-Host from the one
-                proxy in front, as on Render.
+  TRUST_PROXY   1 to believe X-Forwarded-Proto, X-Forwarded-Host and X-Forwarded-For
+                from the one proxy in front, as on Render. The rate limit counts
+                the client address that gives.
+  RATE_LIMIT_PER_MINUTE   requests an address may make to /run_* in a minute
+                (30 by default, 0 turns the limit off). See ratelimit.py.
 """
 import hashlib
 import os
 import secrets
 
-from flask import Response, abort, g, jsonify, render_template, request, url_for
+from flask import Response, abort, g, json, jsonify, render_template, request, url_for
+
+from ratelimit import init_rate_limit
 
 SITE_NAME = "AlgoTrace"
 TAGLINE = "Watch algorithms run, step by step"
 OG_IMAGE = "og-image.png"
+ICONS = [("favicon-32.png", 32), ("icon-192.png", 192), ("icon-512.png", 512)]
+THEME_COLOR = "#FAF8F5"                # --bg in styles.css, light; the layout's meta theme-color says the same
 MAX_REQUEST_BYTES = 1_000_000          # the largest legitimate input is a few KB of text
 
 DESCRIPTIONS = {
@@ -90,6 +97,7 @@ def csp_for(nonce):
         "style-src-attr 'unsafe-inline'",
         "font-src 'self' https://fonts.gstatic.com",
         "img-src 'self' data:",
+        "manifest-src 'self'",
         "connect-src 'self'",
         "object-src 'none'",
         "base-uri 'self'",
@@ -115,6 +123,8 @@ def init_site(app, deep_links):
     if os.environ.get("TRUST_PROXY") == "1":
         from werkzeug.middleware.proxy_fix import ProxyFix
         app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+
+    init_rate_limit(app)
 
     # --- cache busting: every url_for('static', ...) gets ?v=<hash of the file> ---
     @app.url_defaults
@@ -196,7 +206,7 @@ def init_site(app, deep_links):
         paths = []
         for rule in app.url_map.iter_rules():
             if ("GET" in rule.methods and not rule.arguments and rule.endpoint != "static"
-                    and rule.endpoint not in ("robots_txt", "sitemap_xml")):
+                    and rule.endpoint not in ("robots_txt", "sitemap_xml", "site_webmanifest")):
                 paths.append(rule.rule)
         paths = sorted(set(paths), key=lambda p: (p != "/", p))
         paths += list(deep_links())
@@ -206,6 +216,23 @@ def init_site(app, deep_links):
             lines.append("  <url><loc>%s</loc></url>" % (base + path).replace("&", "&amp;"))
         lines.append("</urlset>")
         return Response("\n".join(lines) + "\n", mimetype="application/xml")
+
+    # --- the web app manifest: name, colours and the icons, at the site root so its scope is the site ---
+    @app.route("/site.webmanifest")
+    def site_webmanifest():
+        manifest = {
+            "name": SITE_NAME,
+            "short_name": SITE_NAME,
+            "description": DESCRIPTIONS["index"],
+            "start_url": "/",
+            "scope": "/",
+            "display": "standalone",
+            "theme_color": THEME_COLOR,
+            "background_color": THEME_COLOR,
+            "icons": [{"src": url_for("static", filename=name), "sizes": "%dx%d" % (size, size),
+                       "type": "image/png", "purpose": "any"} for name, size in ICONS[1:]],
+        }
+        return Response(json.dumps(manifest, indent=2) + "\n", mimetype="application/manifest+json")
 
     # --- error pages, in the site's layout; JSON for the endpoints that return JSON ---
     @app.errorhandler(404)

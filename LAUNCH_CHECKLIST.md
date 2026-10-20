@@ -21,8 +21,9 @@ The code side is finished. These are the steps only you can do, in order.
    |---|---|
    | `SITE_URL` | `https://<your-service>.onrender.com` now, your custom domain later. No trailing slash. This is the only one you must type. |
    | `SECRET_KEY` | Render generates it from `render.yaml`. If you made the service by hand, paste any long random string. Nothing uses it today. |
-   | `TRUST_PROXY` | `1` |
+   | `TRUST_PROXY` | `1`. Needed for more than links: the rate limit counts each visitor by the address the proxy reports, and without this every visitor looks like Render's proxy and shares one count. |
    | `FLASK_DEBUG` | `0` (or leave unset; never `1` in production) |
+   | `RATE_LIMIT_PER_MINUTE` | Optional. Requests one address may make to `/run_*` a minute. 30 if unset, 0 turns it off. |
    | `PYTHON_VERSION` | `3.11.9` (`render.yaml` and `.python-version` already say so) |
 
 3. **Check the deployed site**: `/`, `/robots.txt`, `/sitemap.xml` (every address in
@@ -40,11 +41,16 @@ The code side is finished. These are the steps only you can do, in order.
    the final domain, and not before.
 7. **Submit `https://<domain>/sitemap.xml`** in Google Search Console (and Bing
    Webmaster Tools) if you want the pages indexed.
-8. **Give the Contact section in `/terms` a real channel** (an email address or the
-   repository's issues page), and re-read `/privacy` and `/terms` against what you
-   finally deployed.
-9. **Proofread the twenty lesson files** once more. They are the only text that makes
-   factual claims about complexity.
+8. **Fill in the Live demo line in `README.md`** (it says TODO) with the deployed
+   address, and commit it.
+9. **Set the repository's About box on GitHub**: the description and topics suggested
+   in the hand-over, and optionally the social preview image (Settings, General,
+   Social preview, upload `static/og-image.png`).
+10. **Re-read `/privacy` and `/terms`** against what you finally deployed. The terms
+    send questions to the repository's issues page; the privacy page lists Google Fonts
+    as the one outside request.
+11. **Proofread the twenty lesson files** once more. They are the only text that makes
+    factual claims about complexity.
 
 ## Serving it
 
@@ -70,10 +76,13 @@ The code side is finished. These are the steps only you can do, in order.
 - [ ] **Put a reverse proxy in front** if you host somewhere other than Render. Render
       already terminates TLS. Compress `styles.css` and the scripts there; the app only
       compresses JSON and HTML.
-- [ ] **Rate limit the `/run_*` endpoints.** `/run_floyd_warshall` is cubic in the node
-      count and `/run_sort` accepts up to 100 values; both are cheap to call and not
-      free to answer. Render's free plan has no limiter; add one (for example
-      Flask-Limiter, or the proxy's) before real traffic.
+- [x] **Rate limit the `/run_*` endpoints.** `ratelimit.py`, standard library only: 30
+      requests a minute per address (`RATE_LIMIT_PER_MINUTE`), then a JSON 429 with a
+      `Retry-After` and a message every page shows to the student. It counts the address
+      `TRUST_PROXY=1` reports, and ignores a forged `X-Forwarded-For` without it. The
+      counts live in one process, so two gunicorn workers allow up to twice the limit;
+      that stops a loop, which is the point. For a hard cap across workers, limit at
+      the proxy as well.
 
 ## Domain and TLS
 
@@ -89,10 +98,13 @@ The code side is finished. These are the steps only you can do, in order.
 - [x] **The name is AlgoTrace** in the header, every page title, the meta tags and the
       README. The footer credit is `Yash Maithani`, unchanged.
 - [x] **SVG favicon.** `static/favicon.svg`, linked from `templates/layout.html`.
-- [ ] **A PNG fallback and an apple-touch-icon.** Safari and older Android do not use
-      the SVG. 180x180 for the touch icon, 32x32 and 16x16 PNGs.
-- [ ] **A `site.webmanifest`** with the name, the icons and the theme colour, so the
-      site can be added to a home screen.
+- [x] **PNG icons and an apple-touch-icon**, drawn from `static/favicon.svg` by
+      `tools/make_icons.py`: 32, 192 and 512 pixel PNGs and a 180 pixel touch icon,
+      linked from the layout. (A 16 pixel PNG is not made; browsers take the SVG or the
+      32 pixel file and scale it.)
+- [x] **A web app manifest** at `/site.webmanifest`, with the name, the 192 and 512
+      icons and the site's own colours, so the site can be added to a home screen. The
+      Content-Security-Policy names `manifest-src 'self'`.
 - [x] **A meta description on every page**, different on each.
 - [x] **Open Graph and Twitter card tags** on every page, with a 1200 x 630 share image
       (`static/og-image.png`, drawn from `static/og-image.svg`).
@@ -112,7 +124,8 @@ The code side is finished. These are the steps only you can do, in order.
 - [x] **No "made by AI" tag, badge or footer.** The footer credit is `Yash Maithani`.
 - [ ] **Keep the credit line exactly as written** if the footer is ever touched. It is
       a project rule, not a preference.
-- [ ] **Give the Contact section a real channel** (step 8 above).
+- [x] **The Contact section in `/terms`** points to the repository's issues page, with no
+      email address.
 
 ## Content
 
@@ -143,12 +156,21 @@ The code side is finished. These are the steps only you can do, in order.
 - [x] **`requirements.txt` matches what is imported.** Flask, plus the production server
       for the platform. Test tools are in `requirements-dev.txt`.
 
+## The GitHub page
+
+- [x] **README leads with the project**: what it does in one sentence, the demo GIF,
+      screenshots, features, tech stack, how to run it and test it, structure, licence
+      and author. The images are in `docs/screenshots/`, made by
+      `tools/make_screenshots.py`.
+- [ ] **Fill in the Live demo line** after the first deploy (step 8 above).
+- [ ] **Set the About description and topics** on GitHub (step 9 above).
+
 ## Before every deploy
 
 - [ ] The browser tests are installed, so `pytest` runs them instead of skipping them
       with a warning: `python -m pip install -r requirements-dev.txt` and
       `python -m playwright install chromium`.
-- [ ] `pytest -q` passes, run on its own (about 13 minutes with the browser tests; two
+- [ ] `pytest -q` passes, run on its own (about 14 minutes with the browser tests; two
       runs at once starve each other and time out).
 - [ ] `python tools/check_banned_patterns.py .` exits 0.
 - [ ] `node tests/validate_lessons.js` reports every lesson file valid.

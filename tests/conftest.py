@@ -5,9 +5,15 @@ only ones that check the real CSS (reduced motion, widths, themes). So when
 Playwright is not installed, say so at the top of the run and again at the
 bottom, with the two commands that fix it.
 """
+import os
 import threading
 
 import pytest
+
+# The rate limit on /run_* would throttle the thousands of runs these tests make
+# from one address. tests/test_rate_limit.py turns it back on for itself. This has
+# to be set before anything imports app.
+os.environ.setdefault('RATE_LIMIT_PER_MINUTE', '0')
 
 import browser_helpers as bh
 

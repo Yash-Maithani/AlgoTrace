@@ -90,7 +90,7 @@ def quick_reference():
         "waitress-serve --host=127.0.0.1 --port=8000 wsgi:app   # production, Windows",
         "gunicorn wsgi:app --bind 127.0.0.1:8000                # production, Linux",
         "pip install -r requirements-dev.txt && python -m playwright install chromium",
-        "pytest -q -m \"not slow\"              # about a minute", "pytest -q                          # everything, about 13 minutes, run alone",
+        "pytest -q -m \"not slow\"              # about a minute", "pytest -q                          # everything, about 14 minutes, run alone",
         "python tools/check_banned_patterns.py .", "node tests/validate_lessons.js",
         "python tools/extract_code.py --check", "```", "",
         "## Environment variables", "",
@@ -98,7 +98,8 @@ def quick_reference():
         "| `SITE_URL` | public address for canonical links, sitemap, robots and social previews |",
         "| `SECRET_KEY` | Flask secret key; nothing uses it today |",
         "| `FLASK_DEBUG` | `1` for debug mode on your own machine |",
-        "| `TRUST_PROXY` | `1` behind one proxy, as on Render |",
+        "| `TRUST_PROXY` | `1` behind one proxy, as on Render; the rate limit then counts the real client address |",
+        "| `RATE_LIMIT_PER_MINUTE` | requests one address may make to `/run_*` a minute; 30 by default, 0 turns it off |",
         "| `PORT` | port for `python app.py` |", ""]
     return "\n".join(lines)
 

@@ -339,8 +339,13 @@ def test_no_page_or_test_loads_d3_or_anything_else_from_a_cdn(client):
     for url in PAGES:
         html = client.get(url).get_data(as_text=True)
         assert 'd3js.org' not in html and 'cdn.' not in html and 'unpkg' not in html and 'jsdelivr' not in html, url
-        externals = {u for u in re.findall(r'(?:src|href)="(https?://[^"]+)"', html) if 'localhost' not in u}
-        assert externals <= {'https://fonts.googleapis.com', 'https://fonts.gstatic.com'}, (url, externals)
+        # what the page loads: scripts, images and <link> tags
+        loaded = set(re.findall(r'\ssrc="(https?://[^"]+)"', html)) | set(re.findall(r'<link[^>]*\shref="(https?://[^"]+)"', html))
+        loaded = {u for u in loaded if 'localhost' not in u}
+        assert loaded <= {'https://fonts.googleapis.com', 'https://fonts.gstatic.com'}, (url, loaded)
+        # where it links to: only the project's issues page, and only for the reader to click
+        linked = {u for u in re.findall(r'<a[^>]*\shref="(https?://[^"]+)"', html) if 'localhost' not in u}
+        assert linked <= {'https://github.com/Yash-Maithani/AlgoTrace/issues'}, (url, linked)
     graph = client.get('/graph?algo=bfs').get_data(as_text=True)
     assert 'src="/static/vendor/d3.v7.min.js?v=' in graph
     for name in os.listdir(os.path.join(ROOT, 'tests')):

@@ -58,6 +58,10 @@ Properties worth knowing
 - Complexity text describes this code, not the textbook. Bubble sort here has no early
   exit, so its best case is quadratic; quick sort takes the last element as its pivot, so a
   sorted list is its worst case.
+- The endpoints that run an algorithm are rate limited per address (30 a minute by
+  default, standard library only). A student who goes over it is told how long to wait.
+- The site has PNG icons, an Apple touch icon and a web app manifest, all drawn from
+  static/favicon.svg.
 - Large runs are gzipped on the way out (a 100 value bubble sort is about 7 MB of steps,
   about 256 KB on the wire).
 - Pages carry a Content-Security-Policy: this site's scripts and styles and the Google
@@ -69,7 +73,7 @@ Properties worth knowing
 
 Quality checks
 
-About 2,500 automated tests, among them: every sort's output and counts against recorded
+About 2,700 automated tests, among them: every sort's output and counts against recorded
 baselines, every graph endpoint's steps against a recorded baseline, every stated
 complexity bound measured by growing the input, the C, C++ and Java programs compiled and
 run against the Python, and a real browser (Playwright) checking behaviour, layout at 375,
@@ -132,6 +136,7 @@ Pages
 - /privacy
 - /robots.txt
 - /searching
+- /site.webmanifest
 - /sitemap.xml
 - /sorting
 - /terms
@@ -160,7 +165,7 @@ waitress-serve --host=127.0.0.1 --port=8000 wsgi:app   # production, Windows
 gunicorn wsgi:app --bind 127.0.0.1:8000                # production, Linux
 pip install -r requirements-dev.txt && python -m playwright install chromium
 pytest -q -m "not slow"              # about a minute
-pytest -q                          # everything, about 13 minutes, run alone
+pytest -q                          # everything, about 14 minutes, run alone
 python tools/check_banned_patterns.py .
 node tests/validate_lessons.js
 python tools/extract_code.py --check
@@ -172,5 +177,6 @@ Environment variables
   SITE_URL  public address for canonical links, sitemap, robots and social previews
   SECRET_KEY  Flask secret key; nothing uses it today
   FLASK_DEBUG  1 for debug mode on your own machine
-  TRUST_PROXY  1 behind one proxy, as on Render
+  TRUST_PROXY  1 behind one proxy, as on Render; the rate limit then counts the real client address
+  RATE_LIMIT_PER_MINUTE  requests one address may make to /run_* a minute; 30 by default, 0 turns it off
   PORT  port for python app.py

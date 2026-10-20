@@ -9,3 +9,6 @@
 -r requirements.txt
 pytest==7.4.3
 playwright==1.64.0
+
+# Only tools/make_screenshots.py uses it, to shrink the README's screenshots and write its GIF.
+pillow>=10

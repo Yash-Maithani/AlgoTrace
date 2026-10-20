@@ -58,6 +58,10 @@ recursion of merge and quick sort; **keyboard shortcuts** (Space, arrows, R).
 - Complexity text describes this code, not the textbook. Bubble sort here has no early
   exit, so its best case is quadratic; quick sort takes the last element as its pivot, so a
   sorted list is its worst case.
+- The endpoints that run an algorithm are rate limited per address (30 a minute by
+  default, standard library only). A student who goes over it is told how long to wait.
+- The site has PNG icons, an Apple touch icon and a web app manifest, all drawn from
+  `static/favicon.svg`.
 - Large runs are gzipped on the way out (a 100 value bubble sort is about 7 MB of steps,
   about 256 KB on the wire).
 - Pages carry a Content-Security-Policy: this site's scripts and styles and the Google
@@ -69,7 +73,7 @@ recursion of merge and quick sort; **keyboard shortcuts** (Space, arrows, R).
 
 ## Quality checks
 
-About 2,500 automated tests, among them: every sort's output and counts against recorded
+About 2,700 automated tests, among them: every sort's output and counts against recorded
 baselines, every graph endpoint's steps against a recorded baseline, every stated
 complexity bound measured by growing the input, the C, C++ and Java programs compiled and
 run against the Python, and a real browser (Playwright) checking behaviour, layout at 375,
