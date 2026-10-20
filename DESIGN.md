@@ -222,6 +222,9 @@ New surfaces introduced by this spec map onto existing tokens:
 | Current code line | `--active-wash`, 3px `--active` left rule |
 | Growth chart reference curves | `--text-muted` at 40 percent |
 | Growth chart this algorithm | `--accent` |
+| Link, every state | `--accent`, underlined; hover `--accent-hover` with a thicker underline; keyboard focus a 3px `--focus-ring` outline. Set once, at zero specificity, so a component's own link style wins |
+| Growth chart on `/big-o` (the curves are the subject) | one palette ink per curve, with its own dash: O(1) `--done-ink` dotted, O(log n) `--idle-sort-ink` short dash, O(n) `--queued-ink` long dash, O(n log n) `--active-ink` dash and dot, O(n squared) `--reject-ink` solid, and a legend naming each |
+| Fieldset (`.input-method`) | `--surface`, 1px `--border`, `--radius-md`, a 600 weight legend: the same panel as the algorithm pickers on Compare |
 
 ## 7. Components
 

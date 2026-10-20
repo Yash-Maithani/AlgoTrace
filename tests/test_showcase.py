@@ -8,7 +8,8 @@ import pytest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SHOTS = os.path.join(ROOT, 'docs', 'screenshots')
-PNGS = ['home.png', 'sorting-code.png', 'compare.png', 'graph-dijkstra.png', 'astar.png', 'complexity.png']
+PNGS = ['home.png', 'sorting-code.png', 'compare.png', 'graph-dijkstra.png', 'astar.png', 'complexity.png',
+        'complexity-chart.png']
 GIF = 'predict-demo.gif'
 
 

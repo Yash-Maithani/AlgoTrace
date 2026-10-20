@@ -325,6 +325,35 @@ body {
     display: none !important;
 }
 
+/* Links. A link with no rule of its own is a link in the site's accent, underlined,
+   in every state, so none falls back to the browser's blue and purple. The rules sit
+   in :where() so they have no specificity: a component's own link style (the nav, a
+   card, a button made from an anchor) always wins and is never overridden by a
+   hover or visited state here. The underline stays in running text so a link is never
+   told apart from its neighbours by colour alone; hover thickens it and darkens the
+   colour, and the keyboard ring matches the one on buttons. */
+:where(a) {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+}
+
+:where(a:visited) {
+    color: var(--accent);
+}
+
+:where(a:hover) {
+    color: var(--accent-hover);
+    text-decoration-thickness: 2px;
+}
+
+:where(a:focus-visible) {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
 .container {
     max-width: 1200px;
     margin: var(--space-4) auto;
@@ -731,6 +760,27 @@ textarea:focus-visible {
     padding: 0;
     border: 0;
     min-width: 0;
+}
+
+/* The "How is the input chosen" fieldset on /sorting and /compare: the same panel as
+   Compare's algorithm pickers, not the browser's default groove. */
+.input-method {
+    min-width: 0;
+    margin: 0 0 var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+}
+
+.input-method > legend {
+    padding: 0 var(--space-2);
+    font-weight: 600;
+    font-size: var(--text-sm);
+    color: var(--text);
 }
 
 .radio-option {
@@ -2988,6 +3038,49 @@ a.logo:focus-visible,
     stroke: var(--accent);
     stroke-width: 2.5;
 }
+
+/* The chart on /big-o, where the curves are the subject. Each of the five has its own
+   palette colour (the ink tier, which clears 3:1 on the panel in both themes) and its own
+   dash, so no one of them is told apart by colour alone. Green to red runs from the one
+   that never grows to the one that runs away. */
+.growth-curve {
+    fill: none;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.growth-curve[data-curve="1"]     { stroke: var(--done-ink);       stroke-dasharray: 0.1 7; }
+.growth-curve[data-curve="logn"]  { stroke: var(--idle-sort-ink);  stroke-dasharray: 7 5; }
+.growth-curve[data-curve="n"]     { stroke: var(--queued-ink);     stroke-dasharray: 16 6; }
+.growth-curve[data-curve="nlogn"] { stroke: var(--active-ink);     stroke-dasharray: 14 5 2 5; }
+.growth-curve[data-curve="n2"]    { stroke: var(--reject-ink); }
+
+/* Drawn in screen pixels, so the lines and their dashes keep their weight when the
+   chart shrinks to a phone's width. */
+.growth-chart .growth-curve { vector-effect: non-scaling-stroke; stroke-width: 3; }
+.growth-chart .growth-curve[data-curve="1"] { stroke-width: 3.5; }
+
+.growth-explorer .growth-chart { max-height: 340px; }
+
+.growth-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-6);
+    margin: var(--space-3) 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--text-sm);
+    color: var(--text);
+}
+
+.growth-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.growth-key { flex: none; overflow: visible; }
 
 .growth-caption, .growth-data {
     font-size: var(--text-sm);

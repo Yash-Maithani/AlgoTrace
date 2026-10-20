@@ -2,7 +2,7 @@
 
     python tools/make_screenshots.py              start the site here and capture everything
     python tools/make_screenshots.py --url http://localhost:5057   capture from a running site
-    python tools/make_screenshots.py --only gif   one capture: home, sorting, compare, graph, astar, complexity, gif
+    python tools/make_screenshots.py --only gif   one capture: home, sorting, compare, graph, astar, complexity, growth, gif
 
 Writes docs/screenshots/*.png (light theme, 1440 wide) and docs/screenshots/predict-demo.gif.
 Needs Playwright and Pillow (requirements-dev.txt). The images are committed, so
@@ -135,8 +135,18 @@ def complexity(browser, base):
     shot(page, "complexity.png", to="#notations")
 
 
+def growth(browser, base):
+    page = new_page(browser, base, "/big-o")
+    page.fill("#growth-n", "30")
+    page.dispatch_event("#growth-n", "input")
+    page.check("#growth-log")                          # the log axis keeps all five curves readable
+    page.evaluate("document.activeElement.blur()")
+    page.wait_for_timeout(500)
+    shot(page, "complexity-chart.png", to=".growth-explorer")
+
+
 CAPTURES = {"home": home, "sorting": sorting, "compare": compare, "graph": graph,
-            "astar": astar, "complexity": complexity}
+            "astar": astar, "complexity": complexity, "growth": growth}
 
 
 def gif(browser, base):

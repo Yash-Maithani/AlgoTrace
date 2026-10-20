@@ -7,7 +7,13 @@
  *   Growth.CURVES          every curve this can draw, by key
  *   Growth.ORDER           the five reference curves, in the order drawn
  *   Growth.render(host, o) draw into host; o is
- *                          {n, highlight, label, basis, note, width, height, log}
+ *                          {n, highlight, label, basis, note, width, height, log, key}
+ *
+ * `key: true` is for the chart that is about the curves themselves (/big-o), where
+ * no one curve is the subject: each gets its own colour and its own line style, and
+ * a legend under the chart names them, so the picture never depends on colour alone.
+ * Beside an algorithm's own Complexity tab the chart stays as it was: faint
+ * references and the one curve that is the algorithm's, in the accent.
  *
  * Nothing here knows which algorithm is being described. The caller passes
  * the figure to show (`label`), which curve has that shape (`highlight`, or
@@ -109,6 +115,7 @@
             ? function (value) { return Math.log10(value + 1); }
             : function (value) { return value; };
 
+        var keyed = !!options.key && !highlight;
         var keys = drawn(highlight);
         var highest = 0;
         keys.forEach(function (key) {
@@ -135,14 +142,46 @@
             var node = document.createElementNS(SVG_NS, 'path');
             node.setAttribute('d', points.join(' '));
             node.setAttribute('fill', 'none');
-            node.setAttribute('class', key === highlight ? 'growth-mine' : 'growth-ref');
+            node.setAttribute('class', keyed ? 'growth-curve' : key === highlight ? 'growth-mine' : 'growth-ref');
             node.setAttribute('data-curve', key);
             return node;
+        }
+
+        /* One legend row: a short sample of the line, in the curve's own colour and
+           dash, then its name. The sample is decoration; the name is the text. */
+        function legendItem(key) {
+            var item = el('li', 'growth-legend-item');
+            var sample = document.createElementNS(SVG_NS, 'svg');
+            sample.setAttribute('class', 'growth-key');
+            sample.setAttribute('viewBox', '0 0 40 10');
+            sample.setAttribute('width', '40');
+            sample.setAttribute('height', '10');
+            sample.setAttribute('aria-hidden', 'true');
+            sample.setAttribute('focusable', 'false');
+            var line = document.createElementNS(SVG_NS, 'line');
+            line.setAttribute('x1', '3');
+            line.setAttribute('x2', '37');
+            line.setAttribute('y1', '5');
+            line.setAttribute('y2', '5');
+            line.setAttribute('class', 'growth-curve');
+            line.setAttribute('data-curve', key);
+            sample.appendChild(line);
+            item.appendChild(sample);
+            item.appendChild(el('span', null, CURVES[key].label));
+            return item;
         }
 
         keys.forEach(function (key) { if (key !== highlight) svg.appendChild(path(key)); });
         if (highlight) svg.appendChild(path(highlight));
         host.appendChild(svg);
+
+        if (keyed) {
+            /* Slowest growth first, which is the order the curves leave the floor. */
+            var legend = el('ul', 'growth-legend');
+            legend.setAttribute('aria-label', 'Which line is which');
+            keys.forEach(function (key) { legend.appendChild(legendItem(key)); });
+            host.appendChild(legend);
+        }
 
         var caption = el('p', 'growth-caption', sentence + axisNote);
         host.appendChild(caption);
