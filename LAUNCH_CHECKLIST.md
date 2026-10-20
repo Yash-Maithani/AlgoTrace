@@ -6,20 +6,26 @@ Everything unchecked is work.
 
 ## Serving it
 
-- [ ] **Stop using the development server.** `app.py` ends in
-      `app.run(debug=True, port=5002)`. The debug flag ships an interactive
-      Python console to anyone who can trigger a traceback, and Flask's own
-      server is single threaded and not hardened. In production run the app
-      through a WSGI server instead, for example
+- [x] **`app.run` is guarded.** It sits under `if __name__ == "__main__":`, so
+      importing `app` from a WSGI server or a test never starts the development
+      server.
+- [ ] **Stop using the development server, and its debug flag.** The guarded
+      call is still `app.run(debug=True, port=5002)`. The debug flag ships an
+      interactive Python console to anyone who can trigger a traceback, and
+      Flask's own server is single threaded and not hardened. In production run
+      the app through a WSGI server instead, for example
       `waitress-serve --port=8000 app:app` on Windows or
-      `gunicorn -w 4 -b 0.0.0.0:8000 app:app` on Linux, add that server to
-      `requirements.txt`, and guard the `app.run` call so it only fires when
-      the file is run directly for local development.
+      `gunicorn -w 4 -b 0.0.0.0:8000 app:app` on Linux, and add that server to
+      `requirements.txt`. Neither is installed or listed yet. Take
+      `debug=True` out of the guarded call too, so running the file directly on
+      a server is not a way back to the console.
 - [ ] **Set `FLASK_DEBUG=0` and `FLASK_ENV=production`** in the deployment
       environment, so a stray default cannot turn the console back on.
 - [ ] **Put a reverse proxy in front** (nginx, Caddy, or whatever the host
       provides) to terminate TLS, serve `static/` directly and set the cache
-      headers. Flask should not be the thing on port 443.
+      headers. Flask should not be the thing on port 443. The app gzips its own
+      JSON and HTML over 1 KB when the client asks; the proxy should compress
+      `styles.css` and the scripts, which the app does not.
 - [ ] **Decide the host.** Nothing in the app needs a database or background
       worker, so any platform that runs a Python process will do.
 - [ ] **Cap the request size.** `app.config['MAX_CONTENT_LENGTH']` is unset.
@@ -57,8 +63,12 @@ Everything unchecked is work.
 ## Legal and honesty
 
 - [x] **Privacy policy** at `/privacy`. It says what is collected (nothing),
-      what happens to what you type, and names the two outside services the
-      pages call: Google Fonts and the D3 CDN.
+      names the two preferences kept in the browser (`theme` and
+      `pbl2.codeLanguage` in localStorage, never sent to the server) and how to
+      clear them, says what happens to what you type, and names the two outside
+      services the pages call: Google Fonts and the D3 CDN. A test
+      (`tests/test_privacy.py`) fails if the code starts using a key the page
+      does not list.
 - [x] **Terms and conditions** at `/terms`, covering what the tool is for, the
       absence of warranty, acceptable use and availability.
 - [ ] **Re-read both against the final deployment.** If analytics, a contact
@@ -82,7 +92,7 @@ Everything unchecked is work.
       a 2025 version of the project with ten algorithms and four graph
       algorithms, and now contradict `README.md`. Two of them are empty.
       Nothing in the app references any of them.
-- [ ] **Proofread the lesson files once more.** Fifteen of them in
+- [ ] **Proofread the lesson files once more.** Twenty of them in
       `static/js/lessons/`, and they are the only text on the site that makes
       factual claims about complexity.
 
@@ -101,9 +111,17 @@ Everything unchecked is work.
 
 ## Before every deploy
 
-- [ ] `pytest -q` passes.
+- [ ] The browser tests are installed, so `pytest` runs them instead of
+      skipping them with a warning:
+      `python -m pip install -r requirements-dev.txt` and
+      `python -m playwright install chromium`.
+- [ ] `pytest -q` passes, run on its own (about 13 minutes with the browser
+      tests; two runs at once starve each other and time out).
 - [ ] `python tools/check_banned_patterns.py .` exits 0.
 - [ ] `node tests/validate_lessons.js` reports every lesson file valid.
+- [ ] `python tools/extract_code.py --check` says the C, C++ and Java listings
+      are current. If it does not, run `python tools/extract_code.py` and commit
+      the files it writes.
 - [ ] Every algorithm plays from the first step to the last, in both themes.
 - [ ] No console errors on any page.
 - [ ] The pages still hold at 375px, 768px and 1440px.

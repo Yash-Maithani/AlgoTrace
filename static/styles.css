@@ -4456,6 +4456,24 @@ pre.sample {
 .is-idle .explain-why,
 .is-idle .var-table { display: none; }
 
+/* --- /learn: figures that are filled in by the browser ------------------------
+   static/js/learnfigures.js writes each card's best, worst and space figure from
+   the lesson files. Until it has, the slot is a quiet bar of about the width of a
+   figure, in the same line, so the card is the same size before and after and a
+   bordered tag never shows as an empty box. The bar is only a placeholder: it has
+   no text, so a screen reader reads nothing until the figure arrives. */
+[data-figure]:empty::before {
+    content: "";
+    display: inline-block;
+    width: 4.5em;
+    height: 0.8em;
+    border-radius: var(--radius-sm);
+    background-color: var(--border);
+    vertical-align: baseline;
+}
+
+.order-tag[data-figure]:empty::before { width: 3.5em; }
+
 /* Last in the file on purpose: a media query adds no specificity, so it must come
    after every rule that sets a transition for these elements, or the rule it
    overrides would win. */

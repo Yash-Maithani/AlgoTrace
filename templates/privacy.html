@@ -12,8 +12,59 @@
 
         <h2>What is collected</h2>
         <p>Nothing. There are no accounts, no sign in, no analytics, no advertising and
-        no third party trackers. The application does not set cookies and does not store
-        anything in your browser between visits.</p>
+        no third party trackers. The application does not set cookies, and it does not use
+        session storage or IndexedDB. The only thing it keeps in your browser is the two
+        preferences listed next.</p>
+
+        <h2>What is stored in your browser</h2>
+        <p>Two small preferences, in your browser's local storage for this site. They stay
+        on your device. They are not sent to the server with any request, and nothing on
+        the server reads or records them.</p>
+        <div class="table-scroll" tabindex="0" role="region" aria-label="Local storage keys, scrolls sideways on a narrow screen">
+        <table class="count-table">
+            <caption>Local storage keys this site sets</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Key</th>
+                    <th scope="col">Value</th>
+                    <th scope="col">Set when</th>
+                    <th scope="col">What it does</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th scope="row"><code>theme</code></th>
+                    <td><code>light</code> or <code>dark</code></td>
+                    <td>You press the light and dark button in the header.</td>
+                    <td>Opens every page in the theme you chose. Until you press the button
+                    nothing is stored and the page follows your system setting.</td>
+                </tr>
+                <tr>
+                    <th scope="row"><code>pbl2.codeLanguage</code></th>
+                    <td><code>pseudocode</code>, <code>python</code>, <code>c</code>,
+                    <code>cpp</code> or <code>java</code></td>
+                    <td>You choose a language on a Code tab or on the Home code card.</td>
+                    <td>Shows code in that language on every page. Until you choose,
+                    nothing is stored and the code is shown in Python.</td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+        <p>That is the complete list. If your browser blocks local storage, as a private
+        window often does, the site still works and simply does not remember the choice.</p>
+
+        <h3>How to clear them</h3>
+        <ul>
+            <li>Clear this site's data in your browser: in Chrome and Edge, Settings, then
+            Privacy and security, then Site settings, then View permissions and data stored
+            across sites, and delete this site. In Firefox, Settings, then Privacy and
+            Security, then Cookies and Site Data, then Manage Data. In Safari, Settings,
+            then Privacy, then Manage Website Data.</li>
+            <li>Or in the browser's developer tools console on this site, run
+            <code>localStorage.clear()</code>.</li>
+            <li>Or choose a different theme or language: the new choice replaces the old one.</li>
+        </ul>
+        <p>After clearing, the next visit starts from your system's theme and Python code.</p>
 
         <h2>What you type into the page</h2>
         <p>Array values, graph definitions and the start node you enter are sent to the

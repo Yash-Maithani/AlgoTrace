@@ -2,6 +2,12 @@
 
 {% block title %}Learn | Algorithm Visualizer{% endblock %}
 
+{% block head_extra %}
+    {# Without scripts the figures are never filled in, so do not leave a
+       placeholder bar standing in for them. #}
+    <noscript><style>[data-figure]:empty::before { display: none; }</style></noscript>
+{% endblock %}
+
 {% block content %}
     <main class="container reading" id="main">
         <h1>Every algorithm, in a sensible order</h1>

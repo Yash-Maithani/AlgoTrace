@@ -367,12 +367,18 @@ up, one column below.
 
 ```
 INTRO           one paragraph on how to use the site
-SUGGESTED ORDER numbered, 15 items, each a row: name, one line, difficulty, time
-BY CATEGORY     Searching (2), Sorting (6), Graph (7), each a grid of cards
+SUGGESTED ORDER numbered, 20 items, each a row: name, one line, difficulty, time
+BY CATEGORY     Searching (3), Sorting (8), Graphs (9, with A* on its grid), each a grid of
+                cards, then a card for the complexity guide
 ```
 
-Each card: name, one sentence, best and worst time, a link to its workspace. Cards carry
-the algorithm accent on a left rule.
+The order, the counts and the cards all come from one registry in `app.py`, so adding an
+algorithm changes the page and Home's "Start here" together and no number is typed twice.
+Each card: name, one sentence, best and worst time, a link to its workspace. The best and
+worst figures are filled in by the browser from the lesson files (`static/js/learnfigures.js`)
+so they cannot disagree with the Complexity tab; the space for them is reserved in the
+markup, so a card is the same size before and after they arrive. Cards carry the algorithm
+accent on a left rule.
 
 ### `/sorting`, `/searching`, `/graph` Workspaces
 

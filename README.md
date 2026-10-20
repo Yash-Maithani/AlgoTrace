@@ -3,9 +3,12 @@
 A Flask site that plays an algorithm one step at a time, says in plain language
 why it made each move, and shows what the move cost.
 
-Fifteen algorithms across three workspaces, each with a Learn panel that
+Twenty algorithms: eight sorts, three searches, eight graph algorithms and A*
+on a grid. They run in three workspaces (Sorting, Searching and Graphs, where A*
+has a grid page of its own in the same picker), each with a Learn panel that
 explains the current step, highlights the line of code running, and puts the
-counted work next to the formula.
+counted work next to the formula. A fourth page, Compare, runs two sorts on one
+input side by side.
 
 Yash Maithani
 
@@ -164,8 +167,11 @@ pytest -q -m "not slow"
 The first runs everything. The second leaves out the tests marked `slow`, the
 ones that measure how counts grow across many input sizes, the ones that
 compile and run the C, C++ and Java reference programs, and every test that
-drives a real browser, and finishes in about fifteen seconds. Use it while working; run the full set before a commit. The
-marker is registered in `pytest.ini`.
+drives a real browser. It runs about 1,990 tests in about a minute; the full set
+is about 2,500 and takes about 13 minutes with the browser tests. Use the quick
+run while working and the full set before a commit. Run the full set on its own:
+two at once starve each other and make the browser tests time out. The marker is
+registered in `pytest.ini`.
 
 The compile tests need `gcc`, `g++` and a JDK 17 or newer (`javac` and `java`)
 on the path. Without one, that language's tests skip and say what to install.
@@ -201,6 +207,9 @@ behaviour:
 | `test_phase18.py`, `test_browser_phase18.py` | The call tree matches the recursion the real merge and quick sort functions made (found by profiling them, not from the step meta) for 200 runs across every variant; in a browser, the toggle, stepping forward and back, large arrays, both themes, and the seven item navbar at desktop widths |
 | `test_browser_visibility.py` | What is on screen, asked of the browser rather than read from an attribute: only the chosen algorithm's variant switch, the seed only for a random pivot, on /sorting and both sides of /compare |
 | `test_browser_review_fixes.py` | A run is cleared when its input changes (sorting and searching), every graph page opens with a runnable graph, every Learn panel says what to do before a run, the graph canvas and A* grid have a role and a name, and the Counting Sort count list reads at 4.5:1 in both themes |
+| `test_compression.py`, `test_browser_compression.py` | Large JSON and HTML are gzipped only for a client that accepts it and only over 1 KB, with correct `Content-Encoding`, `Content-Length` and `Vary`; the decompressed body equals the plain one byte for byte; over a real connection a 100 value bubble sort arrives at a few percent of its size and every page and run still works |
+| `test_privacy.py`, `test_browser_privacy.py` | The privacy page names exactly the localStorage keys the code uses, no cookie or other storage is set, the page says how to clear them, and its table fits at 375, 768 and 1440 in both themes |
+| `test_browser_learn_loading.py` | /learn with its figure script held back: every figure slot shows a placeholder, no card, row or tag changes size when the figures arrive, at 375, 768 and 1440 in both themes |
 
 Two more checks are not pytest:
 
@@ -224,10 +233,10 @@ the graph pages. Plain CSS, vanilla JavaScript, Jinja templates and one Flask
 file.
 
 ```
-app.py                     every route, and the eight graph algorithms
+app.py                     every route, the eight graph algorithms, gzip for large responses
 grid_algorithms/           A* on a grid (Dijkstra is the same code with h = 0)
-teacher.py                 the one builder every step passes through
-sorting_algorithms/        eight sorts, each yielding teacher steps
+teacher.py                 the builder graph steps pass through (sorts and searches use sorting_algorithms/teacher.py)
+sorting_algorithms/        eight sorts, each yielding teacher steps, plus a seeded generator
 searching_algorithms/      linear, binary and jump search
 reference_code/            all twenty algorithms in C, C++ and Java
 templates/
@@ -236,26 +245,39 @@ templates/
   learn.html               the algorithm index
   sorting.html             sorting workspace
   searching.html           searching workspace
+  compare.html             two sorts side by side
   big_o.html               the complexity guide
   graph_base.html          the graph workspace and the whole D3 visualizer
-  bfs.html ... etc         seven children, each only an information panel
+  bfs.html ... etc         eight children (seven graph algorithms and topological_sort), each an information panel
+  astar.html               A* on its own grid workspace
+  _graph_picker.html       the algorithm picker the graph pages and A* share
   privacy.html, terms.html
 static/
   styles.css               the whole design system, one light set and one dark
-  js/workspace.js          run, play, pause, step, reset, speed
+  js/workspace.js          run, play, pause, step, reset, speed; more than one can share a page
   js/teacher.js            the Learn panel
-  js/growth.js             the growth chart, shared by /big-o and the panel
-  js/nav.js                the narrow header menu
-  js/theme.js              the light and dark toggle
+  js/codeview.js           the language tabs, listings, helpers and Expand dialog
+  js/predict.js            Predict mode: the question for every algorithm
+  js/calltree.js           the recursion tree for merge and quick sort
+  js/compare.js            the Compare page
+  js/sortstage.js          the bars, shared by Sorting and Compare
+  js/sortstrip.js          the count list and buckets under the bars
+  js/gridstage.js          the A* grid
+  js/presets.js, variants.js   input presets, variant switches
+  js/growth.js, notations.js   the growth chart and the O, Omega, Theta explorer
+  js/learnfigures.js       fills /learn's complexity figures from the lesson files
+  js/home_player.js, home_code.js   the Home player and its code card
+  js/nav.js, theme.js      the narrow header menu, the light and dark toggle
   js/lessons/*.js          twenty lesson files, one per algorithm
   js/lessons/README.md     the step contract every phase follows
   js/lessons/code/*.js     C, C++ and Java listings, generated, never edited
-tests/                     pytest suites and the two recorded baselines
+tests/                     pytest suites, the two recorded baselines, and the node checks they call
 tools/check_banned_patterns.py
 tools/extract_code.py      writes js/lessons/code/ from reference_code/
 DESIGN.md                  the design spec
 REBUILD_PLAN.md            the plan the rebuild followed
 LAUNCH_CHECKLIST.md        what is left before this goes live
+requirements.txt, requirements-dev.txt   what runs it, and what tests it
 ```
 
 ### The step contract
@@ -269,13 +291,34 @@ authoritative description.
 
 ### Endpoints that return steps
 
-| Method | Route | Returns |
-|---|---|---|
-| POST | `/run_sort` | `{steps, meta, result}` for one sort |
-| POST | `/run_search` | `{steps, meta, result}` for one search |
-| POST | `/run_bfs`, `/run_dfs`, `/run_dijkstra`, `/run_prim`, `/run_bellman_ford` | `{steps, meta, ...}` from `{"graph": {...}, "start": "A"}` |
-| POST | `/run_kruskal`, `/run_floyd_warshall` | `{steps, meta, ...}` from `{"nodes": [...], "edges": [[u, v, w], ...]}` |
-| POST | `/generate_random_graph` | a connected random graph |
+Every run is one POST that answers with the whole list of steps. Where the
+teacher payload (`action`, `indices`, `values`, `line`, `vars`, `explain`) lives
+differs by family, and is the thing to check before reading a response:
+
+| Method | Route | Body | Returns | Teacher payload |
+|---|---|---|---|---|
+| POST | `/run_sort` | `algorithm`, `values` or `size`, optional `variant` and `seed` | `{steps, array, sorted, algorithm, variant, seed, result, info}` | inside each step |
+| POST | `/run_search` | `algorithm`, `array`, `target` | `{steps, algorithm, array, target, result}` | inside each step |
+| POST | `/run_bfs`, `/run_dfs`, `/run_dijkstra`, `/run_prim` | `{"graph": {...}, "start": "A"}` | `{steps, meta}` | parallel `meta` list |
+| POST | `/run_bellman_ford` | `{"graph": {...}, "start": "A"}` | `{steps, meta, distances, has_negative_cycle, iterations}` | parallel `meta` list |
+| POST | `/run_kruskal`, `/run_floyd_warshall` | `{"nodes": [...], "edges": [[u, v, w], ...]}` | `{steps, meta}` | parallel `meta` list |
+| POST | `/run_topological_sort` | `{"graph": {"A": ["B"], ...}}`, each node to the nodes its arrows point to | `{steps, meta, order, remaining, cycle}` | parallel `meta` list |
+| POST | `/run_astar` | `rows`, `cols`, `walls`, `start`, `goal`, optional `heuristic` | `{steps, algorithm, heuristic, grid, result}` | inside each step |
+| POST | `/generate_random_graph` | `num_nodes`, `num_edges` | `{nodes, edges, message}`, a connected random graph | none |
+
+Sorting, searching and A* steps carry the teacher payload themselves, so there
+is no `meta` list for them. The graph endpoints keep their original typed step
+arrays untouched and add `meta` beside them, one entry per step. Two older form
+posts remain: `/` and `/sorting` run a sort on the server and open the page on
+that run.
+
+Large runs are compressed on the way out. A bubble sort of 100 values is about
+7.1 MB of steps and a 26 node Floyd-Warshall run about 11.3 MB; for a client
+that sends `Accept-Encoding: gzip`, any JSON or HTML response over 1 KB is sent
+gzipped (the first becomes about 256 KB and the second about 693 KB), with
+`Content-Encoding`, `Content-Length` and `Vary: Accept-Encoding` set. It is one
+`after_request` hook in `app.py` using only the standard library, and the step
+format is the same once the browser has unzipped it.
 
 Unreachable distances come back as the string for infinity, never a bare
 `Infinity`, because JSON has no infinity literal and `JSON.parse` rejects one.
