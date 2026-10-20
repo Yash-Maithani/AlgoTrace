@@ -411,7 +411,7 @@ def test_the_graph_pages_inline_script_parses():
     assert block, 'the page_js block is gone'
 
     body = re.sub(r'<script[^>]*src=[^>]*></script>', '', block.group(1))
-    body = body.replace('<script>', '').replace('</script>', '')
+    body = body.replace('<script nonce="{{ csp_nonce }}">', '').replace('</script>', '')
     # Jinja expressions stand in as a literal, since node cannot read them.
     body = re.sub(r'\{\{.*?\}\}', 'null', body)
 

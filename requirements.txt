@@ -1,5 +1,11 @@
 # Runtime. Flask is the only thing app.py imports that is not standard library.
 Flask>=3.0
 
-# Tests.
-pytest>=7.4
+# Production servers. One per platform: gunicorn does not run on Windows and
+# waitress runs on both, so each is installed only where it is used.
+#   Linux (and Render):  gunicorn wsgi:app
+#   Windows:             waitress-serve wsgi:app
+gunicorn>=21.2; sys_platform != "win32"
+waitress>=3.0; sys_platform == "win32"
+
+# Tests are in requirements-dev.txt, so a deployment does not install them.

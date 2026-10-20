@@ -1,7 +1,7 @@
-# Algorithm Visualizer
+# AlgoTrace
 
-A Flask site that plays an algorithm one step at a time, says in plain language
-why it made each move, and shows what the move cost.
+AlgoTrace is a Flask site that plays an algorithm one step at a time, says in plain
+language why it made each move, and shows what the move cost.
 
 Twenty algorithms: eight sorts, three searches, eight graph algorithms and A*
 on a grid. They run in three workspaces (Sorting, Searching and Graphs, where A*
@@ -125,6 +125,8 @@ while merging and is not stable.
 
 Python 3.11 or newer.
 
+### For development
+
 ```bash
 python -m venv .venv
 .venv\Scripts\activate
@@ -132,11 +134,55 @@ pip install -r requirements.txt
 python app.py
 ```
 
-The site is then at http://localhost:5002.
+The site is then at http://localhost:5002. `python app.py` starts Flask's
+development server with debug mode **off**. Turn debug mode on, for the reloader
+and the in-browser traceback, only on your own machine:
 
-`python app.py` starts Flask's development server, which is for development
-only. See [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md) before putting it on the
-internet.
+```powershell
+$env:FLASK_DEBUG = "1"; python app.py
+```
+
+### As a production server, locally (Windows)
+
+`requirements.txt` installs `waitress` on Windows and `gunicorn` on Linux. The
+entry point for both is `wsgi.py`. To run the site the way it runs on Render,
+from the project folder in PowerShell:
+
+```powershell
+.venv\Scripts\activate
+pip install -r requirements.txt
+$env:SITE_URL = "http://localhost:8000"
+waitress-serve --host=127.0.0.1 --port=8000 wsgi:app
+```
+
+Then open http://localhost:8000. On Linux or macOS the same thing is
+`SITE_URL=http://localhost:8000 gunicorn wsgi:app --bind 127.0.0.1:8000`.
+
+### Environment variables
+
+| Variable | What it does | If unset |
+|---|---|---|
+| `SITE_URL` | The public address, with no trailing slash, for canonical links, `sitemap.xml`, `robots.txt` and social previews. Set it to `https://your-domain` when the custom domain is attached; no code changes. | Links use the address the request came to, which is right locally and wrong behind a proxy. |
+| `SECRET_KEY` | Flask's secret key. The site keeps no sessions, so nothing uses it today. It is read from here so a future feature never needs one committed. | No key is set. |
+| `FLASK_DEBUG` | `1` turns on Flask's debug mode, for `python app.py` on your own machine only. | Off. |
+| `TRUST_PROXY` | `1` to believe `X-Forwarded-Proto` and `X-Forwarded-Host` from the one proxy in front, as on Render. | Not trusted. |
+| `PORT` | The port `python app.py` listens on. A production server takes its port from its own command line. | 5002 |
+
+### Deploying
+
+`render.yaml` is a Render blueprint for the `main` branch of
+https://github.com/Yash-Maithani/AlgoTrace: it installs `requirements.txt`, starts
+`gunicorn wsgi:app` on `$PORT`, pins Python 3.11, and expects `SITE_URL` to be
+filled in on the dashboard. `Procfile` holds the same start command for hosts
+that read one. [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md) lists what is left to
+do by hand.
+
+Pages carry a Content-Security-Policy that allows this site's own scripts and
+styles and the Google Fonts it imports, with a fresh nonce on every inline
+script, so there are no inline event handlers in the markup. Static files are
+served with a content hash in their address and a one year cache; pages are
+revalidated on every visit. D3 is served from `static/vendor/`, not a CDN, so the
+graph pages work offline.
 
 ## Tests
 
@@ -209,6 +255,7 @@ behaviour:
 | `test_browser_review_fixes.py` | A run is cleared when its input changes (sorting and searching), every graph page opens with a runnable graph, every Learn panel says what to do before a run, the graph canvas and A* grid have a role and a name, and the Counting Sort count list reads at 4.5:1 in both themes |
 | `test_compression.py`, `test_browser_compression.py` | Large JSON and HTML are gzipped only for a client that accepts it and only over 1 KB, with correct `Content-Encoding`, `Content-Length` and `Vary`; the decompressed body equals the plain one byte for byte; over a real connection a 100 value bubble sort arrives at a few percent of its size and every page and run still works |
 | `test_privacy.py`, `test_browser_privacy.py` | The privacy page names exactly the localStorage keys the code uses, no cookie or other storage is set, the page says how to clear them, and its table fits at 375, 768 and 1440 in both themes |
+| `test_launch_prep.py`, `test_browser_launch.py` | The AlgoTrace name, meta and Open Graph tags on every page, `SITE_URL` in canonical links, `robots.txt` and `sitemap.xml`, the 404 and 500 pages, cache busting and cache headers, the security headers and a nonce on every inline script, self-hosted D3, the production files; in a browser with the policy on and the network off, every page and every algorithm runs with no policy violations |
 | `test_browser_learn_loading.py` | /learn with its figure script held back: every figure slot shows a placeholder, no card, row or tag changes size when the figures arrive, at 375, 768 and 1440 in both themes |
 
 Two more checks are not pytest:
@@ -228,12 +275,17 @@ says whether the code listings need regenerating: after editing anything in
 
 ## How it is built
 
-No build step, no bundler, no frontend framework, no CDN libraries except D3 on
-the graph pages. Plain CSS, vanilla JavaScript, Jinja templates and one Flask
-file.
+No build step, no bundler, no frontend framework, and no CDN libraries: D3 is
+self-hosted in `static/vendor/`. Plain CSS, vanilla JavaScript, Jinja templates
+and one Flask file (plus `siteconfig.py` for everything a public site needs).
 
 ```
 app.py                     every route, the eight graph algorithms, gzip for large responses
+siteconfig.py              site name, meta tags, SITE_URL, robots.txt, sitemap.xml, 404 and 500, security and cache headers
+wsgi.py                    the entry point for gunicorn and waitress
+Procfile, render.yaml      how it is started and deployed on Render
+.python-version            the Python it is built with
+LICENSE                    MIT
 grid_algorithms/           A* on a grid (Dijkstra is the same code with h = 0)
 teacher.py                 the builder graph steps pass through (sorts and searches use sorting_algorithms/teacher.py)
 sorting_algorithms/        eight sorts, each yielding teacher steps, plus a seeded generator
@@ -251,9 +303,12 @@ templates/
   bfs.html ... etc         eight children (seven graph algorithms and topological_sort), each an information panel
   astar.html               A* on its own grid workspace
   _graph_picker.html       the algorithm picker the graph pages and A* share
+  404.html, 500.html       the error pages
   privacy.html, terms.html
 static/
   styles.css               the whole design system, one light set and one dark
+  og-image.svg, og-image.png   the 1200 x 630 social preview (the PNG is drawn from the SVG)
+  vendor/                  D3 7.9.0 and its licence, with the hash the tests hold it to
   js/workspace.js          run, play, pause, step, reset, speed; more than one can share a page
   js/teacher.js            the Learn panel
   js/codeview.js           the language tabs, listings, helpers and Expand dialog
@@ -336,4 +391,5 @@ and 1440px.
 
 ## Licence
 
-None chosen yet. See [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md).
+MIT, copyright 2026 Yash Maithani. See [LICENSE](LICENSE). D3 in `static/vendor/`
+keeps its own ISC licence, `d3-LICENSE.txt`.

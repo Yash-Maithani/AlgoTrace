@@ -1,12 +1,12 @@
 {% extends "layout.html" %}
 
-{% block title %}Privacy Policy | Algorithm Visualizer{% endblock %}
+{% block title %}Privacy Policy | AlgoTrace{% endblock %}
 
 {% block content %}
     <main class="container reading" id="main">
         <h1>Privacy Policy</h1>
 
-        <p>Algorithm Visualizer is a student project built to teach sorting and graph
+        <p>AlgoTrace is a student project built to teach sorting and graph
         algorithms. This page describes what the application does with information you
         enter into it.</p>
 
@@ -73,16 +73,16 @@
         any storage that outlives the request.</p>
 
         <h2>Requests to other services</h2>
-        <p>Two resources are loaded from outside this site: the Space Grotesk, Fira Sans
-        and Fira Code typefaces from Google Fonts, and the D3 charting library from its
-        public CDN on the graph pages. Loading those files tells the services involved your IP address
-        and browser version, as any web request does. No information you enter into this
-        application is sent to them.</p>
+        <p>One resource is loaded from outside this site: the Space Grotesk, Fira Sans
+        and Fira Code typefaces from Google Fonts. Loading them tells Google your IP
+        address and browser version, as any web request does. No information you enter
+        into this application is sent to them. The D3 charting library the graph pages
+        use is served from this site, not from a third party, so the pages work with the
+        network off apart from those typefaces, which fall back to system fonts.</p>
 
         <h2>Running it yourself</h2>
         <p>The source is a Flask application that can be run on your own machine. When it
-        runs locally, requests never leave your computer apart from the font and library
-        files described above.</p>
+        runs locally, requests never leave your computer apart from the font files described above.</p>
 
         <h2>Changes</h2>
         <p>If this project later adds anything that stores or shares information, this

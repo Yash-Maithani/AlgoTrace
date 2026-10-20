@@ -3,11 +3,11 @@
 
   Blocks a page may fill:
     title       text inside <title>, also used for the sticky header label
-    head_extra  page specific <link> or <script> tags
-    page_css    a page scoped <style> block
+    head_extra  page specific <link> or <script nonce="{{ csp_nonce }}"> tags
+    page_css    a page scoped <style nonce="{{ csp_nonce }}"> block
     body_class  extra classes on <body>
     content     the page itself
-    page_js     a page scoped <script> block
+    page_js     a page scoped <script nonce="{{ csp_nonce }}"> block
 
   The navbar is data driven from `nav_items` below. Routes that do not exist
   yet (Learn, Searching, Complexity) are added one line at a time by their own
@@ -18,7 +18,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script>
+    {# The title text is written once, in each page's title block, and reused. #}
+    {% set page_title = self.title()|striptags|trim %}
+    <meta name="description" content="{{ meta_description }}">
+    <link rel="canonical" href="{{ canonical_url }}">
+    {% block robots %}{% endblock %}
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ site_name }}">
+    <meta property="og:title" content="{{ page_title }}">
+    <meta property="og:description" content="{{ meta_description }}">
+    <meta property="og:url" content="{{ canonical_url }}">
+    <meta property="og:image" content="{{ og_image_url }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Coloured bars of a sort in progress beside the name {{ site_name }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ page_title }}">
+    <meta name="twitter:description" content="{{ meta_description }}">
+    <meta name="twitter:image" content="{{ og_image_url }}">
+    <script nonce="{{ csp_nonce }}">
         /* Resolves the theme before first paint so there is no flash of the
            wrong colours. Stored choice wins; otherwise follow the system. */
         (function () {
@@ -32,7 +50,7 @@
             document.documentElement.setAttribute('data-theme-source', explicit ? 'user' : 'system');
         })();
     </script>
-    <title>{% block title %}Algorithm Visualizer{% endblock %}</title>
+    <title>{% block title %}AlgoTrace{% endblock %}</title>
     <meta name="theme-color" content="#FAF8F5" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#1A1A18" media="(prefers-color-scheme: dark)">
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
@@ -55,7 +73,7 @@
                     <line x1="12" y1="19" x2="12" y2="5"></line>
                     <line x1="19" y1="19" x2="19" y2="9"></line>
                 </svg>
-                Algorithm Visualizer
+                {{ site_name }}
             </a>
             <button type="button" class="nav-toggle" id="nav-toggle"
                     aria-expanded="false" aria-controls="nav-links"

@@ -35,7 +35,7 @@ def open_learn(browser, base_url, width, scheme, loaded):
     ctx = browser.new_context(viewport={'width': width, 'height': 900}, color_scheme=scheme)
     page = ctx.new_page()
     if not loaded:
-        page.route('**/learnfigures.js', lambda route: route.abort())
+        page.route('**/learnfigures.js*', lambda route: route.abort())
     errors = []
     page.on('pageerror', lambda e: errors.append(str(e)))
     page.goto(base_url + '/learn')
@@ -115,5 +115,6 @@ def test_the_placeholder_rule_and_the_noscript_rule_are_in_the_page():
     css = open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'static', 'styles.css'),
                encoding='utf-8').read()
 
-    assert '<noscript><style>[data-figure]:empty::before { display: none; }</style></noscript>' in html
+    assert '<noscript><style nonce="' in html
+    assert '[data-figure]:empty::before { display: none; }</style></noscript>' in html
     assert '[data-figure]:empty::before' in css

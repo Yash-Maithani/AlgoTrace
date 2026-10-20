@@ -25,6 +25,11 @@ def client():
         yield c
 
 
+def strip_nonce(body):
+    import re
+    return re.sub(rb'nonce="[^"]*"|nonce-[A-Za-z0-9_-]+', b'', body)
+
+
 def bubble_100():
     rng = random.Random(5)
     return {'algorithm': 'Bubble Sort', 'values': ', '.join(str(rng.randint(1, 99)) for _ in range(100))}
@@ -85,7 +90,8 @@ def test_html_pages_over_a_kilobyte_are_compressed(client):
         packed = client.get(path, headers=GZIP)
         assert packed.headers['Content-Encoding'] == 'gzip', path
         assert packed.mimetype == 'text/html'
-        assert gzip.decompress(packed.data) == plain.data, path
+        # The page carries a fresh CSP nonce per request, so compare with it removed.
+        assert strip_nonce(gzip.decompress(packed.data)) == strip_nonce(plain.data), path
         assert packed.headers['Content-Length'] == str(len(packed.data))
 
 

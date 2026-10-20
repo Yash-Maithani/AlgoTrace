@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+
+{% block title %}Something went wrong | AlgoTrace{% endblock %}
+
+{% block robots %}<meta name="robots" content="noindex">{% endblock %}
+
+{% block content %}
+    <main class="container reading" id="main">
+        <h1>Something went wrong on our side</h1>
+
+        <p class="lede">
+            The page could not be built. Nothing you typed has been kept, so there is
+            nothing to clean up.
+        </p>
+
+        <p>You can <a href="{{ url_for('index') }}">go back to Home</a>, or try the same
+        thing again in a moment. If it keeps happening with the same input, that input
+        is worth telling the author about.</p>
+    </main>
+{% endblock %}

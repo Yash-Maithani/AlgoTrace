@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}Algorithm Visualizer | Interactive Learning Platform{% endblock %}
+{% block title %}AlgoTrace | Watch algorithms run, step by step{% endblock %}
 
 {% block content %}
     <main class="main" id="main">
@@ -171,7 +171,7 @@
     <script src="{{ url_for('static', filename='js/codeview.js') }}"></script>
     <script src="{{ url_for('static', filename='js/home_code.js') }}"></script>
     <script src="{{ url_for('static', filename='js/home_player.js') }}"></script>
-    <script>
+    <script nonce="{{ csp_nonce }}">
         (function () {
             'use strict';
 
@@ -250,7 +250,7 @@
         })();
     </script>
 
-    <script>
+    <script nonce="{{ csp_nonce }}">
         /* Section reveal on first view. Decorative only: every section is
            already in the DOM and readable with JavaScript off, and the
            observer is never created under reduced motion. */

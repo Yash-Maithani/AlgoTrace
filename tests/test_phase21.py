@@ -325,7 +325,8 @@ def test_the_grid_page_is_in_the_graphs_picker(client):
     assert 'js/gridstage.js' in html and 'js/lessons/astar.js' in html
     for key, _, _ in GRAPH_PICKER:
         assert '?algo=%s' % key in html
-    assert 'aria-current="page"' in html.split('?algo=astar', 1)[1][:200]
+    picker = html.split('algo-picker', 1)[1]            # the canonical link in the head also names the page
+    assert 'aria-current="page"' in picker.split('?algo=astar', 1)[1][:200]
     stage = html.split('id="stage"', 1)[1].split('class="control-bar"', 1)[0]
     assert 'id="grid-board"' in stage
     other = client.get('/graph?algo=bfs').get_data(as_text=True)

@@ -93,9 +93,12 @@ def test_workspace_tolerates_a_missing_learn_panel():
 # ---------------------------------------------------------------------------
 
 def test_every_inline_handler_has_a_function(template):
-    """onclick="foo()" with no `function foo` is a click that throws."""
-    called = set(re.findall(r'on[a-z]+="([a-zA-Z_$][\w$]*)\(', template))
-    assert called, 'expected inline handlers in this template'
+    """data-action="foo" with no `function foo` is a click that does nothing. The
+    page has no inline onclick handlers (the Content-Security-Policy forbids them);
+    its buttons name an action and one listener runs it."""
+    assert not re.search(r'\son[a-z]+="', template), 'an inline event handler is back'
+    called = set(re.findall(r'data-action="([a-zA-Z_$][\w$]*)"', template))
+    assert called, 'expected data-action buttons in this template'
 
     defined = set(re.findall(r'function\s+([a-zA-Z_$][\w$]*)\s*\(', template))
 

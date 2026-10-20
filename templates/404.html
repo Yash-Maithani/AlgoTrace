@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+
+{% block title %}Page not found | AlgoTrace{% endblock %}
+
+{% block robots %}<meta name="robots" content="noindex">{% endblock %}
+
+{% block content %}
+    <main class="container reading" id="main">
+        <h1>That page is not here</h1>
+
+        <p class="lede">
+            There is nothing at this address. It may have moved, or the link may have a
+            typo in it.
+        </p>
+
+        <p>Try one of these instead:</p>
+        <ul>
+            <li><a href="{{ url_for('index') }}">Home</a>, where a real bubble sort plays on its own</li>
+            <li><a href="{{ url_for('learn') }}">Learn</a>, every algorithm in a sensible order</li>
+            <li><a href="{{ url_for('sorting_page') }}">Sorting</a>, <a href="{{ url_for('searching_page') }}">Searching</a>
+                and <a href="{{ url_for('graph_page') }}">Graphs</a>, the three workspaces</li>
+        </ul>
+    </main>
+{% endblock %}

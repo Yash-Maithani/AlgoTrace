@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="AlgoTrace: coloured bars of a sort in progress">
+  <rect width="1200" height="630" fill="#1A1A18"/>
+  <rect x="60" y="60" width="1080" height="510" rx="16" fill="#232321" stroke="#3A3A36" stroke-width="2"/>
+  <rect x="120" y="420" width="74" height="60" rx="6" fill="#2FD4C4"/>
+  <rect x="220" y="370" width="74" height="110" rx="6" fill="#FFA94D"/>
+  <rect x="320" y="405" width="74" height="75" rx="6" fill="#2FD4C4"/>
+  <rect x="420" y="310" width="74" height="170" rx="6" fill="#FF6B5E"/>
+  <rect x="520" y="385" width="74" height="95" rx="6" fill="#2FD4C4"/>
+  <rect x="620" y="280" width="74" height="200" rx="6" fill="#B28DFF"/>
+  <rect x="720" y="340" width="74" height="140" rx="6" fill="#2FD4C4"/>
+  <rect x="820" y="245" width="74" height="235" rx="6" fill="#4CD98A"/>
+  <rect x="920" y="360" width="74" height="120" rx="6" fill="#2FD4C4"/>
+  <rect x="1020" y="295" width="74" height="185" rx="6" fill="#4CD98A"/>
+  <line x1="100" y1="490" x2="1100" y2="490" stroke="#3A3A36" stroke-width="2"/>
+  <text x="120" y="170" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="96" font-weight="700" fill="#FAF8F5">AlgoTrace</text>
+  <text x="124" y="226" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="34" fill="#B8B4A8">Watch algorithms run, step by step</text>
+  <text x="124" y="534" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="26" fill="#8C897D">Sorting  |  Searching  |  Graphs</text>
+</svg>

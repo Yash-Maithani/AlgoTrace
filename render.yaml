@@ -1,0 +1,28 @@
+# Render blueprint for AlgoTrace: https://render.com/docs/blueprint-spec
+# Deploys the main branch of https://github.com/Yash-Maithani/AlgoTrace
+services:
+  - type: web
+    name: algotrace
+    runtime: python
+    plan: free
+    repo: https://github.com/Yash-Maithani/AlgoTrace
+    branch: main
+    autoDeploy: true
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn wsgi:app --workers 2 --threads 2 --bind 0.0.0.0:$PORT --timeout 60 --access-logfile -
+    healthCheckPath: /robots.txt
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      # The public address, for canonical links, the sitemap and social previews.
+      # Set it in the dashboard (it is not committed): https://algotrace.onrender.com
+      # now, the custom domain later.
+      - key: SITE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      # Render puts one proxy in front of the app; believe its forwarded headers.
+      - key: TRUST_PROXY
+        value: "1"
+      - key: FLASK_DEBUG
+        value: "0"

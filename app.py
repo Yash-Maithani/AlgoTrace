@@ -1,5 +1,6 @@
 from flask import (Flask, render_template, request, jsonify, redirect, url_for, abort)
 import gzip
+import os
 import random
 from collections import deque
 
@@ -16,6 +17,8 @@ from searching_algorithms.linear_search import linear_search
 from searching_algorithms.binary_search import binary_search, is_sorted
 from searching_algorithms.jump_search import jump_search
 from grid_algorithms.astar import astar
+
+from siteconfig import init_site
 
 app = Flask(__name__)
 
@@ -2160,5 +2163,19 @@ def generate_random_graph():
     except Exception as e:
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
 
+def _deep_links():
+    """The pages that open on one algorithm, for the sitemap: each is a different
+    page to a reader and to a search engine."""
+    links = ["/sorting?algorithm=%s" % name.replace(" ", "+") for name in sorting_algo_dict]
+    links += ["/searching?algorithm=%s" % key for key, _name, _note in SEARCH_PICKER]
+    links += ["/graph?algo=%s" % key for key, _name, _note in GRAPH_PICKER]
+    return links
+
+
+# Robots, sitemap, meta tags, error pages, security and cache headers.
+init_site(app, _deep_links)
+
 if __name__ == "__main__":
-    app.run(debug=True, port=5002)
+    # Local development only. Debug mode is off unless FLASK_DEBUG=1 is set; a
+    # public deployment runs through a WSGI server (see wsgi.py and README.md).
+    app.run(port=int(os.environ.get("PORT", "5002")))

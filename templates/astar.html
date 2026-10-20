@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}A* on a grid | Algorithm Visualizer{% endblock %}
+{% block title %}A* on a grid | AlgoTrace{% endblock %}
 
 {% block content %}
     <main class="workspace" id="main">
@@ -149,7 +149,7 @@
     <script src="{{ url_for('static', filename='js/predict.js') }}"></script>
     <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
     <script src="{{ url_for('static', filename='js/gridstage.js') }}"></script>
-    <script>
+    <script nonce="{{ csp_nonce }}">
         /* The A* grid workspace. The shell, the transport and the Learn panel
            are the shared pieces; the grid is static/js/gridstage.js. */
         (function () {

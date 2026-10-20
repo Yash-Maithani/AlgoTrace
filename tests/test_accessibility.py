@@ -312,8 +312,8 @@ def test_every_title_names_the_site(client, url):
     body = client.get(url).get_data(as_text=True)
     title = re.search(r'<title>(.*?)</title>', body, re.S).group(1).strip()
 
-    assert 'Algorithm Visualizer' in title, '%s: %r' % (url, title)
-    assert title != 'Algorithm Visualizer' or url == '/', (
+    assert 'AlgoTrace' in title, '%s: %r' % (url, title)
+    assert title != 'AlgoTrace' or url == '/', (
         '%s fell back to the layout default' % url)
 
 

@@ -309,7 +309,8 @@ def test_graph_page_serves_topological_sort(client):
     stage = html.split('id="stage"', 1)[1].split('class="control-bar"', 1)[0]
     assert 'id="topo-strip"' in stage
     assert 'js/lessons/topological_sort.js' in html
-    assert 'aria-current="page"' in html.split('?algo=topological_sort', 1)[1][:200]
+    picker = html.split('algo-picker', 1)[1]            # the canonical link in the head also names the page
+    assert 'aria-current="page"' in picker.split('?algo=topological_sort', 1)[1][:200]
 
 
 def test_other_graph_pages_have_no_strip_or_arrows(client):

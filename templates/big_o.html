@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}How complexity works | Algorithm Visualizer{% endblock %}
+{% block title %}How complexity works | AlgoTrace{% endblock %}
 
 {% block content %}
     <main class="container reading" id="main">
@@ -534,7 +534,7 @@
 {% block page_js %}
     <script src="{{ url_for('static', filename='js/growth.js') }}"></script>
     <script src="{{ url_for('static', filename='js/notations.js') }}"></script>
-    <script>
+    <script nonce="{{ csp_nonce }}">
         /* The chart on this page is the shared component with a slider on it
            and no curve singled out, since the point here is the comparison. */
         (function () {
