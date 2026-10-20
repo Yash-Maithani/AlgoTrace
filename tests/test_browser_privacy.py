@@ -20,7 +20,7 @@ def test_the_storage_table_is_readable_and_never_widens_the_page(browser, base_u
 
     assert page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth") <= 0
     keys = page.evaluate("[...document.querySelectorAll('.table-scroll tbody th code')].map(c => c.textContent)")
-    assert keys == ['theme', 'pbl2.codeLanguage']
+    assert keys == ['theme', 'pbl2.codeLanguage', 'pbl2.tourSeen']
     box = page.evaluate("(() => { const r = document.querySelector('.table-scroll').getBoundingClientRect(); return [r.left, r.right]; })()")
     assert box[0] >= 0 and box[1] <= width
     for heading in ('What is stored in your browser', 'How to clear them'):

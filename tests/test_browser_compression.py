@@ -8,7 +8,7 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from browser_helpers import SKIP_REASON, available, page_for
+from browser_helpers import SKIP_REASON, available, page_for, returning_visitor
 
 pytestmark = pytest.mark.skipif(not available(), reason=SKIP_REASON)
 
@@ -64,7 +64,7 @@ def test_a_large_floyd_warshall_run_arrives_gzipped_and_plays(browser, base_url)
 @pytest.mark.parametrize('path', ['/', '/learn', '/sorting', '/searching', '/compare', '/big-o', '/privacy',
                                   '/terms', '/graph?algo=bfs', '/graph?algo=astar'])
 def test_every_page_arrives_gzipped_and_loads_without_errors(browser, base_url, path):
-    ctx = browser.new_context(viewport={'width': 1280, 'height': 800})
+    ctx = returning_visitor(browser.new_context(viewport={'width': 1280, 'height': 800}))
     page = ctx.new_page()
     errors = []
     page.on('pageerror', lambda e: errors.append(str(e)))

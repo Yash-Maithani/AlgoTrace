@@ -16,7 +16,7 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from browser_helpers import SKIP_REASON, available, page_for
+from browser_helpers import SKIP_REASON, available, page_for, returning_visitor
 
 pytestmark = pytest.mark.skipif(not available(), reason=SKIP_REASON)
 
@@ -71,7 +71,7 @@ def collect(context, base_url, path):
 @pytest.mark.parametrize('width,scheme', SIZES)
 def test_no_visible_link_uses_the_browsers_default_colour_and_all_are_readable(browser, base_url, width, scheme):
     """On every page: not the browser's blue or purple, and 4.5:1 against what is behind it."""
-    context = browser.new_context(viewport={'width': width, 'height': 900}, color_scheme=scheme, bypass_csp=True)
+    context = returning_visitor(browser.new_context(viewport={'width': width, 'height': 900}, color_scheme=scheme, bypass_csp=True))
     defaults, unreadable = [], []
     try:
         for path in PAGES:

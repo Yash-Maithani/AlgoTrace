@@ -55,8 +55,8 @@ DESCRIPTIONS = {
                    "Floyd-Warshall, Bellman-Ford, topological sort and A* on a graph or grid you draw."),
     "big_o_page": ("What O, Omega and Theta really mean, how to count steps from code, and why the "
                    "counter on a finished run and the textbook formula rarely match."),
-    "privacy": ("What AlgoTrace stores in your browser (a theme and a code language, nothing sent "
-                "to a server) and how to clear it."),
+    "privacy": ("What AlgoTrace stores in your browser (a theme, a code language and which "
+                "guided tours you have seen, nothing sent to a server) and how to clear it."),
     "terms": "The terms for using AlgoTrace, a free learning tool.",
 }
 

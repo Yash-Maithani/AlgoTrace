@@ -68,12 +68,13 @@ recursion of merge and quick sort; **keyboard shortcuts** (Space, arrows, R).
   Fonts it imports, with a nonce on every inline script and no inline event handlers.
 - Every page is keyboard operable, meets 4.5:1 text contrast in both themes, and has a
   `prefers-reduced-motion` fallback.
-- The browser stores two preferences in localStorage (`theme` and `pbl2.codeLanguage`),
+- The browser stores three small notes in localStorage (`theme`, `pbl2.codeLanguage` and
+  `pbl2.tourSeen`, the workspaces whose first visit tour has been shown),
   nothing else, and nothing is sent to a server.
 
 ## Quality checks
 
-About 2,700 automated tests, among them: every sort's output and counts against recorded
+About 2,900 automated tests, among them: every sort's output and counts against recorded
 baselines, every graph endpoint's steps against a recorded baseline, every stated
 complexity bound measured by growing the input, the C, C++ and Java programs compiled and
 run against the Python, and a real browser (Playwright) checking behaviour, layout at 375,

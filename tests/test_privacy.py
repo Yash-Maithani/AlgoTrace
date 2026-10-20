@@ -12,7 +12,7 @@ import pytest
 from app import app
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-EXPECTED = {'theme', 'pbl2.codeLanguage'}
+EXPECTED = {'theme', 'pbl2.codeLanguage', 'pbl2.tourSeen'}
 
 
 def sources():
@@ -54,14 +54,14 @@ def page():
         return c.get('/privacy').get_data(as_text=True)
 
 
-def test_the_keys_the_code_uses_are_exactly_the_two_the_page_names():
+def test_the_keys_the_code_uses_are_exactly_the_three_the_page_names():
     assert storage_keys() == EXPECTED
 
 
 def test_the_page_names_every_key_and_what_it_holds(page):
     for key in EXPECTED:
         assert '<code>%s</code>' % key in page, key
-    for value in ('light', 'dark', 'pseudocode', 'python', 'cpp', 'java'):
+    for value in ('light', 'dark', 'pseudocode', 'python', 'cpp', 'java', 'sorting', 'searching', 'graph', 'astar'):
         assert '<code>%s</code>' % value in page, value
 
 
@@ -88,7 +88,7 @@ def test_nothing_else_is_stored_and_no_cookie_is_set():
             assert 'Set-Cookie' not in reply.headers, url
 
 
-def test_the_two_values_the_page_lists_are_the_ones_the_code_accepts():
+def test_the_values_the_page_lists_are_the_ones_the_code_accepts():
     codeview = sources()[os.path.join('static', 'js', 'codeview.js')]
     ids = set(re.findall(r"id: '([a-z]+)', label", codeview))
 

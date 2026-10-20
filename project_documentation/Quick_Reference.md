@@ -81,7 +81,7 @@ waitress-serve --host=127.0.0.1 --port=8000 wsgi:app   # production, Windows
 gunicorn wsgi:app --bind 127.0.0.1:8000                # production, Linux
 pip install -r requirements-dev.txt && python -m playwright install chromium
 pytest -q -m "not slow"              # about a minute
-pytest -q                          # everything, about 14 minutes, run alone
+pytest -q                          # everything, about 20 minutes, run alone
 python tools/check_banned_patterns.py .
 node tests/validate_lessons.js
 python tools/extract_code.py --check

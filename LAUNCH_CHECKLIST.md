@@ -170,7 +170,7 @@ The code side is finished. These are the steps only you can do, in order.
 - [ ] The browser tests are installed, so `pytest` runs them instead of skipping them
       with a warning: `python -m pip install -r requirements-dev.txt` and
       `python -m playwright install chromium`.
-- [ ] `pytest -q` passes, run on its own (about 14 minutes with the browser tests; two
+- [ ] `pytest -q` passes, run on its own (about 20 minutes with the browser tests; two
       runs at once starve each other and time out).
 - [ ] `python tools/check_banned_patterns.py .` exits 0.
 - [ ] `node tests/validate_lessons.js` reports every lesson file valid.

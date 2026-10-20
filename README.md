@@ -28,6 +28,7 @@ The screenshots are captured by `tools/make_screenshots.py`, in the light theme 
 - **A reason for every move.** The Explain tab says what the step did in one sentence with the real values, and why.
 - **Five code views.** Pseudocode, Python, C, C++ and Java, with the running line highlighted and the live variables beside it. The C, C++ and Java listings come from real programs in `reference_code/` that the tests compile and run against the Python.
 - **O, Omega and Theta.** Each algorithm's best, average and worst case with the tight bound of each, a worked example, the extra memory it needs, and the count from your run beside what the formula predicts. The text describes this code, not the textbook.
+- **A short guided tour.** The first time you open Sorting, Searching, Graphs or A*, five steps light up the real controls (pick an algorithm, choose an input, play and the keyboard shortcuts, the Learn panel, Predict). It is shown once per workspace, can be skipped or closed with Esc, and the Take the tour button in the control bar plays it again.
 - **Predict mode.** Switch it on and the run pauses to ask what happens next: will these two swap, which node is visited next, which cell is expanded next. Your score is kept for the run.
 - **Compare.** Two sorts on one input, side by side, one set of controls for both, with a counter for each.
 - **Recursion tree.** Merge sort and quick sort draw their calls as a tree that grows as the sort runs.
@@ -142,7 +143,7 @@ The first runs everything. The second leaves out the tests marked `slow`, the
 ones that measure how counts grow across many input sizes, the ones that
 compile and run the C, C++ and Java reference programs, and every test that
 drives a real browser. It runs about 2,150 tests in about a minute; the full set
-is about 2,750 and takes about 14 minutes with the browser tests. Use the quick
+is about 2,900 and takes about 20 minutes with the browser tests. Use the quick
 run while working and the full set before a commit. Run the full set on its own:
 two at once starve each other and make the browser tests time out. The marker is
 registered in `pytest.ini`.
@@ -184,6 +185,7 @@ behaviour:
 | `test_compression.py`, `test_browser_compression.py` | Large JSON and HTML are gzipped only for a client that accepts it and only over 1 KB, with correct `Content-Encoding`, `Content-Length` and `Vary`; the decompressed body equals the plain one byte for byte; over a real connection a 100 value bubble sort arrives at a few percent of its size and every page and run still works |
 | `test_privacy.py`, `test_browser_privacy.py` | The privacy page names exactly the localStorage keys the code uses, no cookie or other storage is set, the page says how to clear them, and its table fits at 375, 768 and 1440 in both themes |
 | `test_launch_prep.py`, `test_browser_launch.py` | The AlgoTrace name, meta and Open Graph tags on every page, `SITE_URL` in canonical links, `robots.txt` and `sitemap.xml`, the 404 and 500 pages, cache busting and cache headers, the security headers and a nonce on every inline script, self-hosted D3, the production files; in a browser with the policy on and the network off, every page and every algorithm runs with no policy violations |
+| `test_tour.py`, `test_browser_tour.py` | The tour is loaded by exactly the four workspace pages and stores one key through guarded calls, adds nothing the policy would have to allow, and its wording has no dashes; in a real browser with the policy on: it shows once per workspace on a first visit (all graph algorithms share one), five steps each light their own control, the card stays on screen without covering the control at 375, 768 and 1440 in both themes, Skip, Back, Next, Done and Esc work and are remembered, Take the tour replays it and leaves the workspace as it was, focus moves in, stays in and returns, each step is announced, nothing animates under reduced motion, a blocked localStorage breaks nothing |
 | `test_browser_link_styles.py` | In a real browser, on every page at 375, 768 and 1440 in both themes: no visible link is painted in the browser's default blue or purple and every one reads at 4.5:1; a link darkens and thickens its underline on hover and shows a solid ring on keyboard focus; the "One input for both" fieldset has the same border, colour and radius as the algorithm pickers; the `/big-o` growth chart gives each of its five curves its own colour and dash, with a matching legend, and keeps its description and table |
 | `test_rate_limit.py`, `test_browser_rate_limit.py` | The sliding minute, one count per address, the 31st run refused with a JSON 429 and a `Retry-After`, pages and static files never limited, a forged `X-Forwarded-For` ignored unless `TRUST_PROXY=1`, the limit read from the environment; in a browser, every page that runs an algorithm tells the student how long to wait |
 | `test_icons_and_contact.py` | The PNG icons are the stated sizes, every page links them and the manifest, the manifest names real icons and the site's own colours, the policy allows them, and `/terms` points to the GitHub issues page with no email address |
@@ -256,6 +258,7 @@ static/
   js/learnfigures.js       fills /learn's complexity figures from the lesson files
   js/home_player.js, home_code.js   the Home player and its code card
   js/nav.js, theme.js      the narrow header menu, the light and dark toggle
+  js/tour.js               the first-visit tour of each workspace and its Take the tour button
   js/lessons/*.js          twenty lesson files, one per algorithm
   js/lessons/README.md     the step contract every phase follows
   js/lessons/code/*.js     C, C++ and Java listings, generated, never edited

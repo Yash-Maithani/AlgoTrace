@@ -34,13 +34,26 @@ def launch(playwright):
     return None
 
 
-def page_for(browser, base_url, path, width=1280, height=900, scheme='light', reduced='no-preference'):
+# Every workspace opens with a guided tour the first time it is seen (static/js/tour.js),
+# which dims the page and holds focus. A test that is about something else starts as a
+# returning visitor: the tour's own key says every workspace has been toured.
+TOUR_SEEN_SCRIPT = "try { localStorage.setItem('pbl2.tourSeen', 'sorting,searching,graph,astar'); } catch (e) {}"
+
+
+def returning_visitor(context):
+    context.add_init_script(TOUR_SEEN_SCRIPT)
+    return context
+
+
+def page_for(browser, base_url, path, width=1280, height=900, scheme='light', reduced='no-preference', tour_seen=True):
     # bypass_csp: Playwright's wait_for_function evaluates its expression as a string
     # with eval, which the site's Content-Security-Policy (rightly) refuses. The
     # functional tests are about behaviour, so they run without the policy;
     # tests/test_browser_launch.py runs with it on and polls without eval.
     ctx = browser.new_context(viewport={'width': width, 'height': height}, color_scheme=scheme,
                               reduced_motion=reduced, bypass_csp=True)
+    if tour_seen:
+        returning_visitor(ctx)
     page = ctx.new_page()
     errors = []
     page.on('pageerror', lambda e: errors.append(str(e)))

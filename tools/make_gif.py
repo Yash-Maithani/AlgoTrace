@@ -10,6 +10,8 @@ import re
 
 from PIL import Image
 
+from browser_helpers import returning_visitor
+
 VIEW = (1280, 760)
 OUT_WIDTH = 960
 VALUES = "45, 22, 78, 10, 91, 33, 60"
@@ -60,6 +62,7 @@ def build(frames, path, limit):
 def record(browser, base, path, limit):
     context = browser.new_context(viewport={"width": VIEW[0], "height": VIEW[1]}, color_scheme="light",
                                   reduced_motion="no-preference", bypass_csp=True)
+    returning_visitor(context)
     page = context.new_page()
     page.goto(base + "/sorting")
     page.wait_for_load_state("networkidle")

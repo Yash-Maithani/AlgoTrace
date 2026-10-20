@@ -13,11 +13,11 @@
         <h2>What is collected</h2>
         <p>Nothing. There are no accounts, no sign in, no analytics, no advertising and
         no third party trackers. The application does not set cookies, and it does not use
-        session storage or IndexedDB. The only thing it keeps in your browser is the two
-        preferences listed next.</p>
+        session storage or IndexedDB. The only things it keeps in your browser are the
+        three small notes listed next.</p>
 
         <h2>What is stored in your browser</h2>
-        <p>Two small preferences, in your browser's local storage for this site. They stay
+        <p>Three small notes, in your browser's local storage for this site. They stay
         on your device. They are not sent to the server with any request, and nothing on
         the server reads or records them.</p>
         <div class="table-scroll" tabindex="0" role="region" aria-label="Local storage keys, scrolls sideways on a narrow screen">
@@ -47,6 +47,19 @@
                     <td>Shows code in that language on every page. Until you choose,
                     nothing is stored and the code is shown in Python.</td>
                 </tr>
+                <tr>
+                    <th scope="row"><code>pbl2.tourSeen</code></th>
+                    <td>A comma separated list of the workspaces whose first visit guide has
+                    been shown: <code>sorting</code>, <code>searching</code>,
+                    <code>graph</code> and <code>astar</code>, for example
+                    <code>sorting,graph</code></td>
+                    <td>You open Sorting, Searching, Graphs or A* for the first time, or press
+                    Take the tour.</td>
+                    <td>Stops the short guided tour from starting by itself again on that
+                    workspace. Until you open one, nothing is stored. If your browser blocks
+                    local storage the tour does not start by itself, and the Take the tour
+                    button still works.</td>
+                </tr>
             </tbody>
         </table>
         </div>
@@ -62,9 +75,10 @@
             then Privacy, then Manage Website Data.</li>
             <li>Or in the browser's developer tools console on this site, run
             <code>localStorage.clear()</code>.</li>
-            <li>Or choose a different theme or language: the new choice replaces the old one.</li>
+            <li>Or choose a different theme or language: the new choice replaces the old one. Press
+            Take the tour on a workspace to see its guide again.</li>
         </ul>
-        <p>After clearing, the next visit starts from your system's theme and Python code.</p>
+        <p>After clearing, the next visit starts from your system's theme and Python code, and each workspace shows its guide once more.</p>
 
         <h2>What you type into the page</h2>
         <p>Array values, graph definitions and the start node you enter are sent to the

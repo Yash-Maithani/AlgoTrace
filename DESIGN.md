@@ -243,6 +243,19 @@ The defining component. One row, directly under the stage, in this order left to
 - At < 768px the bar wraps to two rows: transport on the first, speed and counter on the
   second, and it sticks to the bottom of the viewport while the stage is in view.
 
+### Guided tour
+
+`static/js/tour.js`, one script tag per workspace (`data-workspace`: sorting, searching, graph,
+astar). Five steps on a first visit, each lighting a real control: the algorithm picker, the
+input, the control bar, the Learn tabs, Predict. A modal dialog: a dimmed page, a 3px
+`--accent` ring round the lit element, and a card on `--surface`. Below 1024px the card is a
+sheet on whichever screen edge is farther from the lit element and the page is scrolled so
+the two never overlap; from 1024px it sits beside the element, or below it for a wide one.
+Skip, Back and Next on every step, Esc closes, focus moves in and returns, and the card is a
+polite live region. It fades in over 150ms and does not move; under reduced motion it does
+neither. Shown once per workspace (`pbl2.tourSeen`, listed on `/privacy`); the Take the tour
+button at the foot of the control bar, beside the keyboard shortcuts, plays it again.
+
 ### Learn panel
 
 Four tabs: Explain, Code, Complexity, About. Tabs are a real tablist: arrow keys move

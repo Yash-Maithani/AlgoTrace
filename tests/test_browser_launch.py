@@ -15,7 +15,7 @@ import pytest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app import GRAPH_PICKER, SEARCH_PICKER, sorting_algo_dict
-from browser_helpers import SKIP_REASON, available
+from browser_helpers import SKIP_REASON, available, returning_visitor
 
 pytestmark = pytest.mark.skipif(not available(), reason=SKIP_REASON)
 
@@ -47,8 +47,10 @@ def until(page, expression, timeout=10000):
 class Visit:
     """A page opened with the violation watcher, and optionally the network off."""
 
-    def __init__(self, browser, base_url, path, width=1280, height=900, scheme='light', offline=False):
+    def __init__(self, browser, base_url, path, width=1280, height=900, scheme='light', offline=False, tour_seen=True):
         self.ctx = browser.new_context(viewport={'width': width, 'height': height}, color_scheme=scheme)
+        if tour_seen:
+            returning_visitor(self.ctx)
         self.ctx.add_init_script(WATCH)
         self.page = self.ctx.new_page()
         self.errors, self.console, self.blocked, self.requested = [], [], [], []
@@ -295,7 +297,7 @@ def test_the_other_pages_work_with_the_network_off(browser, base_url, path):
 # ---------------------------------------------------------------------------
 
 def test_d3_and_the_stylesheet_arrive_with_a_year_long_immutable_cache(browser, base_url):
-    ctx = browser.new_context()
+    ctx = returning_visitor(browser.new_context())
     page = ctx.new_page()
     seen = {}
     page.on('response', lambda r: seen.__setitem__(urlparse(r.url).path, r))

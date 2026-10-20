@@ -21,7 +21,7 @@ os.environ.setdefault("RATE_LIMIT_PER_MINUTE", "0")
 
 from PIL import Image  # noqa: E402
 
-from browser_helpers import launch, sync_playwright  # noqa: E402
+from browser_helpers import launch, returning_visitor, sync_playwright  # noqa: E402
 
 OUT = os.path.join(ROOT, "docs", "screenshots")
 WIDTH, HEIGHT = 1440, 900
@@ -43,6 +43,7 @@ def start_site():
 def new_page(browser, base, path, width=WIDTH, height=HEIGHT):
     context = browser.new_context(viewport={"width": width, "height": height}, color_scheme="light",
                                   reduced_motion="no-preference", bypass_csp=True)
+    returning_visitor(context)                         # no tour over the screenshot
     page = context.new_page()
     page.goto(base + path)
     page.wait_for_load_state("networkidle")

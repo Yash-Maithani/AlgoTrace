@@ -101,11 +101,12 @@ h1 { border-bottom: 2px solid #1a1a18; } h2 { margin-top: 2rem; }
 </ul>
 <p>  <code>prefers-reduced-motion</code> fallback.</p>
 <ul>
-<li>The browser stores two preferences in localStorage (<code>theme</code> and <code>pbl2.codeLanguage</code>),</li>
+<li>The browser stores three small notes in localStorage (<code>theme</code>, <code>pbl2.codeLanguage</code> and</li>
 </ul>
+<p>  <code>pbl2.tourSeen</code>, the workspaces whose first visit tour has been shown),</p>
 <p>  nothing else, and nothing is sent to a server.</p>
 <h2>Quality checks</h2>
-<p>About 2,700 automated tests, among them: every sort&#x27;s output and counts against recorded</p>
+<p>About 2,900 automated tests, among them: every sort&#x27;s output and counts against recorded</p>
 <p>baselines, every graph endpoint&#x27;s steps against a recorded baseline, every stated</p>
 <p>complexity bound measured by growing the input, the C, C++ and Java programs compiled and</p>
 <p>run against the Python, and a real browser (Playwright) checking behaviour, layout at 375,</p>
@@ -186,7 +187,7 @@ waitress-serve --host=127.0.0.1 --port=8000 wsgi:app   # production, Windows
 gunicorn wsgi:app --bind 127.0.0.1:8000                # production, Linux
 pip install -r requirements-dev.txt &amp;&amp; python -m playwright install chromium
 pytest -q -m &quot;not slow&quot;              # about a minute
-pytest -q                          # everything, about 14 minutes, run alone
+pytest -q                          # everything, about 20 minutes, run alone
 python tools/check_banned_patterns.py .
 node tests/validate_lessons.js
 python tools/extract_code.py --check
