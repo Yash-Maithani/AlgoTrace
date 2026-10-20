@@ -315,6 +315,16 @@
             var arrayInput = document.getElementById('array-input');
             var targetInput = document.getElementById('target-input');
 
+            /* A run on screen was made from the values and the target in these
+               boxes. Change either, by hand or with a preset or a button, and it
+               describes input that is no longer there, so it is cleared. */
+            function inputChanged() {
+                var ws = Workspace.current;
+                if (ws && ws.payload) ws.discard();
+            }
+            arrayInput.addEventListener('input', inputChanged);
+            targetInput.addEventListener('input', inputChanged);
+
             function values() {
                 return arrayInput.value.split(',')
                     .map(function (part) { return parseInt(part.trim(), 10); })
@@ -334,6 +344,7 @@
                 }
                 arrayInput.value = picked.join(', ');
                 document.getElementById('array-error').textContent = '';
+                inputChanged();
             });
 
             /* A preset fills the values box, so what is run is what is shown.
@@ -348,6 +359,7 @@
                 apply: function (list) {
                     arrayInput.value = list.join(', ');
                     document.getElementById('array-error').textContent = '';
+                    inputChanged();
                 }
             });
 
@@ -356,6 +368,7 @@
                     .sort(function (a, b) { return a - b; })
                     .join(', ');
                 document.getElementById('array-error').textContent = '';
+                inputChanged();
             });
 
             document.getElementById('pick-present').addEventListener('click', function () {
@@ -363,6 +376,7 @@
                 if (!list.length) return;
                 targetInput.value = list[Math.floor(Math.random() * list.length)];
                 document.getElementById('target-error').textContent = '';
+                inputChanged();
             });
 
             document.getElementById('pick-absent').addEventListener('click', function () {
@@ -371,6 +385,7 @@
                 while (list.indexOf(candidate) !== -1) candidate++;
                 targetInput.value = candidate;
                 document.getElementById('target-error').textContent = '';
+                inputChanged();
             });
         })();
     </script>

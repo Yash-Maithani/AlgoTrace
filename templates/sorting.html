@@ -506,8 +506,23 @@
                     methodManual.checked = true;
                     syncInputMethod();
                     document.getElementById('setup-error').textContent = '';
+                    inputChanged();
                 }
             });
+
+            /* The stage shows a run of the values that were typed. Once those
+               change, by a preset, by editing, by another size or by switching
+               between random and typed, the run on screen describes input that
+               is no longer in the box, so it is cleared. Run makes a new one. */
+            function inputChanged() {
+                var ws = Workspace.current;
+                if (ws && ws.payload) ws.discard();
+            }
+            ['manual-input', 'array-size'].forEach(function (id) {
+                document.getElementById(id).addEventListener('input', inputChanged);
+            });
+            methodRandom.addEventListener('change', inputChanged);
+            methodManual.addEventListener('change', inputChanged);
 
             /* POST /sorting still runs the sort server side. When it did, the
                workspace opens on that run rather than throwing it away. */

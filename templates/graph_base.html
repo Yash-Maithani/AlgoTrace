@@ -899,6 +899,34 @@ A</pre>
             return ["bfs", "dfs", "dijkstra", "prim", "bellman_ford"].includes(algo);
         }
 
+        /* A small graph for each algorithm, in the input format its own guide
+           shows, so a student can press Run the moment the page opens instead of
+           meeting an empty box. They are the guides' examples or the demos the page
+           already offers, so nothing here is new input to learn. The directed
+           sort gets a course plan: arrows that form no cycle. Kruskal and
+           Floyd-Warshall take no start node. */
+        const STARTER_GRAPHS = {
+            bfs: { lines: ['6 7', 'A B', 'A C', 'B D', 'C D', 'C E', 'D F', 'E F'], start: 'A' },
+            dfs: { lines: ['6 7', 'A B', 'A C', 'B D', 'C D', 'C E', 'D F', 'E F'], start: 'A' },
+            dijkstra: { lines: ['6 8', 'A B 2', 'A C 4', 'B C 1', 'B D 7', 'C E 3', 'D E 2', 'D F 1', 'E F 5'], start: 'A' },
+            prim: { lines: ['5 7', 'A B 4', 'A C 2', 'B C 5', 'B D 10', 'C D 3', 'C E 7', 'D E 6'], start: 'A' },
+            kruskal: { lines: ['5 7', 'A B 4', 'A C 2', 'B C 5', 'B D 10', 'C D 3', 'C E 7', 'D E 6'], start: null },
+            floyd_warshall: { lines: ['4 6', 'A B 3', 'A C 8', 'A D 5', 'B D 7', 'C B 4', 'D C 2'], start: null },
+            bellman_ford: { lines: ['5 6', 'A B 6', 'A C 7', 'B C 8', 'B D 5', 'C E 9', 'D E 2'], start: 'A' },
+            topological_sort: { lines: ['7 7', 'Math Calc', 'Math Phys', 'Calc Stat', 'Phys Stat',
+                                        'Stat Proj', 'Intro Proj', 'Intro Code'], start: null }
+        };
+
+        function loadStarterGraph() {
+            const starter = STARTER_GRAPHS[getCurrentAlgorithm()];
+            const input = document.getElementById('graph-input');
+            if (!starter || !input || input.value.trim() !== '') return;
+            // The start node goes on the last line for the algorithms that read one.
+            input.value = starter.lines.concat(starter.start ? [starter.start] : []).join('\n');
+            const startField = document.getElementById('start-node');
+            if (starter.start && startField && startField.value.trim() === '') startField.value = starter.start;
+        }
+
         // Initialize on document load
         document.addEventListener('DOMContentLoaded', function() {
             // Update UI based on algorithm type
@@ -906,6 +934,9 @@ A</pre>
             
             // Update the format guide based on the selected algorithm
             updateFormatGuide();
+
+            // Open with something to run.
+            loadStarterGraph();
             
             // Initialize the graph visualization
             initializeGraphVisualization();
@@ -1350,6 +1381,34 @@ A</pre>
             }, 150);
         });
 
+        /* The picture of the graph is not available to a screen reader, so the
+           canvas is an image with a name that says what it shows: how many nodes
+           and edges, which, and for the directed sort which way they point. The
+           running step is told by the Explain tab, so this stays the same
+           through a run. */
+        function nameGraph() {
+            if (!svg || svg.empty()) return;
+            const id = end => (end !== null && typeof end === 'object') ? end.id : end;
+            let label;
+            if (!nodes.length) {
+                label = 'Graph canvas, empty. Run the algorithm to draw the graph.';
+            } else {
+                const directed = isDirected();
+                const shown = links.slice(0, 24).map(l => {
+                    const a = id(l.source), b = id(l.target);
+                    const weight = isWeighted() && l.value !== undefined ? ' (weight ' + l.value + ')' : '';
+                    return a + (directed ? ' to ' : ' and ') + b + weight;
+                });
+                label = (directed ? 'Directed graph' : 'Graph') + ' with ' + nodes.length +
+                    (nodes.length === 1 ? ' node and ' : ' nodes and ') + links.length +
+                    (links.length === 1 ? ' edge. ' : ' edges. ') +
+                    'Nodes: ' + nodes.map(n => n.id).join(', ') + '. ' +
+                    (shown.length ? (directed ? 'Arrows: ' : 'Edges: ') + shown.join('; ') +
+                        (links.length > shown.length ? '; and ' + (links.length - shown.length) + ' more' : '') + '.' : '');
+            }
+            svg.attr('role', 'img').attr('aria-label', label.trim());
+        }
+
         function initializeGraph() {
             const container = document.getElementById('graph-container');
             width = container.clientWidth;
@@ -1370,6 +1429,7 @@ A</pre>
                 .attr('viewBox', `0 0 ${width} ${height}`)
                 .attr('preserveAspectRatio', 'xMidYMid meet')
                 .attr('class', 'graph-svg');
+            nameGraph();
 
             // Add a background with subtle patterns for better visual reference
             svg.append('rect')
@@ -1426,6 +1486,7 @@ A</pre>
             
             // Clear only the graph content, preserving the background and definitions
             svg.selectAll('.grid-lines, .decoration-dots, .links, .nodes, .edge-label-bg-group, .edge-label-group, .node-labels').remove();
+            nameGraph();
             
             // Re-add background if it doesn't exist
             if (svg.select('rect').empty()) {

@@ -266,6 +266,10 @@
         body.appendChild(this.predictHost);
         this.questionCard = null;
         this.resultCard = null;
+        // Before a run there is no step to explain. Say what to do rather than
+        // leave a tab of blank lines; the step elements are hidden until then.
+        this.explainIdle = el('p', 'explain-idle', IDLE_MESSAGE);
+        body.appendChild(this.explainIdle);
         var head = el('div', 'explain-head');
         head.appendChild(this.explainAction);
         body.appendChild(head);
@@ -273,6 +277,16 @@
         body.appendChild(this.explainWhy);
         this.explainVars = el('dl', 'var-table');
         body.appendChild(this.explainVars);
+        this.setIdle(true);
+    };
+
+    var IDLE_MESSAGE = 'Run the algorithm to see each step explained';
+
+    /* Idle is "no step on show": before the first run, and after a run is
+       thrown away. */
+    Panel.prototype.setIdle = function (idle) {
+        this.bodies.explain.classList.toggle('is-idle', idle);
+        this.explainIdle.hidden = !idle;
     };
 
     Panel.prototype.renderAbout = function () {
@@ -610,10 +624,12 @@
         this.syncCodeVars();
         this.highlight(null);
         this.renderThisRun(null);
+        this.setIdle(true);
     };
 
     Panel.prototype.showStep = function (step, stats) {
         if (!step) return;
+        this.setIdle(false);
         if (this.explainAction) {
             this.explainAction.textContent = step.action || '';
             this.explainAction.setAttribute('data-action', step.action || '');

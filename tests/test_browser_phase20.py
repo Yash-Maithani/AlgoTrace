@@ -40,6 +40,14 @@ def test_arrows_point_and_stop_at_the_target(browser, base_url):
     page = page_for(browser, base_url, '/graph?algo=topological_sort', width=1440)
     load(page, 'loadCourseDemo')
     page.evaluate('Workspace.current.go(0)')
+    # Each arrow is drawn on a tick of the force layout, from where the nodes are
+    # at that tick. Going to step 0 rebuilds the canvas and restarts the layout, so
+    # measuring straight away can catch nodes already moved and arrows not yet
+    # redrawn (gaps of hundreds of pixels, on about one run in three). Wait for the
+    # layout to come to rest: its last tick draws every arrow where its node is.
+    page.wait_for_function(
+        "typeof simulation !== 'undefined' && simulation && simulation.alpha() < simulation.alphaMin()",
+        timeout=15000)
     info = page.evaluate("""() => {
         const links = [...document.querySelectorAll('#graph-container line.link')];
         return {
@@ -70,12 +78,10 @@ def test_undirected_pages_are_unchanged(browser, base_url, algo):
         marked: document.querySelectorAll('#graph-container line[marker-end]').length,
         marker: !!document.querySelector('#arrowhead'),
         badges: document.querySelectorAll('.indegree-badge').length,
-        strip: document.getElementById('topo-strip').hidden,
         stripClass: document.getElementById('stage').classList.contains('has-strip'),
-        startShown: !document.querySelector('.input-section').hidden
     })""")
-    assert info == {'marked': 0, 'marker': False, 'badges': 0, 'strip': True,
-                    'stripClass': False, 'startShown': True}
+    assert info == {'marked': 0, 'marker': False, 'badges': 0, 'stripClass': False}
+    assert not page.is_visible('#topo-strip') and page.is_visible('.input-section')
     assert page.errors == []
     page.ctx.close()
 
@@ -100,7 +106,7 @@ def test_strip_and_badges(browser, base_url, width, scheme):
             inside: box(strip).top >= box(document.getElementById('graph-container')).bottom - 1
                     && box(strip).bottom <= box(stage).bottom + 1,
             nextToStage: stage.nextElementSibling.classList.contains('control-bar'),
-            visible: !strip.hidden && box(strip).height > 40
+            visible: box(strip).height > 40 && getComputedStyle(strip).display !== 'none'
         };
     }""")
     meta = body['meta'][k]['vars']
@@ -202,7 +208,7 @@ def test_typed_directed_input_and_its_errors(browser, base_url):
     page = page_for(browser, base_url, '/graph?algo=topological_sort', width=1440)
     assert page.is_visible('#directed-format-guide') or page.evaluate(
         "document.getElementById('directed-format-guide').style.display") == 'block'
-    assert page.evaluate("document.querySelector('.input-section').hidden")
+    assert not page.is_visible('.input-section')
     page.fill('#graph-input', '3 2\nA B\nB A\nLone')
     page.click('#run-button')
     page.wait_for_function('Workspace.current.steps.length > 0')

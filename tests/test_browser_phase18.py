@@ -134,7 +134,7 @@ def active_boxes(page):
 def test_the_panel_is_hidden_for_sorts_without_recursion(browser, base_url, algorithm):
     page = page_for(browser, base_url, '/sorting')
     page.click('#algo-picker [data-algorithm="%s"]' % algorithm)
-    assert page.evaluate(TREE + '.hidden') is True and not page.is_visible('#call-tree')
+    assert not page.is_visible('#call-tree')
     start_sort(page, algorithm, '5, 3, 8, 1, 9, 2')
     page.evaluate('Workspace.current.go(6)')
     assert not page.is_visible('#call-tree')
@@ -172,7 +172,7 @@ def test_it_is_open_by_default_on_a_desktop_and_the_toggle_collapses_it(browser,
     assert page.get_attribute('#call-tree-toggle', 'aria-expanded') == 'false'
     assert page.inner_text('#call-tree-toggle') == 'Show call tree' and not page.is_visible('.call-tree-scroll')
     assert page.get_attribute('#call-tree-toggle', 'aria-controls') == 'call-tree-body'
-    assert page.evaluate("document.getElementById('call-tree-body').hidden") is True
+    assert not page.is_visible('#call-tree-body')
 
     # It stays as the visitor left it across a new run.
     start_sort(page, 'Quick Sort', '5, 3, 8, 1, 9, 2')

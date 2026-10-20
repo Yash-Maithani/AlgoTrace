@@ -316,6 +316,15 @@ body {
     -webkit-tap-highlight-color: transparent;
 }
 
+/* The hidden attribute means hidden. Any rule that sets display (flex, grid,
+   inline-flex) is more specific than the browser's own [hidden] rule and would
+   silently show the element, which is how every algorithm's variant switch and
+   the seed row once appeared on /sorting and /compare. One rule here, so a new
+   component cannot reintroduce it and none needs its own [hidden] fix. */
+[hidden] {
+    display: none !important;
+}
+
 .container {
     max-width: 1200px;
     margin: var(--space-4) auto;
@@ -4140,7 +4149,12 @@ pre.sample {
 .count-cell[hidden] { display: none; }
 .count-cell[data-state="empty"] .count-value { color: var(--text-muted); }
 .count-cell[data-state="counted"] { background-color: var(--surface); border-color: var(--border-strong); font-weight: 700; }
-.count-cell[data-state="read"] { opacity: 0.6; }
+/* A slot already read out is quieter, and says so in more than colour: a dashed
+   border and normal weight. It was dimmed with opacity 0.6, which left its digits
+   at 4.35:1 against the cell; muted text on the cell is held above 4.5:1. */
+.count-cell[data-state="read"] { border-style: dashed; font-weight: 400; }
+.count-cell[data-state="read"] .count-value,
+.count-cell[data-state="read"] .count-index { color: var(--text-muted); }
 .count-cell[data-state="active"] {
     background-color: var(--pivot-wash);
     border: 2px solid var(--pivot-ink);
@@ -4425,6 +4439,22 @@ pre.sample {
 @media (prefers-reduced-motion: no-preference) {
     .grid-cell { transition: background-color var(--dur-fast, 120ms) var(--ease-out); }
 }
+
+/* --- Learn panel before a run ---------------------------------------------------- */
+
+.explain-idle {
+    margin: 0;
+    padding: var(--space-3);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+}
+
+.is-idle .explain-head,
+.is-idle .explain-text,
+.is-idle .explain-why,
+.is-idle .var-table { display: none; }
 
 /* Last in the file on purpose: a media query adds no specificity, so it must come
    after every rule that sets a transition for these elements, or the rule it
