@@ -73,3 +73,5 @@ logs/
 .claude/skills/
 .agents/
 skills-lock.json
+
+.claude/
