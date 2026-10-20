@@ -88,11 +88,12 @@ SHAPE = {
     'O(V times E)': None,
     'O(n plus k)': None,
     'O(d times (n plus b))': None,
+    'O(V plus E)': None,
 }
 
 
 def test_every_lesson_was_read():
-    assert len(NAMES) == 18, 'expected 18 lessons, read %d' % len(NAMES)
+    assert len(NAMES) == 19, 'expected 19 lessons, read %d' % len(NAMES)
 
 
 @pytest.mark.parametrize('name', NAMES)

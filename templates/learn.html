@@ -63,6 +63,9 @@
             <li><a class="order-name" href="{{ url_for('graph_page') }}?algo=dfs">Depth-First Search</a>
                 <span class="order-note">Follow one path as far as it goes, then back up.</span>
                 <span class="order-tag">O(V&middot;E)</span></li>
+            <li><a class="order-name" href="{{ url_for('graph_page') }}?algo=topological_sort">Topological Sort</a>
+                <span class="order-note">Order tasks so every arrow points forward, or find the cycle.</span>
+                <span class="order-tag">O(V + E)</span></li>
             <li><a class="order-name" href="{{ url_for('graph_page') }}?algo=dijkstra">Dijkstra's Algorithm</a>
                 <span class="order-note">Cheapest route when edges have lengths.</span>
                 <span class="order-tag">O(V&sup2;)</span></li>
@@ -214,7 +217,8 @@
         </div>
 
         <h2>Graphs</h2>
-        <p>Seven algorithms. V is the number of nodes and E the number of edges.</p>
+        <p>Eight algorithms. V is the number of nodes and E the number of edges.
+           Topological sort reads its edges as one way arrows.</p>
         <div class="card-grid">
             <a class="algo-card" data-accent="2" href="{{ url_for('graph_page') }}?algo=bfs">
                 <h3>Breadth-First Search</h3>
@@ -236,6 +240,16 @@
                 </dl>
                 <p class="algo-note">Taking from the end of the stack is cheap, but the
                    same duplicate check scans the stack once per edge.</p>
+            </a>
+            <a class="algo-card" data-accent="3" href="{{ url_for('graph_page') }}?algo=topological_sort">
+                <h3>Topological Sort</h3>
+                <p>Kahn's algorithm: keep placing a node that no remaining arrow points at.</p>
+                <dl class="algo-facts">
+                    <dt>Time</dt><dd>O(V + E)</dd>
+                    <dt>Space</dt><dd>O(V)</dd>
+                </dl>
+                <p class="algo-note">The queue is a deque, so every node and every arrow
+                   is handled a fixed number of times. A cycle stops it and is named.</p>
             </a>
             <a class="algo-card" data-accent="5" href="{{ url_for('graph_page') }}?algo=dijkstra">
                 <h3>Dijkstra's Algorithm</h3>

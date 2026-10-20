@@ -559,7 +559,7 @@ def test_compare_banner_falls_back_to_steps():
 def test_learn_lists_all_eighteen_in_order(client):
     html = client.get('/learn').get_data(as_text=True)
     order = re.findall(r'class="order-name"[^>]*>([^<]+)</a>', html)
-    assert len(order) == 18
+    assert len(order) == 19          # 18 in Phase 19, then Topological Sort
     assert order[:3] == ['Linear Search', 'Binary Search', 'Jump Search']
     assert order[order.index('Heap Sort') + 1:order.index('Heap Sort') + 3] == ['Counting Sort', 'Radix Sort']
     cards = re.findall(r'<h3>([^<]+)</h3>', html)

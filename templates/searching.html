@@ -325,7 +325,7 @@
                 var size = 5 + Math.floor(Math.random() * 26);   // 5 to 30
                 var picked = [];
                 for (var i = 0; i < size; i++) {
-                    picked.push(1 + Math.floor(Math.random() * 99));
+                    picked.push(1 + Math.floor(Math.random() * Presets.RANDOM_MAX));
                 }
                 // Binary and jump search need a sorted list, so give them one
                 // rather than generating input their own validation will refuse.

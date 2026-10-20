@@ -87,8 +87,8 @@ Blank lines and comment-only lines inside a block are left out.
 
 ## Graph programs (Phase 13)
 
-BFS, DFS, Dijkstra, Prim, Kruskal, Bellman-Ford and Floyd-Warshall copy the
-seven `/run_*` endpoints in `app.py`. They read one graph format:
+BFS, DFS, Dijkstra, Prim, Kruskal, Bellman-Ford, Floyd-Warshall and Topological
+Sort (Phase 20) copy the eight `/run_*` endpoints in `app.py`. They read one graph format:
 
 ```
 <number of cases>
@@ -125,6 +125,7 @@ summary fields):
 | Prim, Kruskal | `edge <u> <v> <w>` per tree edge in order, `total <w>` |
 | Floyd-Warshall | `row <node> <d> ...` per node in input order, `path <from> <to> <d> <nodes>` per pair with a route, by from then to name |
 | Bellman-Ford | `distance <node> <d>` by node name, `negative_cycle true|false`, `iterations <n>` |
+| Topological Sort | `order <nodes>`, `remaining <nodes left over>`, `cycle <nodes>` (the last two empty when there is no cycle) |
 
 Maps come out in order of name because that is how they reach the browser:
 the endpoints answer with Flask's `jsonify`, which sorts object keys. For

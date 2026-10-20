@@ -257,3 +257,28 @@ def test_compare_with_two_ordinary_sorts_still_counts_comparisons(browser, base_
     text = page.text_content('#run-banner')
     assert 'comparisons cannot say' not in text and 'fewer comparisons' in text
     page.ctx.close()
+
+
+def test_compare_never_refuses_a_generated_or_preset_array(browser, base_url):
+    """Phase 20 Step 0: Radix or Counting on either side, random arrays and
+    every preset, nothing refused."""
+    page = page_for(browser, base_url, '/compare', width=1440)
+    for left, right in (('Radix Sort', 'Bubble Sort'), ('Quick Sort', 'Counting Sort'),
+                        ('Counting Sort', 'Radix Sort')):
+        page.select_option('#left-algorithm', left)
+        page.select_option('#right-algorithm', right)
+        for _ in range(3):
+            page.check('#random-input')
+            page.evaluate("document.getElementById('array-size').value = '100'")
+            page.evaluate('Compare.run()')
+            assert page.text_content('#setup-error').strip() == ''
+            assert page.evaluate('Compare.left.ws.steps.length > 0 && Compare.right.ws.steps.length > 0')
+        for preset in ('random', 'sorted', 'reversed', 'equal', 'nearly'):
+            page.check('#random-input')
+            page.evaluate("document.getElementById('array-size').value = '60'")
+            page.click('#preset-host [data-preset="%s"]' % preset)
+            page.evaluate('Compare.run()')
+            assert page.text_content('#setup-error').strip() == '', (left, right, preset)
+            assert page.evaluate('Compare.left.ws.steps.length > 0 && Compare.right.ws.steps.length > 0')
+    assert page.errors == []
+    page.ctx.close()

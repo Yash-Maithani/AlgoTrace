@@ -1,0 +1,22 @@
+{% extends "graph_base.html" %}
+
+{% block title %}Topological Sort | Algorithm Visualizer{% endblock %}
+
+{% block extra_content %}
+<div class="algorithm-info">
+    <h3>Topological Sort (Kahn's algorithm)</h3>
+    <p>A topological order lists the nodes of a directed graph so that every arrow points
+       forward: for each arrow U to V, U comes before V. Kahn's algorithm builds one by
+       repeatedly placing a node that no remaining arrow points at.</p>
+    <p class="panel-complexity-note">Time and space complexity for this implementation are in the Complexity tab of the Learn panel above, with the reason for each figure.</p>
+    <p><strong>Use Cases:</strong></p>
+    <ul>
+        <li>Course plans: take a course only after its prerequisites</li>
+        <li>Build systems: compile a file only after what it depends on</li>
+        <li>Spreadsheets: recalculate a cell only after the cells it reads</li>
+        <li>Package managers: install dependencies first</li>
+    </ul>
+    <p>If the arrows form a cycle, no order exists, and the run stops and names the
+       nodes that could never be placed.</p>
+</div>
+{% endblock %}

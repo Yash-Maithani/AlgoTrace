@@ -390,6 +390,13 @@ rather than squeezing the bars; the strip scrolls inside itself past 320px and k
 active slot or bucket in view. Jump Search adds an `end` pointer, the block end it is
 checking, next to `low` and `high` on the searching stage.
 
+Topological Sort (Phase 20) is the one directed graph page. Its links carry an arrowhead
+marker coloured by the line (`context-stroke`, so every edge state colours it) and stop at
+the target node's rim; each node has an in-degree badge to its upper right; and a strip
+inside the stage under the graph shows the queue of in-degree 0 nodes (front outlined),
+the order so far joined by arrows, and the closing message. The seven undirected pages
+draw no arrowheads, no badges and no strip.
+
 ### `/compare` Compare mode (Phase 17)
 
 Two sorting algorithms on one input. Not a three column workspace: there is no Learn

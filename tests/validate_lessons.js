@@ -150,10 +150,10 @@ function checkLesson(lesson, key, file) {
 // average, where k is its number of passes. Phase 19 adds jump search's
 // square root and the two sorts that do not compare: counting sort's
 // n plus k (k the largest key) and radix sort's d times (n plus b) (d digits,
-// b buckets).
+// b buckets). Phase 20 adds Kahn's V plus E.
 const BOUNDS = ['1', 'log n', 'square root of n', 'n', 'n log n', 'n squared',
                 'V', 'E', 'V squared', 'V cubed', 'V times E', 'E log E', 'k times E',
-                'n plus k', 'd times (n plus b)'];
+                'n plus k', 'd times (n plus b)', 'V plus E'];
 
 // Which growth curve a one variable worst case has. A bound missing here
 // names two variables at once, so the lesson draws no curve for it.

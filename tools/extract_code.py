@@ -40,6 +40,7 @@ ALGORITHMS = {
     'kruskal': 'Kruskal',
     'bellman_ford': 'BellmanFord',
     'floyd_warshall': 'FloydWarshall',
+    'topological_sort': 'TopologicalSort',
 }
 
 LANGUAGES = ('c', 'cpp', 'java')

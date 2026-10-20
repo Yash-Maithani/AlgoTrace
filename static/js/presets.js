@@ -36,9 +36,14 @@
         };
     }
 
+    /* Every random value on the site is a whole number from 1 to
+       RANDOM_MAX, the same range app.py uses, inside the 0 to 99 that
+       Counting and Radix Sort accept. */
+    var RANDOM_MAX = 99;
+
     function randomValues(n, next) {
         var out = [];
-        for (var i = 0; i < n; i++) out.push(1 + Math.floor(next() * 99));
+        for (var i = 0; i < n; i++) out.push(1 + Math.floor(next() * RANDOM_MAX));
         return out;
     }
 
@@ -137,7 +142,7 @@
         return { refresh: refresh };
     }
 
-    var api = { generate: generate, rng: rng, offered: offered, ORDER: ORDER, LABELS: LABELS, mount: mount };
+    var api = { RANDOM_MAX: RANDOM_MAX, generate: generate, rng: rng, offered: offered, ORDER: ORDER, LABELS: LABELS, mount: mount };
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     else root.Presets = api;
 })(typeof window !== 'undefined' ? window : this);

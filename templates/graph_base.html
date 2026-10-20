@@ -373,7 +373,8 @@
         ('prim', 'Prim', 'Grow one tree by cheapest edge.'),
         ('kruskal', 'Kruskal', 'Take cheap edges, skip loops.'),
         ('floyd_warshall', 'Floyd-Warshall', 'Every pair at once.'),
-        ('bellman_ford', 'Bellman-Ford', 'Survives negative edges.')
+        ('bellman_ford', 'Bellman-Ford', 'Survives negative edges.'),
+        ('topological_sort', 'Topological Sort', 'Order tasks so every arrow points forward.')
     ] %}
 
     <main class="workspace" id="main">
@@ -495,6 +496,26 @@ D C 6</pre>
                                         <button type="button" onclick="loadNegativeWeightDemo()" class="demo-btn">Load Negative Weights</button>
                                     </div>
                                 </div>
+                                <div id="directed-format-guide" style="display: none;">
+                                    <p><strong>For Topological Sort (Directed):</strong><br>
+                                    First line: [number of nodes] [number of arrows]<br>
+                                    Next lines: [from] [to] for each arrow, read as from must come before to<br>
+                                    Then, optionally, one line per node that has no arrows at all<br>
+                                    (No start node needed)</p>
+                                    <pre tabindex="0" role="region" aria-label="Example input">Example:
+7 7
+Math Calc
+Math Phys
+Calc Stat
+Phys Stat
+Stat Proj
+Intro Proj
+Intro Code</pre>
+                                    <div class="demo-buttons" style="margin-top: 10px;">
+                                        <button type="button" onclick="loadCourseDemo()" class="demo-btn">Load Course Plan</button>
+                                        <button type="button" onclick="loadCycleDemo()" class="demo-btn">Load a Cycle</button>
+                                    </div>
+                                </div>
                                 <div id="bellmanford-format-guide" style="display: none;">
                                     <p><strong>For Bellman-Ford:</strong><br>
                                     First line: [number of nodes] [number of edges]<br>
@@ -543,7 +564,7 @@ A</pre>
                     </div>
                 </div>
                 
-                <div class="input-section">
+                <div class="input-section"{% if algorithm == 'topological_sort' %} hidden{% endif %}>
                     <label for="start-node">Start Node:</label>
                     <input type="text" id="start-node" placeholder="e.g. A"
                            autocomplete="off" spellcheck="false">
@@ -553,8 +574,9 @@ A</pre>
                     Visualize Algorithm
                 </button>
                 
-                <!-- Demo Buttons -->
-                <div class="demo-buttons" style="margin-top: 15px;">
+                <!-- Demo Buttons. Both load undirected weighted graphs, so the
+                     directed page offers its own in the format guide instead. -->
+                <div class="demo-buttons" style="margin-top: 15px;"{% if algorithm == 'topological_sort' %} hidden{% endif %}>
                     <h4 style="margin: 0 0 10px 0; color: var(--text);">Quick demos</h4>
                     <button type="button" class="demo-btn" onclick="loadMSTDemo()" title="Load a demo graph for MST algorithms">
                         <svg class="inline-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="6" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><line x1="7.2" y1="7.3" x2="9.8" y2="16.7"/><line x1="16.8" y1="7.3" x2="14.2" y2="16.7"/></svg> Load MST Demo
@@ -578,6 +600,19 @@ A</pre>
                  role="group" aria-labelledby="stage-heading">
 
                 <div id="graph-container" class="graph-container"></div>
+                <!-- Topological sort: the queue of nodes with in-degree 0 and the
+                     order built so far, drawn from the step under the graph. -->
+                <div class="topo-strip sort-strip" id="topo-strip" hidden>
+                    <div class="topo-row">
+                        <span class="topo-label" id="topo-queue-label">Queue, in-degree 0, front first</span>
+                        <ol class="topo-chips" id="topo-queue" aria-labelledby="topo-queue-label"></ol>
+                    </div>
+                    <div class="topo-row">
+                        <span class="topo-label" id="topo-order-label">Order so far</span>
+                        <ol class="topo-chips is-order" id="topo-order" aria-labelledby="topo-order-label"></ol>
+                    </div>
+                    <p class="topo-message" id="topo-message" role="status"></p>
+                </div>
             </div>
 
             <div class="control-bar" role="group" aria-label="Playback">
@@ -835,7 +870,8 @@ A</pre>
             const algo = getCurrentAlgorithm();
             
             ['unweighted-format-guide', 'weighted-format-guide', 'kruskal-format-guide',
-             'floydwarshall-format-guide', 'bellmanford-format-guide'].forEach(id => {
+             'floydwarshall-format-guide', 'bellmanford-format-guide',
+             'directed-format-guide'].forEach(id => {
                 document.getElementById(id).style.display = 'none';
             });
 
@@ -846,7 +882,8 @@ A</pre>
                 prim: 'weighted-format-guide',
                 kruskal: 'kruskal-format-guide',
                 floyd_warshall: 'floydwarshall-format-guide',
-                bellman_ford: 'bellmanford-format-guide'
+                bellman_ford: 'bellmanford-format-guide',
+                topological_sort: 'directed-format-guide'
             }[algo];
 
             if (guideFor) {
@@ -871,6 +908,12 @@ A</pre>
             return ["kruskal", "floyd_warshall"].includes(algo);
         }
 
+        // Which algorithms read the graph as arrows rather than as two way edges.
+        // Only these draw arrowheads; the seven undirected ones are unchanged.
+        function isDirected(algo) {
+            return (algo || getCurrentAlgorithm()) === 'topological_sort';
+        }
+
         // Which algorithms want the start node line / field at all.
         function needsStartNode(algo) {
             return ["bfs", "dfs", "dijkstra", "prim", "bellman_ford"].includes(algo);
@@ -889,6 +932,13 @@ A</pre>
 
             // Hand the transport to the shared workspace.
             startWorkspace();
+
+            // The directed page shows its queue and order strip under the graph.
+            if (isDirected()) {
+                document.getElementById('topo-strip').hidden = false;
+                document.getElementById('stage').classList.add('has-strip');
+                renderTopoStrip([], [], 'Run the sort to see the queue and the order build up.');
+            }
         });
         
         // Function to parse the simplified graph input format
@@ -905,7 +955,35 @@ A</pre>
             }
             
             // Different parsing logic based on algorithm
-            if (algorithm === 'bfs' || algorithm === 'dfs') {
+            if (isDirected(algorithm)) {
+                // Directed format: one arrow per line, from then to. Each node
+                // lists the nodes its arrows point to, in the order given, and
+                // the arrow is stored once, never mirrored. Lines after the
+                // arrows may each name a node that has no arrows at all.
+                if (lines.length < numEdges + 1) {
+                    throw new Error(`Expected at least ${numEdges + 1} lines`);
+                }
+                const graph = {};
+                for (let i = 1; i <= numEdges; i++) {
+                    const parts = lines[i].trim().split(/\s+/);
+                    if (parts.length !== 2) {
+                        throw new Error(`Line ${i + 1} must contain the node the arrow leaves and the node it reaches, and nothing else`);
+                    }
+                    const [source, target] = parts;
+                    if (!graph[source]) graph[source] = [];
+                    if (!graph[target]) graph[target] = [];
+                    graph[source].push(target);
+                }
+                for (let i = numEdges + 1; i < lines.length; i++) {
+                    const parts = lines[i].trim().split(/\s+/);
+                    if (parts.length !== 1) {
+                        throw new Error(`Line ${i + 1} should name one node with no arrows, or there are more arrows than the first line says`);
+                    }
+                    if (!graph[parts[0]]) graph[parts[0]] = [];
+                }
+                return { graph, startNode: '' };
+
+            } else if (algorithm === 'bfs' || algorithm === 'dfs') {
                 // Unweighted graph format
                 if (lines.length < numEdges + 1) {
                     throw new Error(`Expected at least ${numEdges + 1} lines`);
@@ -1099,6 +1177,45 @@ A</pre>
             }
         }
         
+        /* A random directed graph with no cycle. The nodes are put in a hidden
+           random order and every arrow points forward in it, so a topological
+           order always exists. Each node after the first gets one arrow from an
+           earlier node, which keeps the graph in one piece; the rest are random
+           forward arrows, never repeated. `rand` is Math.random unless a test
+           passes its own. */
+        function randomDag(nodeIds, numEdges, rand) {
+            rand = rand || Math.random;
+            const rank = nodeIds.slice();
+            for (let i = rank.length - 1; i > 0; i--) {
+                const j = Math.floor(rand() * (i + 1));
+                [rank[i], rank[j]] = [rank[j], rank[i]];
+            }
+            const most = rank.length * (rank.length - 1) / 2;
+            const wanted = Math.max(rank.length - 1, Math.min(numEdges, most));
+            const edges = [];
+            const used = new Set();
+            for (let i = 1; i < rank.length; i++) {
+                const from = rank[Math.floor(rand() * i)];
+                edges.push([from, rank[i]]);
+                used.add(from + '>' + rank[i]);
+            }
+            const spare = [];
+            for (let i = 0; i < rank.length; i++) {
+                for (let j = i + 1; j < rank.length; j++) {
+                    if (!used.has(rank[i] + '>' + rank[j])) spare.push([rank[i], rank[j]]);
+                }
+            }
+            while (edges.length < wanted && spare.length) {
+                edges.push(spare.splice(Math.floor(rand() * spare.length), 1)[0]);
+            }
+            // Listed in a shuffled order, so the input order gives nothing away.
+            for (let i = edges.length - 1; i > 0; i--) {
+                const j = Math.floor(rand() * (i + 1));
+                [edges[i], edges[j]] = [edges[j], edges[i]];
+            }
+            return edges;
+        }
+
         // Generate a random graph with improved visuals and structure
         function generateRandomGraph() {
             const numNodes = parseInt(document.getElementById('num-nodes').value);
@@ -1114,6 +1231,15 @@ A</pre>
             // Generate node IDs (A, B, C, etc.)
             const nodeIds = Array.from({length: numNodes}, (_, i) => String.fromCharCode(65 + i));
             
+            if (isDirected(algorithm)) {
+                const arrows = randomDag(nodeIds, requestedEdges);
+                document.getElementById('graph-input').value =
+                    `${numNodes} ${arrows.length}\n` + arrows.map(a => a.join(' ')).join('\n');
+                document.getElementById('start-node').value = '';
+                setTimeout(() => { visualize(); }, 0);
+                return;
+            }
+
             // Show animation for graph generation
             document.getElementById('graph-input').value = "Generating random graph…";
             setTimeout(() => {
@@ -1370,6 +1496,25 @@ A</pre>
                 .attr('opacity', 0.2)
                 .attr('class', 'decoration');
 
+            // Directed graphs get an arrowhead at the end of every link. Its
+            // colour follows the line, so every edge state colours it too.
+            const directed = isDirected();
+            if (directed && svg.select('#arrowhead').empty()) {
+                const defs = svg.select('defs').empty() ? svg.append('defs') : svg.select('defs');
+                defs.append('marker')
+                    .attr('id', 'arrowhead')
+                    .attr('viewBox', '0 0 10 10')
+                    .attr('refX', 9)
+                    .attr('refY', 5)
+                    .attr('markerWidth', 5)
+                    .attr('markerHeight', 5)
+                    .attr('markerUnits', 'strokeWidth')
+                    .attr('orient', 'auto-start-reverse')
+                    .append('path')
+                    .attr('d', 'M 0 0 L 10 5 L 0 10 z')
+                    .attr('fill', 'context-stroke');
+            }
+
             // Create container for links with better styling
             const linkGroup = svg.append('g').attr('class', 'links');
             
@@ -1383,6 +1528,9 @@ A</pre>
                 .attr('stroke-opacity', isWeightedAlgorithm ? 0.8 : 0.7)
                 .attr('stroke-width', d => `${isWeightedAlgorithm ? Math.max(3, Math.sqrt(d.value) * 2) : Math.max(2, Math.sqrt(d.value) * 1.5)}px`)
                 .attr('stroke-linecap', 'round');
+            if (directed) {
+                link.attr('marker-end', 'url(#arrowhead)').classed('is-arrow', true);
+            }
 
             // Add edge weight labels only for weighted algorithms with improved styling
             if (isWeightedAlgorithm) {
@@ -1542,6 +1690,25 @@ A</pre>
                 .attr('pointer-events', 'none')
                 .attr('text-shadow', '0 1px 2px rgb(0 0 0 / 0.3)');
                 
+            // Topological sort shows each node's in-degree in a badge beside it.
+            let badge = null;
+            if (directed) {
+                badge = svg.append('g').attr('class', 'indegree-badges')
+                    .selectAll('g')
+                    .data(nodes)
+                    .enter()
+                    .append('g')
+                    .attr('class', 'indegree-badge')
+                    .attr('data-node', d => d.id)
+                    .attr('pointer-events', 'none');
+                badge.append('circle').attr('r', 12);
+                badge.append('text')
+                    .attr('text-anchor', 'middle')
+                    .attr('dominant-baseline', 'central')
+                    .text(d => d.indegree === undefined ? '' : d.indegree);
+                badge.append('title').text(d => 'In-degree of ' + d.id);
+            }
+
             // Start the simulation
             simulation
                 .nodes(nodes)
@@ -1557,11 +1724,26 @@ A</pre>
             // not running (reduced motion, dragging).
             renderPositions = () => {
                 // Apply smooth transitions for links with cubic bezier for natural movement
-                link
-                    .attr('x1', d => d.source.x)
-                    .attr('y1', d => d.source.y)
-                    .attr('x2', d => d.target.x)
-                    .attr('y2', d => d.target.y);
+                if (directed) {
+                    // Stop the line at the edge of the target node, so the
+                    // arrowhead sits on its rim instead of under it.
+                    const reach = 24 + 3;
+                    link.each(function (d) {
+                        const dx = d.target.x - d.source.x, dy = d.target.y - d.source.y;
+                        const length = Math.max(Math.hypot(dx, dy), 1);
+                        d3.select(this)
+                            .attr('x1', d.source.x)
+                            .attr('y1', d.source.y)
+                            .attr('x2', d.target.x - dx / length * reach)
+                            .attr('y2', d.target.y - dy / length * reach);
+                    });
+                } else {
+                    link
+                        .attr('x1', d => d.source.x)
+                        .attr('y1', d => d.source.y)
+                        .attr('x2', d => d.target.x)
+                        .attr('y2', d => d.target.y);
+                }
                 
                 // Update edge label and background positions if they exist
                 if (isWeightedAlgorithm) {
@@ -1595,6 +1777,8 @@ A</pre>
                 label
                     .attr('x', d => d.x)
                     .attr('y', d => d.y);
+
+                if (badge) badge.attr('transform', d => `translate(${d.x + 20},${d.y - 20})`);
             };
 
             simulation.on('tick', renderPositions);
@@ -1975,6 +2159,9 @@ A</pre>
                 case 'dfs':
                     applyTraversalStep(action, params, currentAlgo);
                     break;
+                case 'topological_sort':
+                    applyTopoStep(action, params, stepIndex);
+                    break;
             }
             
             // Don't call updateGraph() here as it resets colors!
@@ -1992,7 +2179,8 @@ A</pre>
             prim: "Prim's algorithm",
             kruskal: "Kruskal's algorithm",
             floyd_warshall: 'Floyd-Warshall',
-            bellman_ford: 'Bellman-Ford'
+            bellman_ford: 'Bellman-Ford',
+            topological_sort: 'Topological sort'
         };
 
         function updateStatusDisplay(stepIndex) {
@@ -2021,6 +2209,109 @@ A</pre>
             }
         }
         
+        /* Topological sort. Every step carries the whole state, so this only
+           paints it: the in-degree badges, the arrow or node the step is about,
+           and the queue and order strip under the graph.
+             count      [u, v, in_degree]
+             queue      [v, queue, in_degree, order]
+             remove     [u, queue, in_degree, order]
+             decrement  [u, v, queue, in_degree, order]
+             final      [order, remaining, cycle]                              */
+        let topoArrow = null;
+
+        function topoNode(id) {
+            return nodes.find(n => n.id === id);
+        }
+
+        function setBadges(inDegree) {
+            nodes.forEach(n => { n.indegree = inDegree[n.id]; });
+            d3.selectAll('.indegree-badge').each(function (d) {
+                const g = d3.select(this);
+                g.select('text').text(d.indegree);
+                g.attr('data-zero', d.indegree === 0 ? 'true' : 'false');
+            });
+        }
+
+        function renderChips(id, list) {
+            const host = document.getElementById(id);
+            host.innerHTML = '';
+            list.forEach(node => {
+                const li = document.createElement('li');
+                li.className = 'topo-chip';
+                li.textContent = node;
+                host.appendChild(li);
+            });
+            if (!list.length) {
+                const li = document.createElement('li');
+                li.className = 'topo-chip is-empty';
+                li.textContent = 'empty';
+                host.appendChild(li);
+            }
+        }
+
+        function renderTopoStrip(queue, order, message, outcome) {
+            renderChips('topo-queue', queue);
+            renderChips('topo-order', order);
+            const box = document.getElementById('topo-message');
+            box.textContent = message || '';
+            if (outcome) box.setAttribute('data-outcome', outcome);
+            else box.removeAttribute('data-outcome');
+        }
+
+        function applyTopoStep(action, params, stepIndex) {
+            if (topoArrow) {
+                // The arrow the last step was about goes back to how it stood.
+                highlightEdge(topoArrow[0], topoArrow[1], topoArrow[2], true);
+                topoArrow = null;
+            }
+            switch (action) {
+                case 'count': {
+                    const [u, v, inDegree] = params;
+                    setBadges(inDegree);
+                    highlightEdge(u, v, 'considering', true);
+                    topoArrow = [u, v, 'default'];
+                    renderTopoStrip([], [], '');
+                    break;
+                }
+                case 'queue': {
+                    const [v, queue, inDegree, order] = params;
+                    setBadges(inDegree);
+                    applyNodeStyle(topoNode(v), 'frontier');
+                    renderTopoStrip(queue, order, '');
+                    break;
+                }
+                case 'remove': {
+                    const [u, queue, inDegree, order] = params;
+                    setBadges(inDegree);
+                    applyNodeStyle(topoNode(u), 'visited');
+                    renderTopoStrip(queue, order, '');
+                    break;
+                }
+                case 'decrement': {
+                    const [u, v, queue, inDegree, order] = params;
+                    setBadges(inDegree);
+                    highlightEdge(u, v, 'considering', true);
+                    // Once it has been followed, a placed node's arrow is spent.
+                    topoArrow = [u, v, 'ignored'];
+                    renderTopoStrip(queue, order, '');
+                    break;
+                }
+                case 'final': {
+                    const [order, remaining, cycle] = params;
+                    const meta = stepMeta[stepIndex];
+                    const told = meta && meta.explain ? meta.explain.beginner : '';
+                    if (cycle.length) {
+                        remaining.forEach(n => applyNodeStyle(topoNode(n), cycle.indexOf(n) === -1 ? 'ignored' : 'current'));
+                        cycle.forEach((n, k) => highlightEdge(n, cycle[(k + 1) % cycle.length], 'shortest-path', true));
+                        renderTopoStrip([], order, told, 'missing');
+                    } else {
+                        renderTopoStrip([], order, told, 'found');
+                    }
+                    break;
+                }
+            }
+        }
+
         function applyKruskalStep(action, params, stepIndex) {
             
             switch (action) {
@@ -2602,8 +2893,10 @@ A</pre>
         
         function applyNodeStyle(node, style) {
             if (!node || node.id === undefined) return;
-            // Remove existing style classes and apply new one
-            d3.select('#graph-container').selectAll('circle')
+            // Remove existing style classes and apply new one. Only the node
+            // circles: the in-degree badges share a node's data and must keep
+            // their own colours.
+            d3.select('#graph-container').selectAll('.nodes circle')
                 .filter(d => d && d.id === node.id)
                 .classed('node-visited node-frontier node-ignored node-unvisited node-current', false)
                 .classed(`node-${style}`, true)
@@ -2624,13 +2917,17 @@ A</pre>
             node.style = style;
         }
         
-        function highlightEdge(sourceId, targetId, style) {
+        /* `oneWay` matches only the link from sourceId to targetId: on a
+           directed graph the arrow A -> B is not the arrow B -> A. The seven
+           undirected algorithms leave it off and match either way, as before. */
+        function highlightEdge(sourceId, targetId, style, oneWay) {
             
             const edgeSelection = d3.selectAll('.link')
                 .filter(d => {
                     const sId = typeof d.source === 'object' ? d.source.id : d.source;
                     const tId = typeof d.target === 'object' ? d.target.id : d.target;
-                    return (sId === sourceId && tId === targetId) || (sId === targetId && tId === sourceId);
+                    return (sId === sourceId && tId === targetId) ||
+                        (!oneWay && sId === targetId && tId === sourceId);
                 });
             
             if (edgeSelection.empty()) {
@@ -3120,6 +3417,25 @@ D C 6`;
             }, 800);
         }
         
+        /* Directed demos: a course plan with an order, and a morning routine
+           whose arrows go round in a loop, so no order exists. */
+        function loadDirectedDemo(lines) {
+            document.getElementById('manualRadio').checked = true;
+            toggleGraphInputMethod();
+            document.getElementById('graph-input').value = lines.join('\n');
+            visualize();
+        }
+
+        function loadCourseDemo() {
+            loadDirectedDemo(['7 7', 'Math Calc', 'Math Phys', 'Calc Stat',
+                              'Phys Stat', 'Stat Proj', 'Intro Proj', 'Intro Code']);
+        }
+
+        function loadCycleDemo() {
+            loadDirectedDemo(['5 5', 'Wake Wash', 'Wash Dress', 'Dress Tea',
+                              'Tea Wash', 'Tea Go']);
+        }
+
         function loadMSTDemo() {
             // A small 4-node graph, good for showing a minimum spanning tree
             runDemo([

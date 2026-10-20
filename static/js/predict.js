@@ -29,6 +29,7 @@
  *   Kruskal         "Will this edge be added, or would it make a cycle?"
  *   Bellman-Ford    "Will this edge shorten the distance?"
  *   Floyd-Warshall  "Is the path through k shorter?"
+ *   Topological     "Which node is removed next?" (options: the in-degree 0 queue)
  *
  * The answer is read off the step that follows (or, for merge sort, a fact the
  * compare step records) and the explanation is that step's own text. A step
@@ -417,6 +418,22 @@
         };
     };
 
+    /* Topological sort: the queue holds every node with in-degree 0, and
+       Kahn's algorithm takes the one at the front. Options are the real queue. */
+    GRAPH.topo = function (ctx, now, next) {
+        var queue = (now.vars && now.vars.queue || []).map(String);
+        var answer = String(next.indices[0]);
+        if (queue.length < 2 || queue.indexOf(answer) === -1) return null;
+        return {
+            kind: 'topo-remove',
+            prompt: 'The queue of nodes with in-degree 0, front first: ' + queue.join(', ') +
+                '. Which node is removed next?',
+            options: queue.map(function (n) { return option(n, n); }),
+            answer: answer,
+            explain: next.explain.beginner + ' This algorithm always takes the node at the front of the queue.'
+        };
+    };
+
     /* Prim: which waiting node the cheapest edge brings into the tree. */
     GRAPH.join = function (ctx, now, next) {
         var answer = String(next.indices[1]);
@@ -485,6 +502,7 @@
     /* Which question a step asks is told by what the step is: its action and
        the line id it carries. */
     function graphKind(next) {
+        if (next.action === 'visit' && next.line === 'remove' && next.indices.length === 1) return 'topo';
         if (next.action === 'visit' && next.indices.length === 1) return 'visit';
         if (next.action === 'consider') {
             if (next.line === 'pop-min' && next.indices.length === 2) return 'join';

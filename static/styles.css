@@ -4210,6 +4210,110 @@ pre.sample {
 /* Jump search's block end, next to the low, mid and high pointers. */
 .pointer-end { color: var(--select-ink); }
 
+/* --- Topological sort (Phase 20) -------------------------------------------
+   The queue of nodes with in-degree 0 and the order so far, in a strip inside
+   the stage under the graph, like the count list under the bars. Each node's
+   in-degree sits in a badge beside it. */
+
+.stage.has-strip > .graph-container {
+    flex: 1 1 auto;
+    min-height: 420px;
+}
+
+.topo-strip {
+    display: grid;
+    gap: var(--space-2);
+}
+
+.topo-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.topo-label {
+    min-width: 11em;
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+    font-weight: 700;
+}
+
+.topo-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.topo-chip {
+    padding: 1px var(--space-2);
+    border: 1px solid var(--border-strong);
+    border-radius: 3px;
+    background-color: var(--surface);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 700;
+}
+
+#topo-queue .topo-chip { background-color: var(--active-wash); }
+#topo-queue .topo-chip:first-child { border: 2px solid var(--active-ink); }
+.topo-chips.is-order .topo-chip { background-color: var(--done-wash); }
+.topo-chips.is-order .topo-chip + .topo-chip::before {
+    content: "→ ";
+    color: var(--text-muted);
+    font-weight: 400;
+}
+.topo-chip.is-empty {
+    border-style: dashed;
+    background-color: transparent !important;
+    color: var(--text-muted);
+    font-weight: 400;
+}
+
+.topo-message {
+    margin: 0;
+    font-size: var(--text-sm);
+}
+
+.topo-message:empty { display: none; }
+
+.topo-message[data-outcome="found"],
+.topo-message[data-outcome="missing"] {
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+}
+
+.topo-message[data-outcome="found"] {
+    background-color: var(--done-wash);
+    border-left: 4px solid var(--done-ink);
+}
+
+.topo-message[data-outcome="missing"] {
+    background-color: var(--reject-wash);
+    border-left: 4px solid var(--reject-ink);
+}
+
+.indegree-badge circle {
+    fill: var(--surface);
+    stroke: var(--border-strong);
+    stroke-width: 2px;
+}
+
+.indegree-badge text {
+    fill: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.indegree-badge[data-zero="true"] circle {
+    fill: var(--done-wash);
+    stroke: var(--done-ink);
+}
+
 /* Last in the file on purpose: a media query adds no specificity, so it must come
    after every rule that sets a transition for these elements, or the rule it
    overrides would win. */

@@ -36,11 +36,13 @@ with open(os.path.join(HERE, 'baseline_graphs.json'), encoding='utf-8') as fh:
     BASELINE = json.load(fh)
 
 INF = '∞'
-GRAPHS = ['bfs', 'dfs', 'dijkstra', 'prim', 'kruskal', 'bellman_ford', 'floyd_warshall']
+GRAPHS = ['bfs', 'dfs', 'dijkstra', 'prim', 'kruskal', 'bellman_ford', 'floyd_warshall',
+          'topological_sort']
 KIND = {
     'bfs': 'lists', 'dfs': 'lists',
     'dijkstra': 'weighted', 'prim': 'weighted', 'bellman_ford': 'weighted',
     'kruskal': 'edges', 'floyd_warshall': 'edges',
+    'topological_sort': 'arrows',
 }
 
 
@@ -78,6 +80,10 @@ def expected_lines(algo, request):
     final = payload['steps'][-1] if algo != 'bellman_ford' else None
     if algo in ('bfs', 'dfs'):
         lines.append(' '.join(['path'] + final[1]))
+    elif algo == 'topological_sort':
+        lines.append(' '.join(['order'] + payload['order']))
+        lines.append(' '.join(['remaining'] + payload['remaining']))
+        lines.append(' '.join(['cycle'] + payload['cycle']))
     elif algo == 'dijkstra':
         # Maps in the order they reach the browser: jsonify sorts the keys.
         for node in sorted(final[1]):
@@ -121,10 +127,10 @@ def to_input(algo, request):
         out += ['%s %s %d' % (u, v, w) for u, v, w in request['edges']]
         return out
     graph = request['graph']
-    out.append(request['start'])
+    out.append(request.get('start', '-'))
     out.append(str(len(graph)))
     for node, nbrs in graph.items():
-        if kind == 'lists':
+        if kind in ('lists', 'arrows'):
             pairs = ['%s 1' % n for n in nbrs]
         else:
             pairs = ['%s %d' % (n, w) for n, w in nbrs.items()]
@@ -166,6 +172,9 @@ def generated(algo, count=24):
         if KIND[algo] == 'edges':
             out.append({'nodes': names, 'edges': [list(e) for e in edges]})
             continue
+        if KIND[algo] == 'arrows':
+            out.append({'graph': arrow_graph(rng, names, edges, c)})
+            continue
         adjacency = {name: ({} if KIND[algo] == 'weighted' else []) for name in names}
         for a, b, w in edges:
             if algo == 'bellman_ford' and c % 3 == 0:
@@ -189,6 +198,26 @@ def generated(algo, count=24):
             adjacency[name] = dict(items) if KIND[algo] == 'weighted' else items
         out.append({'graph': adjacency, 'start': names[rng.randrange(n)]})
     return out
+
+
+def arrow_graph(rng, names, edges, c):
+    """A directed graph for Kahn's algorithm. Arrows run from earlier to later
+    in a shuffled order, so the graph has no cycle, except that every third
+    case adds arrows back (a cycle, sometimes with nodes waiting on it), and
+    some add a self loop or a repeated arrow."""
+    graph = {name: [] for name in names}
+    for a, b, _ in edges:
+        graph[a].append(b)
+    if c % 3 == 0 and len(names) >= 3:
+        k = rng.randint(2, len(names) - 1)
+        graph[names[k]].append(names[rng.randrange(k)])
+    if c % 7 == 1 and names:
+        graph[names[-1]].append(names[-1])
+    if c % 5 == 2 and edges:
+        graph[edges[0][0]].append(edges[0][1])
+    for name in names:
+        rng.shuffle(graph[name])
+    return graph
 
 
 def requests_for(algo):
@@ -245,3 +274,12 @@ def test_generated_graphs_hit_the_traps():
     fw = [post('floyd_warshall', r)['steps'][-1][1] for r in generated('floyd_warshall')]
     assert any(any(min(v for v in row if v != '∞') < 0 for row in m if any(v != '∞' for v in row))
                for m in fw), 'no negative distance'
+
+
+def test_generated_directed_graphs_hit_the_traps():
+    """Some generated directed graphs have a cycle, some have nodes waiting on
+    one, some are acyclic, and one has a self loop."""
+    bodies = [post('topological_sort', r) for r in generated('topological_sort')]
+    assert any(b['cycle'] for b in bodies) and any(not b['cycle'] for b in bodies)
+    assert any(len(b['remaining']) > len(b['cycle']) for b in bodies)
+    assert any(len(b['cycle']) == 1 for b in bodies)
