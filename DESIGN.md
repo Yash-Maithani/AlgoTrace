@@ -397,6 +397,17 @@ inside the stage under the graph shows the queue of in-degree 0 nodes (front out
 the order so far joined by arrows, and the closing message. The seven undirected pages
 draw no arrowheads, no badges and no strip.
 
+A* (Phase 21) is a fourth workspace, the grid, reached from the Graphs picker rather than
+the navbar. It keeps the workspace layout: setup (picker, grid size, presets, the run
+buttons), the stage with the control bar directly below it, the legend, and the Learn
+panel. The stage holds a board of square cells sized to fit (at most 64px); a cell of 46px
+or more shows f with g and h under it, 26px or more f alone, smaller none. A cell's kind
+(free, wall, start S, goal G) is its fill; what the run did to it (open, expanded, current,
+path) is a wash and an inset border, so S and G keep their colour. The board is one
+`role="grid"` with a cell cursor through `aria-activedescendant`, so the keyboard edits it
+without leaving it, and it carries `data-keys="own"` so the transport shortcuts stay off
+while it has focus. Phones start at 8 by 10 cells, larger screens at 12 by 20.
+
 ### `/compare` Compare mode (Phase 17)
 
 Two sorting algorithms on one input. Not a three column workspace: there is no Learn

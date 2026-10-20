@@ -1,0 +1,15 @@
+{# The Graphs picker, shared by graph_base.html and astar.html. Each entry is a
+   link to its own page, and the current one carries aria-current="page".
+   The list is GRAPH_PICKER in app.py. #}
+                <ul class="algo-picker" id="algo-picker">
+                    {% for key, name, note in graph_algos %}
+                    <li>
+                        <a href="{{ url_for('graph_page') }}?algo={{ key }}"
+                           data-accent="{{ loop.index if loop.index <= 7 else 7 }}"
+                           {% if algorithm == key %}aria-current="page"{% endif %}>
+                            <span class="pick-name">{{ name }}</span>
+                            <span class="pick-note">{{ note }}</span>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>

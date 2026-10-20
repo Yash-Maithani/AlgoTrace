@@ -149,3 +149,30 @@ blocks of its own:
 `tools/extract_code.py` writes those lines to a separate `helpers` listing
 per language, so the Code tab shows the algorithm and offers the helpers
 behind a toggle. Helper lines carry no line ids.
+
+## Grid programs (Phase 21)
+
+A* copies `grid_algorithms/astar.py`, including its binary heap, so the same
+entries come out in the same order with the same number of comparisons.
+Moves are tried up, right, down, left; every move costs 1; h is the
+Manhattan distance, or 0 for Dijkstra. The heap orders entries by lowest f,
+then lowest h, then push order. A cell whose g improves is pushed again, and
+its older entry is skipped (a `reject stale` step) when it comes out.
+
+```
+<number of cases>
+<manhattan|zero> <rows> <cols>
+<start row> <start column> <goal row> <goal column>
+<rows lines of . (free) and # (wall)>
+```
+
+Each case prints one line per step, `step <action> <line id> <cells> | <values>`
+with cells written `r,c` (an `enqueue` or `relax` names the cell then the
+cell it was reached from, and its values are g and h), then:
+
+```
+path <cells from start to goal, or nothing>
+expanded <cells expanded>
+comparisons <heap comparisons>
+end
+```

@@ -18,7 +18,7 @@ Yash Maithani
 | `/sorting` | Sorting workspace, eight algorithms |
 | `/compare` | Two sorts side by side on one input, one transport for both |
 | `/searching` | Searching workspace, three algorithms |
-| `/graph?algo=...` | Graph workspace, eight algorithms |
+| `/graph?algo=...` | Graph workspace, eight algorithms, and A* on its own grid workspace (`?algo=astar`, in the same picker) |
 | `/big-o` | How complexity works, with a growth chart you can drive |
 | `/privacy`, `/terms` | Legal pages |
 
@@ -58,6 +58,17 @@ with in-degree 0 and the order as it builds. When a cycle makes an order
 impossible the run stops and names the cycle and the nodes waiting on it. The
 seven undirected algorithms read and draw their graphs exactly as before.
 
+A* has a grid workspace of its own, reached from the same Graphs picker:
+draw walls by clicking or dragging, drag the start and the goal, or use the
+keyboard (arrow keys move a cursor, Space toggles a wall, S and G place the
+start and goal). Moves go up, right, down and left at cost 1, the heuristic
+is the Manhattan distance, and the open set is a binary heap ordered by lowest
+f, then lowest h, then the order cells were pushed, so every run, and every
+language, takes the same steps. Cells show f, or g, h and f when they are big
+enough. "Run Dijkstra on the same grid" runs the same code with h = 0, and
+the closing line compares the cells each expanded on that one grid. Presets:
+Empty, Wall with a gap, Simple maze, No path.
+
 ### Predict mode
 
 The control bar on every workspace has a **Predict** switch, off by default. When it
@@ -75,7 +86,7 @@ sort "will the parent move down?", counting sort "which count goes up?", radix
 sort "which bucket does this value go into?", jump search "jump again or scan
 back?", Kruskal "added, or a cycle?", Bellman-Ford
 "will this edge shorten the distance?" and Floyd-Warshall "is the path through
-k shorter?" and topological sort "which node is removed next?". A run with no step that can be asked about says so instead.
+k shorter?" and topological sort "which node is removed next?" and A* "which cell is expanded next?". A run with no step that can be asked about says so instead.
 
 ### The call tree
 
@@ -182,6 +193,7 @@ behaviour:
 | `test_phase15.py`, `test_browser_phase15.py` | The Home player: its steps are the real `/run_sort` steps, all four cards change together on every step, it starts and pauses with the viewport, and under emulated reduced motion it stays on its frozen step while Step still works |
 | `test_phase16.py`, `test_browser_phase16.py` | Predict mode: every question the builders ask, over real runs of every algorithm, has an answer that matches the step that really follows and options taken from the run; in a browser, the flow, the score, Step back, autoplay waiting, keyboard, widths and themes |
 | `test_random_range.py` | One range for every random value, 1 to 99: server random arrays, presets and the searching page; every preset at every size runs on every sort, so Compare never refuses a generated input |
+| `test_phase21.py`, `test_browser_phase21.py`, `test_reference_grid.py` | A*: on 400 random grids the path is as short as a BFS shortest path and valid, no path is reported exactly when BFS finds none, A* never expands more cells than Dijkstra, the tie-break and stale entries, the endpoint's refusals, the cases measured (Theta(1) and Theta(V log V) heap comparisons), the presets, the Predict question against the real open set; in a browser, drawing and erasing walls by pointer and by keyboard, moving start and goal, the Dijkstra button and result line, and the page at 375, 768 and 1440 in both themes; C, C++ and Java take the same steps with the same heap comparisons |
 | `test_phase20.py`, `test_browser_phase20.py` | Topological sort: on 300 random DAGs every arrow u to v has u before v; on 300 graphs with a planted cycle the run stops, names the nodes left, and the cycle it reports is real; the step meta; exactly 2(V + E) + 1 steps on a DAG; Theta(V + E) measured; the Predict question against the real queue; in a browser, arrowheads that stop at the node's rim, no arrows on the seven undirected pages, badges and strip at 375, 768 and 1440 in both themes, step back, the random DAG generator and reduced motion |
 | `test_phase19.py`, `test_browser_phase19.py` | Jump, Counting and Radix: sorted output and found index against Python's `sorted` and `index` on random, sorted, reversed, all equal, duplicate and edge-size inputs; zero comparisons; the 0 to 99 rule and its messages; every worked figure; Theta per case measured (n + k over a grid of n and k, d(n + b) as n and d grow, 1 and square root of n); the three new Predict questions against the real steps; in a browser, the strips at 375, 768 and 1440 in both themes with no bar clipped, reduced motion, and the Compare banner counting steps when a side never compares |
 | `test_phase18.py`, `test_browser_phase18.py` | The call tree matches the recursion the real merge and quick sort functions made (found by profiling them, not from the step meta) for 200 runs across every variant; in a browser, the toggle, stepping forward and back, large arrays, both themes, and the seven item navbar at desktop widths |
@@ -209,10 +221,11 @@ file.
 
 ```
 app.py                     every route, and the eight graph algorithms
+grid_algorithms/           A* on a grid (Dijkstra is the same code with h = 0)
 teacher.py                 the one builder every step passes through
 sorting_algorithms/        eight sorts, each yielding teacher steps
 searching_algorithms/      linear, binary and jump search
-reference_code/            all nineteen algorithms in C, C++ and Java
+reference_code/            all twenty algorithms in C, C++ and Java
 templates/
   layout.html              the shell every page extends
   landing.html             Home
@@ -230,7 +243,7 @@ static/
   js/growth.js             the growth chart, shared by /big-o and the panel
   js/nav.js                the narrow header menu
   js/theme.js              the light and dark toggle
-  js/lessons/*.js          nineteen lesson files, one per algorithm
+  js/lessons/*.js          twenty lesson files, one per algorithm
   js/lessons/README.md     the step contract every phase follows
   js/lessons/code/*.js     C, C++ and Java listings, generated, never edited
 tests/                     pytest suites and the two recorded baselines

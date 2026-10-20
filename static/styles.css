@@ -4314,6 +4314,118 @@ pre.sample {
     stroke: var(--done-ink);
 }
 
+/* --- A* grid (Phase 21) -------------------------------------------------------
+   A board of square cells sized by static/js/gridstage.js (--cell). The kind
+   of a cell (free, wall, start, goal) is its fill; the state a run gives it
+   (open, expanded, current, path) is a wash and a border, so the start and
+   the goal keep their colour while still showing what the search did. */
+
+.grid-stage {
+    align-items: center;
+    justify-content: center;
+}
+
+.grid-board {
+    --cell: 32px;
+    display: grid;
+    gap: 1px;
+    padding: 1px;
+    background-color: var(--border);
+    border-radius: var(--radius-sm);
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.grid-board:focus { outline: none; }
+.grid-board:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
+
+.grid-row {
+    display: grid;
+    grid-template-columns: repeat(var(--grid-cols), var(--cell));
+    gap: 1px;
+}
+
+.grid-cell {
+    position: relative;
+    width: var(--cell);
+    height: var(--cell);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--surface);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.05;
+    cursor: crosshair;
+    overflow: hidden;
+}
+
+.grid-cell[data-kind="wall"] { background-color: var(--idle-graph); }
+.grid-cell[data-kind="start"] { background-color: var(--queued-ink); color: var(--on-state); cursor: grab; }
+.grid-cell[data-kind="goal"] { background-color: var(--current-ink); color: var(--on-state); cursor: grab; }
+
+.grid-cell[data-kind="free"][data-state="open"] { background-color: var(--active-wash); box-shadow: inset 0 0 0 2px var(--active-ink); }
+.grid-cell[data-kind="free"][data-state="closed"] { background-color: var(--pivot-wash); box-shadow: inset 0 0 0 1px var(--pivot-ink); }
+.grid-cell[data-kind="free"][data-state="current"] { background-color: var(--active-solid); color: var(--on-state); }
+.grid-cell[data-kind="free"][data-state="path"] { background-color: var(--done-solid); color: var(--on-state); }
+.grid-cell[data-kind="start"][data-state="path"],
+.grid-cell[data-kind="goal"][data-state="path"] { box-shadow: inset 0 0 0 3px var(--done); }
+.grid-cell[data-kind="start"][data-state="current"],
+.grid-cell[data-kind="goal"][data-state="current"] { box-shadow: inset 0 0 0 3px var(--active); }
+
+.grid-board:focus-visible .grid-cell.is-cursor { outline: 3px solid var(--focus-ring); outline-offset: -3px; z-index: 1; }
+
+.cell-mark { font-weight: 700; font-size: calc(var(--cell) * 0.42); }
+.cell-mark:empty { display: none; }
+.grid-cell[data-kind="start"] .cell-f,
+.grid-cell[data-kind="goal"] .cell-f,
+.grid-cell[data-kind="start"] .cell-gh,
+.grid-cell[data-kind="goal"] .cell-gh { display: none; }
+.cell-f { font-weight: 700; font-size: calc(var(--cell) * 0.36); }
+.cell-gh { font-size: calc(var(--cell) * 0.24); opacity: 0.85; }
+.cell-f:empty, .cell-gh:empty { display: none; }
+.grid-board[data-detail="f"] .cell-gh,
+.grid-board[data-detail="none"] .cell-f,
+.grid-board[data-detail="none"] .cell-gh { display: none; }
+
+.grid-size-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.grid-size-pair {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.grid-size-row input { width: 6em; }
+.grid-run-row { margin-top: var(--space-2); }
+
+.grid-swatch {
+    --swatch: var(--surface);
+    background-color: var(--surface) !important;
+    border: 1px solid var(--border-strong);
+}
+.grid-swatch[data-kind="wall"] { background-color: var(--idle-graph) !important; }
+.grid-swatch[data-kind="start"] { background-color: var(--queued-ink) !important; }
+.grid-swatch[data-kind="goal"] { background-color: var(--current-ink) !important; }
+.grid-swatch[data-state="open"] { background-color: var(--active-wash) !important; border: 2px solid var(--active-ink); }
+.grid-swatch[data-state="closed"] { background-color: var(--pivot-wash) !important; border-color: var(--pivot-ink); }
+.grid-swatch[data-state="current"] { background-color: var(--active-solid) !important; }
+.grid-swatch[data-state="path"] { background-color: var(--done-solid) !important; }
+
+.grid-key-note { margin-top: var(--space-1); }
+
+@media (prefers-reduced-motion: no-preference) {
+    .grid-cell { transition: background-color var(--dur-fast, 120ms) var(--ease-out); }
+}
+
 /* Last in the file on purpose: a media query adds no specificity, so it must come
    after every rule that sets a transition for these elements, or the rule it
    overrides would win. */

@@ -321,10 +321,10 @@ def test_other_graph_pages_have_no_strip_or_arrows(client):
 def test_learn_home_and_counts(client):
     html = client.get('/learn').get_data(as_text=True)
     order = re.findall(r'class="order-name"[^>]*>([^<]+)</a>', html)
-    assert len(order) == 19
+    assert len(order) == 20                      # A* joined in Phase 21
     assert order.index('Topological Sort') == order.index('Depth-First Search') + 1
     assert '<h3>Topological Sort</h3>' in html
     home = client.get('/').get_data(as_text=True)
     assert '<span class="track-meta">%d algorithms</span>' % len(graph_algo_dict) in home
-    assert len(graph_algo_dict) == 8
+    assert len(graph_algo_dict) == 9                  # A* joined in Phase 21
     assert len(sorting_algo_dict) == 8 and len(SEARCH_ALGORITHMS) == 3

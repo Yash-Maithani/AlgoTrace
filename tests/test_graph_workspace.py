@@ -51,9 +51,11 @@ def test_page_renders(client, algo):
 def test_page_uses_the_workspace_shell(client, algo):
     body = client.get('/graph?algo=%s' % algo).get_data(as_text=True)
 
+    # A* draws on a grid board instead of the D3 graph canvas (Phase 21).
+    canvas = 'grid-board' if algo == 'astar' else 'graph-container'
     for needed in ('class="workspace"', 'workspace-setup', 'workspace-stage-col',
-                   'class="stage"', 'control-bar', 'algo-picker',
-                   'graph-container', 'workspace.js'):
+                   'class="stage', 'control-bar', 'algo-picker',
+                   canvas, 'workspace.js'):
         assert needed in body, '%s is missing %s' % (algo, needed)
 
 

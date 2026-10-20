@@ -1,0 +1,280 @@
+{% extends "layout.html" %}
+
+{% block title %}A* on a grid | Algorithm Visualizer{% endblock %}
+
+{% block content %}
+    <main class="workspace" id="main">
+
+        <h1 class="workspace-title">A* on a grid</h1>
+
+        <!-- SETUP ------------------------------------------------------- -->
+        <section class="workspace-setup" aria-labelledby="setup-heading">
+            <h2 class="sr-only" id="setup-heading">Set up a run</h2>
+            <div class="panel">
+                {% include "_graph_picker.html" %}
+            </div>
+
+            <div class="panel">
+                <div class="setup-field grid-size">
+                    <span class="setup-label">Grid size</span>
+                    <div class="grid-size-row">
+                        <span class="grid-size-pair">
+                            <label for="grid-rows">Rows</label>
+                            <input type="number" id="grid-rows" min="{{ grid_rows[0] }}" max="{{ grid_rows[1] }}"
+                                   inputmode="numeric" aria-describedby="grid-size-hint">
+                        </span>
+                        <span class="grid-size-pair">
+                            <label for="grid-cols">Columns</label>
+                            <input type="number" id="grid-cols" min="{{ grid_cols[0] }}" max="{{ grid_cols[1] }}"
+                                   inputmode="numeric" aria-describedby="grid-size-hint">
+                        </span>
+                    </div>
+                    <p class="setup-hint" id="grid-size-hint">
+                        {{ grid_rows[0] }} to {{ grid_rows[1] }} rows and {{ grid_cols[0] }} to {{ grid_cols[1] }}
+                        columns. Phones start smaller so every cell can be tapped.
+                    </p>
+                </div>
+
+                <div class="setup-field">
+                    <span class="setup-label" id="grid-preset-label">Start from a grid</span>
+                    <div class="setup-row" role="group" aria-labelledby="grid-preset-label">
+                        {% for key, label in [('empty', 'Empty'), ('gap', 'Wall with a gap'), ('maze', 'Simple maze'), ('nopath', 'No path')] %}
+                        <button type="button" class="btn btn-secondary btn-sm" data-grid-preset="{{ key }}">{{ label }}</button>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="setup-field">
+                    <p class="setup-hint" id="grid-help">
+                        Click or drag on the grid to draw walls, and on a wall to rub them out.
+                        Drag S (start) or G (goal) to move them. With the grid focused, the arrow
+                        keys move a cursor, Space toggles a wall, and S or G puts the start or the
+                        goal under the cursor. Moves go up, down, left and right, one step each.
+                    </p>
+                </div>
+
+                <div class="field-error" id="grid-error" role="alert"></div>
+
+                <div class="setup-row grid-run-row">
+                    <button type="button" class="btn btn-primary" id="run-button">Run A*</button>
+                    <button type="button" class="btn btn-secondary" id="run-dijkstra">
+                        Run Dijkstra on the same grid
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- STAGE, CONTROL BAR, LEGEND ---------------------------------- -->
+        <section class="workspace-stage-col" aria-labelledby="stage-heading">
+            <h2 class="sr-only" id="stage-heading">Visualization</h2>
+
+            <div class="stage grid-stage" id="stage">
+                <div class="grid-board" id="grid-board" aria-describedby="grid-help"></div>
+            </div>
+
+            <div class="control-bar" role="group" aria-label="Playback">
+                <div class="transport">
+                    <button type="button" class="transport-btn" id="step-back"
+                            aria-label="Step back" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
+                    <button type="button" class="transport-btn is-primary" id="play-pause"
+                            data-playing="false" aria-label="Play" disabled>
+                        <svg class="icon-play" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <polygon points="7 5 19 12 7 19"></polygon>
+                        </svg>
+                        <svg class="icon-pause" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <rect x="7" y="5" width="4" height="14"></rect>
+                            <rect x="13" y="5" width="4" height="14"></rect>
+                        </svg>
+                    </button>
+                    <button type="button" class="transport-btn" id="step-forward"
+                            aria-label="Step forward" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
+                    <button type="button" class="transport-btn" id="reset"
+                            aria-label="Reset to the first step" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="1 4 1 10 7 10"></polyline>
+                            <path d="M3.5 15a9 9 0 1 0 2.1-9.4L1 10"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="speed-field">
+                    <label for="speed">Speed</label>
+                    <input type="range" id="speed" class="speed-slider" min="1" max="10" value="6">
+                </div>
+
+                <div class="step-counter" id="step-counter" role="status" aria-live="polite">
+                    Step 0 of 0
+                </div>
+            </div>
+
+            <ul class="legend" aria-label="Grid colour key">
+                <li class="legend-item"><span class="legend-swatch grid-swatch" data-kind="wall"></span>Wall</li>
+                <li class="legend-item"><span class="legend-swatch grid-swatch" data-kind="start"></span>Start (S)</li>
+                <li class="legend-item"><span class="legend-swatch grid-swatch" data-kind="goal"></span>Goal (G)</li>
+                <li class="legend-item"><span class="legend-swatch grid-swatch" data-state="open"></span>Open set</li>
+                <li class="legend-item"><span class="legend-swatch grid-swatch" data-state="closed"></span>Expanded</li>
+                <li class="legend-item"><span class="legend-swatch grid-swatch" data-state="current"></span>Current</li>
+                <li class="legend-item"><span class="legend-swatch grid-swatch" data-state="path"></span>Path</li>
+            </ul>
+            <p class="setup-hint grid-key-note">
+                A big enough cell shows f on top and g and h underneath; a smaller one shows f.
+            </p>
+
+            <p class="sr-only" id="grid-status" role="status" aria-live="polite"></p>
+            <div class="run-banner" id="run-banner" role="status" aria-live="polite"></div>
+        </section>
+
+        <!-- LEARN PANEL -------------------------------------------------- -->
+        <section class="workspace-learn" aria-labelledby="learn-heading">
+            <h2 class="sr-only" id="learn-heading">Learn</h2>
+            <div class="learn-panel" id="learn-panel"></div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block page_js %}
+    <script src="{{ url_for('static', filename='js/lessons/astar.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/lessons/code/astar.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/growth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/codeview.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/teacher.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/predict.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/gridstage.js') }}"></script>
+    <script>
+        /* The A* grid workspace. The shell, the transport and the Learn panel
+           are the shared pieces; the grid is static/js/gridstage.js. */
+        (function () {
+            'use strict';
+
+            var LIMITS = { rows: {{ grid_rows|tojson }}, cols: {{ grid_cols|tojson }} };
+            var rowsInput = document.getElementById('grid-rows');
+            var colsInput = document.getElementById('grid-cols');
+            var errorBox = document.getElementById('grid-error');
+
+            /* Which search the next run is: A* (Manhattan h) or Dijkstra (h = 0). */
+            var heuristic = 'manhattan';
+            var NAMES = { manhattan: 'A*', zero: 'Dijkstra (A* with h = 0)' };
+
+            var ws = null;
+            var grid = GridStage.create({
+                host: document.getElementById('grid-board'),
+                status: document.getElementById('grid-status'),
+                // A run made on the old grid no longer describes this one.
+                onEdit: function () { if (ws && ws.payload) ws.discard(); }
+            });
+
+            function clamp(value, range) {
+                var n = parseInt(value, 10);
+                if (isNaN(n)) return null;
+                return Math.max(range[0], Math.min(range[1], n));
+            }
+
+            /* Phones start smaller, so every cell stays big enough to tap. */
+            var small = window.matchMedia('(max-width: 599px)').matches;
+            rowsInput.value = small ? 8 : 12;
+            colsInput.value = small ? 10 : 20;
+            grid.setSize(Number(rowsInput.value), Number(colsInput.value));
+            grid.applyPreset('gap');
+
+            function resize() {
+                var r = clamp(rowsInput.value, LIMITS.rows), c = clamp(colsInput.value, LIMITS.cols);
+                if (r === null || c === null) return;
+                rowsInput.value = r;
+                colsInput.value = c;
+                if (ws && ws.payload) ws.discard();
+                grid.setSize(r, c);
+            }
+            rowsInput.addEventListener('change', resize);
+            colsInput.addEventListener('change', resize);
+
+            Array.prototype.forEach.call(document.querySelectorAll('[data-grid-preset]'), function (button) {
+                button.addEventListener('click', function () {
+                    errorBox.textContent = '';
+                    grid.applyPreset(button.getAttribute('data-grid-preset'));
+                });
+            });
+
+            /* Run A* sets the heuristic before the shell's own click handler
+               posts the run, so this listens in the capture phase. */
+            document.getElementById('run-button').addEventListener('click', function () {
+                heuristic = 'manhattan';
+            }, true);
+            document.getElementById('run-dijkstra').addEventListener('click', function () {
+                heuristic = 'zero';
+                ws.run();
+            });
+
+            function plural(n, word) { return n + ' ' + word + (n === 1 ? '' : 's'); }
+
+            Workspace.start({
+                endpoint: '/run_astar',
+                algorithm: 'astar',
+                lessons: window.LESSONS,
+                predict: { family: 'grid' },
+
+                readRequest: function () {
+                    var body = grid.state();
+                    body.heuristic = heuristic;
+                    return body;
+                },
+
+                renderStep: function (step, context) {
+                    grid.showRun(context.payload.steps, context.index);
+                    var state = grid.state();
+                    context.stats({ n: state.rows * state.cols, edges: grid.edges() });
+                },
+
+                /* The closing line: what this search did, against the other
+                   one on the same grid, and that it is this one grid only. */
+                renderResult: function (payload) {
+                    var banner = document.getElementById('run-banner');
+                    var r = payload.result, other = r.other;
+                    var me = NAMES[payload.heuristic], them = NAMES[other.heuristic];
+                    var text;
+                    if (r.found) {
+                        banner.setAttribute('data-outcome', 'found');
+                        text = me + ' found a shortest path of ' + plural(r.length, 'step') +
+                            ' after expanding ' + plural(r.expanded, 'cell') + '. ' + them +
+                            ' on the same grid expands ' + plural(other.expanded, 'cell') +
+                            ' for a path of the same length.';
+                    } else {
+                        banner.setAttribute('data-outcome', 'missing');
+                        text = 'No path: walls cut the goal off from the start. ' + me + ' expanded ' +
+                            plural(r.expanded, 'cell') + ' before the open set ran out, and ' + them +
+                            ' expands ' + plural(other.expanded, 'cell') + '.';
+                    }
+                    text += ' These counts are for this one grid: move a wall, the start or the goal ' +
+                        'and the gap between the two can grow, shrink or vanish.';
+                    banner.textContent = text;
+                },
+
+                clearResult: function () {
+                    var banner = document.getElementById('run-banner');
+                    banner.textContent = '';
+                    banner.removeAttribute('data-outcome');
+                },
+
+                clearStage: function () { grid.clearRun(); },
+
+                onError: function (payload) {
+                    errorBox.textContent = payload.error;
+                    return true;
+                },
+
+                delayFor: function (value) { return 1100 - value * 100; }
+            });
+            ws = Workspace.current;
+
+            window.GridPage = { grid: grid, workspace: ws };
+        })();
+    </script>
+{% endblock %}

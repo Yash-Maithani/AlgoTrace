@@ -30,6 +30,7 @@
  *   Bellman-Ford    "Will this edge shorten the distance?"
  *   Floyd-Warshall  "Is the path through k shorter?"
  *   Topological     "Which node is removed next?" (options: the in-degree 0 queue)
+ *   A* on a grid    "Which cell is expanded next?" (options: the best of the open set)
  *
  * The answer is read off the step that follows (or, for merge sort, a fact the
  * compare step records) and the explanation is that step's own text. A step
@@ -525,7 +526,46 @@
         return q;
     }
 
-    var builders = { sorting: buildSorting, searching: buildSearching, graph: buildGraph };
+    /* --- grid ------------------------------------------------------------------ */
+
+    /* A* and Dijkstra on a grid. Every expand step records `candidates`: the
+       open set as it stood when the cell came out, best first, at most four
+       distinct cells, the expanded one always among them
+       (grid_algorithms/astar.py). The options are those cells, listed by row
+       then column so their order gives nothing away, each with its f and h,
+       because the rule is lowest f, then lowest h. */
+    function cellLabel(id) { return '(' + id.replace(',', ', ') + ')'; }
+
+    function buildGrid(ctx) {
+        var asked = ctx.meta(ctx.next);
+        if (!asked || asked.action !== 'visit' || asked.line !== 'expand') return null;
+        var candidates = asked.candidates || [];
+        var answer = asked.indices[0];
+        if (candidates.length < 2 || !candidates.some(function (c) { return c.cell === answer; })) return null;
+        var options = candidates.slice().sort(function (a, b) {
+            var pa = a.cell.split(',').map(Number), pb = b.cell.split(',').map(Number);
+            return pa[0] - pb[0] || pa[1] - pb[1];
+        });
+        var winner = candidates.filter(function (c) { return c.cell === answer; })[0];
+        var tied = candidates.filter(function (c) { return c.f === winner.f; }).length > 1;
+        var tiedH = candidates.filter(function (c) { return c.f === winner.f && c.h === winner.h; }).length > 1;
+        return {
+            step: ctx.next,
+            kind: 'grid-expand',
+            prompt: 'These are the best cells in the open set, each with f = g + h and h. ' +
+                'Which cell is expanded next?',
+            options: options.map(function (c) {
+                return option(c.cell, cellLabel(c.cell) + ': f ' + c.f + ', h ' + c.h);
+            }),
+            answer: answer,
+            explain: cellLabel(answer) + ' has the lowest f, ' + winner.f +
+                (tied ? ', and among the cells with that f the lowest h, ' + winner.h : '') +
+                (tiedH ? ', and it joined the open set first' : '') + '. ' +
+                asked.explain.beginner
+        };
+    }
+
+    var builders = { sorting: buildSorting, searching: buildSearching, graph: buildGraph, grid: buildGrid };
 
     /* --- the module's pure API ------------------------------------------------ */
 

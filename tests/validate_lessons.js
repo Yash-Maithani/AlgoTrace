@@ -150,16 +150,17 @@ function checkLesson(lesson, key, file) {
 // average, where k is its number of passes. Phase 19 adds jump search's
 // square root and the two sorts that do not compare: counting sort's
 // n plus k (k the largest key) and radix sort's d times (n plus b) (d digits,
-// b buckets). Phase 20 adds Kahn's V plus E.
+// b buckets). Phase 20 adds Kahn's V plus E, Phase 21 A*'s V log V.
 const BOUNDS = ['1', 'log n', 'square root of n', 'n', 'n log n', 'n squared',
                 'V', 'E', 'V squared', 'V cubed', 'V times E', 'E log E', 'k times E',
-                'n plus k', 'd times (n plus b)', 'V plus E'];
+                'n plus k', 'd times (n plus b)', 'V plus E', 'V log V'];
 
 // Which growth curve a one variable worst case has. A bound missing here
 // names two variables at once, so the lesson draws no curve for it.
 const CURVE_OF = {
     '1': '1', 'log n': 'logn', 'square root of n': 'sqrtn', 'n': 'n', 'n log n': 'nlogn', 'n squared': 'n2',
-    'V': 'n', 'E': 'n', 'V squared': 'n2', 'V cubed': 'n3', 'E log E': 'nlogn'
+    'V': 'n', 'E': 'n', 'V squared': 'n2', 'V cubed': 'n3', 'E log E': 'nlogn',
+    'V log V': 'nlogn'
 };
 
 const FIXED_MISCONCEPTION =

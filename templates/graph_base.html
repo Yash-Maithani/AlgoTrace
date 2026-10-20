@@ -366,16 +366,7 @@
 
 {% block content %}
 
-    {% set graph_algos = [
-        ('bfs', 'BFS', 'Explore one ring at a time.'),
-        ('dfs', 'DFS', 'Follow one path to its end.'),
-        ('dijkstra', 'Dijkstra', 'Cheapest route with weights.'),
-        ('prim', 'Prim', 'Grow one tree by cheapest edge.'),
-        ('kruskal', 'Kruskal', 'Take cheap edges, skip loops.'),
-        ('floyd_warshall', 'Floyd-Warshall', 'Every pair at once.'),
-        ('bellman_ford', 'Bellman-Ford', 'Survives negative edges.'),
-        ('topological_sort', 'Topological Sort', 'Order tasks so every arrow points forward.')
-    ] %}
+    {# graph_algos, the picker, comes from GRAPH_PICKER in app.py. #}
 
     <main class="workspace" id="main">
 
@@ -389,18 +380,7 @@
         <section class="workspace-setup" aria-labelledby="setup-heading">
             <h2 class="sr-only" id="setup-heading">Set up a run</h2>
             <div class="panel">
-                <ul class="algo-picker" id="algo-picker">
-                    {% for key, name, note in graph_algos %}
-                    <li>
-                        <a href="{{ url_for('graph_page') }}?algo={{ key }}"
-                           data-accent="{{ loop.index if loop.index <= 7 else 7 }}"
-                           {% if algorithm == key %}aria-current="page"{% endif %}>
-                            <span class="pick-name">{{ name }}</span>
-                            <span class="pick-note">{{ note }}</span>
-                        </a>
-                    </li>
-                    {% endfor %}
-                </ul>
+                {% include "_graph_picker.html" %}
             </div>
 
             <div class="panel">

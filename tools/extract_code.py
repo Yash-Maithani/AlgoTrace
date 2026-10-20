@@ -41,6 +41,7 @@ ALGORITHMS = {
     'bellman_ford': 'BellmanFord',
     'floyd_warshall': 'FloydWarshall',
     'topological_sort': 'TopologicalSort',
+    'astar': 'AStar',
 }
 
 LANGUAGES = ('c', 'cpp', 'java')

@@ -14,6 +14,7 @@ from sorting_algorithms.radix_sort import radix_sort
 from searching_algorithms.linear_search import linear_search
 from searching_algorithms.binary_search import binary_search, is_sorted
 from searching_algorithms.jump_search import jump_search
+from grid_algorithms.astar import astar
 
 app = Flask(__name__)
 
@@ -42,8 +43,28 @@ graph_algo_dict = {
     "kruskal": "kruskal",
     "floyd_warshall": "floyd_warshall",
     "bellman_ford": "bellman_ford",
-    "topological_sort": "topological_sort"
+    "topological_sort": "topological_sort",
+    "astar": "astar"
 }
+
+# The Graphs picker, shared by the graph page and the A* grid page: the id,
+# the name shown, and one line on what it does.
+GRAPH_PICKER = [
+    ("bfs", "BFS", "Explore one ring at a time."),
+    ("dfs", "DFS", "Follow one path to its end."),
+    ("dijkstra", "Dijkstra", "Cheapest route with weights."),
+    ("prim", "Prim", "Grow one tree by cheapest edge."),
+    ("kruskal", "Kruskal", "Take cheap edges, skip loops."),
+    ("floyd_warshall", "Floyd-Warshall", "Every pair at once."),
+    ("bellman_ford", "Bellman-Ford", "Survives negative edges."),
+    ("topological_sort", "Topological Sort", "Order tasks so every arrow points forward."),
+    ("astar", "A* on a grid", "Shortest path, steered towards the goal."),
+]
+
+
+@app.context_processor
+def _graph_picker():
+    return {"graph_algos": GRAPH_PICKER}
 
 # Add this dictionary after sorting_algo_dict and graph_algo_dict
 sorting_algo_details = {
@@ -751,7 +772,8 @@ def graph_page():
     if algo not in graph_algo_dict:
         abort(404)
 
-    return render_template("%s.html" % graph_algo_dict[algo], algorithm=algo)
+    return render_template("%s.html" % graph_algo_dict[algo], algorithm=algo,
+                           grid_rows=GRID_ROWS, grid_cols=GRID_COLS)
 
 
 
@@ -1857,6 +1879,82 @@ def _name_list(names):
     if len(names) == 1:
         return names[0]
     return ", ".join(names[:-1]) + " and " + names[-1]
+
+
+
+# ---------------------------------------------------------------------------
+# A* on a grid (Phase 21). The grid workspace posts the grid; the steps are
+# objects like the sorting and searching steps, with cells named "r,c". The
+# code is grid_algorithms/astar.py; Dijkstra is the same code with h = 0.
+# ---------------------------------------------------------------------------
+
+GRID_ROWS = (5, 20)
+GRID_COLS = (6, 30)
+
+
+def _read_cell(value, rows, cols, what):
+    if (not isinstance(value, (list, tuple)) or len(value) != 2
+            or not all(isinstance(v, int) and not isinstance(v, bool) for v in value)):
+        return None, "The %s must be a cell, [row, column]." % what
+    r, c = value
+    if not (0 <= r < rows and 0 <= c < cols):
+        return None, "The %s (%d, %d) is outside the %d by %d grid." % (what, r, c, rows, cols)
+    return (r, c), None
+
+
+@app.route("/run_astar", methods=["POST"])
+def run_astar():
+    try:
+        data = request.json or {}
+        rows, cols = data.get("rows"), data.get("cols")
+        for value, (low, high), name in ((rows, GRID_ROWS, "rows"), (cols, GRID_COLS, "columns")):
+            if not isinstance(value, int) or isinstance(value, bool) or not low <= value <= high:
+                return jsonify({"error": "The grid needs %d to %d %s." % (low, high, name)}), 400
+        start, problem = _read_cell(data.get("start"), rows, cols, "start")
+        if problem:
+            return jsonify({"error": problem}), 400
+        goal, problem = _read_cell(data.get("goal"), rows, cols, "goal")
+        if problem:
+            return jsonify({"error": problem}), 400
+        if start == goal:
+            return jsonify({"error": "The start and the goal must be different cells."}), 400
+        walls = set()
+        for item in data.get("walls") or []:
+            cell, problem = _read_cell(item, rows, cols, "wall")
+            if problem:
+                return jsonify({"error": problem}), 400
+            walls.add(cell)
+        if start in walls or goal in walls:
+            return jsonify({"error": "The start and the goal cannot be walls."}), 400
+        heuristic = data.get("heuristic", "manhattan")
+        if heuristic not in ("manhattan", "zero"):
+            return jsonify({"error": "The heuristic is manhattan, or zero for Dijkstra."}), 400
+
+        steps = []
+        stats = {}
+        path = astar(rows, cols, walls, start, goal, steps.append, heuristic, stats)
+        other_heuristic = "zero" if heuristic == "manhattan" else "manhattan"
+        other_stats = {}
+        other_path = astar(rows, cols, walls, start, goal, None, other_heuristic, other_stats)
+        return jsonify({
+            "steps": steps,
+            "algorithm": "astar",
+            "heuristic": heuristic,
+            "grid": {"rows": rows, "cols": cols, "walls": sorted([list(w) for w in walls]),
+                     "start": list(start), "goal": list(goal)},
+            "result": {
+                "found": path is not None,
+                "path": [list(c) for c in path] if path else [],
+                "length": len(path) - 1 if path else None,
+                "expanded": stats["expanded"],
+                "pushes": stats["pushes"],
+                "comparisons": stats["comparisons"],
+                "other": {"heuristic": other_heuristic, "expanded": other_stats["expanded"],
+                          "length": len(other_path) - 1 if other_path else None},
+            },
+        })
+    except Exception as e:
+        return jsonify({"error": "An error occurred: %s" % e}), 500
 
 
 

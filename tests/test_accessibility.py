@@ -183,7 +183,10 @@ def test_the_picker_is_buttons_not_links_to_nowhere(name):
 
 def test_the_graph_picker_stays_links():
     """Each graph algorithm is its own URL, so these really are navigation."""
-    picker = template('graph_base').split('class="algo-picker"', 1)[1].split('</ul>', 1)[0]
+    # The list lives in one partial, included by the graph page and the A* grid.
+    assert '{% include "_graph_picker.html" %}' in template('graph_base')
+    assert '{% include "_graph_picker.html" %}' in template('astar')
+    picker = template('_graph_picker').split('class="algo-picker"', 1)[1].split('</ul>', 1)[0]
 
     assert 'url_for(' in picker
     assert 'aria-current="page"' in picker

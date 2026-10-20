@@ -69,6 +69,9 @@
             <li><a class="order-name" href="{{ url_for('graph_page') }}?algo=dijkstra">Dijkstra's Algorithm</a>
                 <span class="order-note">Cheapest route when edges have lengths.</span>
                 <span class="order-tag">O(V&sup2;)</span></li>
+            <li><a class="order-name" href="{{ url_for('graph_page') }}?algo=astar">A* Search</a>
+                <span class="order-note">Dijkstra steered towards a goal, on a grid you draw.</span>
+                <span class="order-tag">O(V log V)</span></li>
             <li><a class="order-name" href="{{ url_for('graph_page') }}?algo=prim">Prim's Algorithm</a>
                 <span class="order-note">Grow one tree outward by the cheapest edge.</span>
                 <span class="order-tag">O(E log E)</span></li>
@@ -217,8 +220,9 @@
         </div>
 
         <h2>Graphs</h2>
-        <p>Eight algorithms. V is the number of nodes and E the number of edges.
-           Topological sort reads its edges as one way arrows.</p>
+        <p>Nine algorithms. V is the number of nodes and E the number of edges.
+           Topological sort reads its edges as one way arrows, and A* works on a
+           grid, where V is the number of cells.</p>
         <div class="card-grid">
             <a class="algo-card" data-accent="2" href="{{ url_for('graph_page') }}?algo=bfs">
                 <h3>Breadth-First Search</h3>
@@ -260,6 +264,17 @@
                 </dl>
                 <p class="algo-note">The next node is picked with a linear scan over every
                    unvisited node, not a priority queue, so this is the V squared form.</p>
+            </a>
+            <a class="algo-card" data-accent="5" href="{{ url_for('graph_page') }}?algo=astar">
+                <h3>A* Search</h3>
+                <p>Expand the cell with the lowest cost so far plus a guess of the cost to go.</p>
+                <dl class="algo-facts">
+                    <dt>Best</dt><dd>O(1)</dd>
+                    <dt>Worst</dt><dd>O(V log V)</dd>
+                    <dt>Space</dt><dd>O(V)</dd>
+                </dl>
+                <p class="algo-note">A binary heap on a grid of V cells. With the guess set to
+                   0 the same code is Dijkstra, and a button runs both on your grid.</p>
             </a>
             <a class="algo-card" data-accent="4" href="{{ url_for('graph_page') }}?algo=prim">
                 <h3>Prim's Algorithm</h3>

@@ -83,6 +83,7 @@ SHAPE = {
     'O(V cubed)': 'n3',
     'O(E log E)': 'nlogn',
     'O(E log V)': 'nlogn',
+    'O(V log V)': 'nlogn',
     # Two variables at once. No single curve on an axis of one variable is
     # this figure, so a lesson stating it must draw none.
     'O(V times E)': None,
@@ -93,7 +94,7 @@ SHAPE = {
 
 
 def test_every_lesson_was_read():
-    assert len(NAMES) == 19, 'expected 19 lessons, read %d' % len(NAMES)
+    assert len(NAMES) == 20, 'expected 20 lessons, read %d' % len(NAMES)
 
 
 @pytest.mark.parametrize('name', NAMES)
