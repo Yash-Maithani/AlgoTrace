@@ -13,7 +13,8 @@ def heapify(arr, n, i, draw_func, delay, stats=None, phase='build'):
             'compare', [l, largest], [arr[l], arr[largest]], 'cmp-left',
             {'i': i, 'left': l, 'right': r, 'largest': largest,
              'heap_size': n, 'phase': phase},
-            'Is the left child %d bigger than %d?' % (arr[l], arr[largest]),
+            'Is the left child %d at position %d bigger than its parent %d at '
+            'position %d?' % (arr[l], l, arr[largest], largest),
             'A max heap needs every parent to be at least as big as its '
             'children, so each child is checked against the parent.'))
         if arr[l] > arr[largest]:
@@ -24,7 +25,8 @@ def heapify(arr, n, i, draw_func, delay, stats=None, phase='build'):
             'compare', [r, largest], [arr[r], arr[largest]], 'cmp-right',
             {'i': i, 'left': l, 'right': r, 'largest': largest,
              'heap_size': n, 'phase': phase},
-            'Is the right child %d bigger than %d?' % (arr[r], arr[largest]),
+            'Is the right child %d at position %d bigger than %s %d at position %d?'
+            % (arr[r], r, 'its parent' if largest == i else 'the left child', arr[largest], largest),
             'The right child is compared against whichever of the parent and '
             'the left child is currently bigger.'))
         if arr[r] > arr[largest]:

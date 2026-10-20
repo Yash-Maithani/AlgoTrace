@@ -66,7 +66,7 @@ window.LESSONS.merge_sort = {
             worst: {
                 value: 'O(n log n)',
                 theta: 'n log n',
-                reason: 'Even in the worst arrangement a merge costs one comparison per value, so a level is O(n) and the total is O(n log n). This is the only sort here with no bad case.'
+                reason: 'Even in the worst arrangement a merge costs one comparison per value, so a level is O(n) and the total is O(n log n). No input makes it worse. It is not alone in that: heap sort has the same n log n worst case, and counting and radix sort cost the same on every input.'
             }
         },
         overall: { O: 'n log n', Omega: 'n log n', Theta: 'n log n' },

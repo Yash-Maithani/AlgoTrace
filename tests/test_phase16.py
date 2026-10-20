@@ -419,7 +419,8 @@ def test_traversal_options_and_answers_come_from_the_run(client):
                     assert q['kind'] == 'graph-visit' and nxt['action'] == 'visit'
                     assert q['answer'] == str(nxt['indices'][0])
                     key = next(k for k in FRONTIER_KEYS if k in now['vars'])
-                    assert options == [str(n) for n in dict.fromkeys(now['vars'][key])], (run['id'], q)
+                    # Listed by name, so the order says nothing about the answer.
+                    assert options == sorted([str(n) for n in dict.fromkeys(now['vars'][key])], key=lambda n: [int(t) if t.isdigit() else t for t in __import__('re').split(r'(\d+)', n)]), (run['id'], q)
                 assert q['explain'] == nxt['explain']['beginner']
                 kinds.add(algo)
     assert kinds == {'bfs', 'dfs', 'dijkstra', 'prim'}

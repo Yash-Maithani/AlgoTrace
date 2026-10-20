@@ -403,7 +403,8 @@ def test_graph_options_are_the_frontier_and_the_answer_is_the_next_visit(browser
     at = index(page)
     live = page.evaluate("Workspace.current.metaAt(%d).vars['%s'].map(String)" % (at, frontier))
     options = option_ids(page)
-    assert options == list(dict.fromkeys(live)) and len(options) >= 2
+    # Listed by name, so the order says nothing about the answer.
+    assert options == sorted(list(dict.fromkeys(live)), key=lambda n: [int(t) if t.isdigit() else t for t in __import__('re').split(r'(\d+)', n)]) and len(options) >= 2
     assert 'Which node is visited next?' in page.inner_text('.predict-prompt')
     truth = page.evaluate("String(Workspace.current.metaAt(%d).indices[0])" % (at + 1))
     page.click('.predict-option[data-option="%s"]' % truth)

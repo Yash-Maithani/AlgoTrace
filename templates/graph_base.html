@@ -385,20 +385,19 @@
 
             <div class="panel">
                 <div class="form-section">
-                    <h3>Input Method</h3>
+                    <h3>Input</h3>
                     <div style="margin: 15px 0;">
                         <label style="display: inline-flex; align-items: center; margin-right: 15px;">
                             <input type="radio" name="graph_input_method" value="manual" id="manualRadio" checked style="margin-right: 8px;"> 
-                            Manual
+                            Type the graph
                         </label>
                         <label style="display: inline-flex; align-items: center;">
                             <input type="radio" name="graph_input_method" value="random" id="randomRadio" style="margin-right: 8px;"> 
-                            Random
+                            Random graph
                         </label>
                     </div>
 
                     <div id="manual-graph-input">
-                        <h3>Graph Input</h3>
                         <div id="input-format-guide" class="input-format-guide">
                             <div class="format-header">
                                 <span id="current-format-title">Input Format Guide</span>
@@ -529,29 +528,29 @@ A</pre>
                     
                     <div id="random-graph-input" style="display:none;">
                         <div class="form-group">
-                            <label for="num-nodes">Number of Nodes:</label>
+                            <label for="num-nodes">Nodes</label>
                             <input type="number" id="num-nodes" min="2" max="10" value="5">
                         </div>
                         
                         <div class="form-group">
-                            <label for="num-edges">Number of Edges:</label>
+                            <label for="num-edges">Edges</label>
                             <input type="number" id="num-edges" min="1" max="20" value="6">
                         </div>
                         
                         <button type="button" class="primary" onclick="generateRandomGraph()">
-                            <svg class="inline-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg> Generate Random Graph
+                            <svg class="inline-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg> Make a random graph
                         </button>
                     </div>
                 </div>
                 
                 <div class="input-section"{% if algorithm == 'topological_sort' %} hidden{% endif %}>
-                    <label for="start-node">Start Node:</label>
+                    <label for="start-node">Start node</label>
                     <input type="text" id="start-node" placeholder="e.g. A"
                            autocomplete="off" spellcheck="false">
                 </div>
                 
                 <button type="button" class="btn btn-primary" id="run-button">
-                    Visualize Algorithm
+                    Run the algorithm
                 </button>
                 
                 <!-- Demo Buttons. Both load undirected weighted graphs, so the
@@ -676,21 +675,15 @@ A</pre>
         
         <section class="workspace-notes">
         <div class="instructions-panel">
-            <h2>Instructions</h2>
-            <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 15px;">
-                <div style="flex: 1; min-width: 250px;">
-                    <p><strong>1.</strong> Select algorithm from the top selection</p>
-                    <p><strong>2.</strong> Enter a graph in JSON format or generate a random graph</p>
-                    <p><strong>3.</strong> Click "Visualize Algorithm" to see the execution</p>
-                    <p><strong>4.</strong> Use the controls to play, pause, or reset the animation</p>
-                </div>
-                <div style="flex: 1; min-width: 250px;">
-                    <p><strong>Tip:</strong> Drag nodes to rearrange the graph</p>
-                    <p><span class="legend-swatch is-node" style="--swatch: var(--visited-color)"></span> Green = Visited Node</p>
-                    <p><span class="legend-swatch is-node" style="--swatch: var(--frontier-color)"></span> Orange = Queued/Processing Node</p>
-                    <p><span class="legend-swatch is-edge" style="--swatch: var(--mst-edge-color)"></span> Red = Path/MST Edge</p>
-                </div>
-            </div>
+            <h2>Using this page</h2>
+            <ol>
+                <li>Pick an algorithm from the list in the setup column.</li>
+                <li>Type a graph in the shape the format guide shows, load one of the demos, or
+                    choose Random graph.</li>
+                <li>Press Run the algorithm, then play it or step through it. The Learn panel
+                    explains every step and shows the line of code it runs.</li>
+            </ol>
+            <p>You can drag a node to move it. The colour key under the graph names every state.</p>
         </div>
 
         </section>
@@ -944,6 +937,13 @@ A</pre>
             // Hand the transport to the shared workspace.
             startWorkspace();
 
+            // Editing the input redraws the graph (window.onload draws it first).
+            const input = document.getElementById('graph-input');
+            input.addEventListener('input', () => {
+                clearTimeout(previewTimer);
+                previewTimer = setTimeout(previewGraph, 400);
+            });
+
             // The directed page shows its queue and order strip under the graph.
             if (isDirected()) {
                 document.getElementById('topo-strip').hidden = false;
@@ -1110,6 +1110,36 @@ A</pre>
 
             const nodeOrder = Object.keys(graph).sort();
             return { nodeOrder, edgeList };
+        }
+
+        /* Draw the graph in the input box, nodes and edges only, with no run.
+           The page does this on load, with the format guide's example, and
+           again whenever the input is edited, so a beginner sees the graph
+           before pressing Run. A run on screen no longer matches an edited
+           input, so it goes. */
+        // The redraw an edit has asked for, waiting for typing to pause. A run
+        // cancels it, so typing then pressing Run at once keeps the run.
+        let previewTimer = null;
+
+        function previewGraph() {
+            const box = document.getElementById('graph-input');
+            if (!box.value.trim()) return;
+            setGraphError('graph-input-error', '');
+            box.removeAttribute('aria-invalid');
+            const read = readGraph(message => setGraphError('graph-input-error', message));
+            if (!read) return;
+            if (window.Workspace && Workspace.current && Workspace.current.payload) Workspace.current.discard();
+            steps = [];
+            stepMeta = [];
+            lastRendered = -1;
+            topoArrow = null;
+            if (isDirected()) renderTopoStrip([], [], 'Run the sort to see the queue and the order build up.');
+            const resultPanel = document.getElementById('result-panel');
+            if (resultPanel) resultPanel.style.display = 'none';
+            const matrixDisplay = document.getElementById('matrix-display');
+            if (matrixDisplay) matrixDisplay.style.display = 'none';
+            initializeGraph();
+            updateGraph();
         }
 
         // Initialize graph visualization with fixed speed
@@ -1394,17 +1424,27 @@ A</pre>
                 label = 'Graph canvas, empty. Run the algorithm to draw the graph.';
             } else {
                 const directed = isDirected();
-                const shown = links.slice(0, 24).map(l => {
+                // An undirected edge arrives as two links, A to B and B to A, so
+                // it is named, and counted, once.
+                const seen = new Set();
+                const edges = links.filter(l => {
+                    const a = id(l.source), b = id(l.target);
+                    const key = directed ? a + '>' + b : [a, b].sort().join('|');
+                    if (seen.has(key)) return false;
+                    seen.add(key);
+                    return true;
+                });
+                const shown = edges.slice(0, 24).map(l => {
                     const a = id(l.source), b = id(l.target);
                     const weight = isWeighted() && l.value !== undefined ? ' (weight ' + l.value + ')' : '';
                     return a + (directed ? ' to ' : ' and ') + b + weight;
                 });
                 label = (directed ? 'Directed graph' : 'Graph') + ' with ' + nodes.length +
-                    (nodes.length === 1 ? ' node and ' : ' nodes and ') + links.length +
-                    (links.length === 1 ? ' edge. ' : ' edges. ') +
+                    (nodes.length === 1 ? ' node and ' : ' nodes and ') + edges.length +
+                    (directed ? (edges.length === 1 ? ' arrow. ' : ' arrows. ') : (edges.length === 1 ? ' edge. ' : ' edges. ')) +
                     'Nodes: ' + nodes.map(n => n.id).join(', ') + '. ' +
                     (shown.length ? (directed ? 'Arrows: ' : 'Edges: ') + shown.join('; ') +
-                        (links.length > shown.length ? '; and ' + (links.length - shown.length) + ' more' : '') + '.' : '');
+                        (edges.length > shown.length ? '; and ' + (edges.length - shown.length) + ' more' : '') + '.' : '');
             }
             svg.attr('role', 'img').attr('aria-label', label.trim());
         }
@@ -1903,9 +1943,11 @@ A</pre>
             input.focus();
         }
 
-        function visualize() {
-            clearGraphErrors();
-            try {
+        /* Reads the graph input into nodes and links for the canvas, and
+           returns what the endpoint needs, or null after reporting a problem
+           through `report`. Shared by the run and by the preview that draws
+           the graph before anything has run. */
+        function readGraph(report) {
                 const graphInput = document.getElementById('graph-input').value;
                 let startNode = document.getElementById('start-node').value;
                 let graph;
@@ -1920,8 +1962,8 @@ A</pre>
                 
                 // Check for empty input
                 if (!graphInput.trim()) {
-                    showGraphInputError('Please enter a graph or generate a random one.');
-                    return;
+                    report('Please enter a graph or generate a random one.');
+                    return null;
                 }
                 
                 // Check if input seems to be in the simplified format or JSON format
@@ -1930,8 +1972,8 @@ A</pre>
                     try {
                         graph = JSON.parse(graphInput);
                     } catch (e) {
-                        showGraphInputError('Invalid JSON format. Please check your input.');
-                        return;
+                        report('Invalid JSON format. Please check your input.');
+                        return null;
                     }
                 } else {
                     // Simplified format - parse it
@@ -1946,8 +1988,8 @@ A</pre>
                             document.getElementById('start-node').value = startNode;
                         }
                     } catch (e) {
-                        showGraphInputError('Invalid format: ' + e.message);
-                        return;
+                        report('Invalid format: ' + e.message);
+                        return null;
                     }
                 }
 
@@ -1960,8 +2002,8 @@ A</pre>
                 if (usesEdgeListApi(algorithm)) {
                     ({ nodeOrder, edgeList } = parsed.nodeOrder ? parsed : describeGraph(graph));
                     if (!nodeOrder.length) {
-                        showGraphInputError('No nodes found in the graph.');
-                        return;
+                        report('No nodes found in the graph.');
+                        return null;
                     }
                     nodes = nodeOrder.map(id => ({ id }));
                     links = edgeList.map(([source, target, value]) => ({ source, target, value, color: 'var(--default-edge-color)' }));
@@ -1982,6 +2024,17 @@ A</pre>
                         }
                     });
                 }
+                return { graph, startNode, nodeOrder, edgeList, algorithm };
+        }
+
+        function visualize() {
+            clearTimeout(previewTimer);
+            clearGraphErrors();
+            try {
+                const read = readGraph(showGraphInputError);
+                if (!read) return;
+                const { graph, nodeOrder, edgeList, algorithm } = read;
+                let startNode = read.startNode;
                 if (needsStartNode(algorithm) && !startNode) {
                     setGraphError('graph-error', 'Please enter a start node.');
                     return;
@@ -3092,7 +3145,7 @@ A</pre>
             } else if (algorithm === 'dijkstra') {
                 // Dijkstra: [distances, paths]
                 const [distances, paths] = params;
-                content += '<h4>Shortest Paths from Start Node:</h4>';
+                content += '<h4>Shortest paths from the start node</h4>';
                 content += '<table style="width:100%; border-collapse:collapse; margin-top:10px;">';
                 content += '<tr style="background:var(--sunken);"><th style="padding:8px; text-align:left; border:1px solid var(--border);">Destination</th><th style="padding:8px; text-align:center; border:1px solid var(--border);">Distance</th><th style="padding:8px; text-align:left; border:1px solid var(--border);">Path</th></tr>';
                 
@@ -3219,7 +3272,7 @@ A</pre>
                     </div>`;
                 }
 
-                content += '<h4>Shortest Distances from Start Node:</h4>';
+                content += '<h4>Shortest distances from the start node</h4>';
                 content += '<table style="width:100%; border-collapse:collapse; margin-top:10px;">';
                 content += '<tr style="background:var(--sunken);"><th style="padding:8px; text-align:left; border:1px solid var(--border);">Node</th><th style="padding:8px; text-align:center; border:1px solid var(--border);">Distance</th></tr>';
 
@@ -3313,9 +3366,11 @@ A</pre>
             document.getElementById('result-panel').style.display = 'none';
         }
 
-        // Initialize on load
+        // Once the layout has its final size, draw the graph in the input box
+        // (the starter graph, unless the box was emptied), or an empty canvas.
         window.onload = function() {
-            initializeGraph();
+            if (document.getElementById('graph-input').value.trim()) previewGraph();
+            else initializeGraph();
         };
         
         // Demo loading functions

@@ -4,43 +4,15 @@
 
 {% block extra_content %}
 <div class="algorithm-info">
-    <h3>Kruskal's Algorithm - Animated MST Visualizer</h3>
-    <p><strong>Kruskal's algorithm</strong> constructs a Minimum Spanning Tree (MST) by greedily selecting the smallest weighted edges that don't create cycles.</p>
-    <p class="panel-complexity-note">Time and space complexity for this implementation are in the Complexity tab of the Learn panel above, with the reason for each figure.</p>
-    
-    <div class="use-cases">
-        <p><strong>Real-world Applications:</strong></p>
-        <ul>
-            <li>Network design optimization</li>
-            <li>Circuit design and wiring</li>
-            <li>Cluster analysis in data science</li>
-            <li>Image segmentation processing</li>
-            <li>Road network planning</li>
-        </ul>
-    </div>
-    
-    <div class="input-format">
-        <p><strong>Input Format (Undirected Weighted Graph):</strong></p>
-        <pre>n m
-U1 V1 W1
-U2 V2 W2
-...
-Um Vm Wm
-
-n: Number of nodes
-m: Number of edges
-Each line: undirected edge between Ui and Vi with weight Wi
-Node labels: uppercase letters (A, B, C, ...)</pre>
-        
-        <p><strong>Example:</strong></p>
-        <pre>5 7
-A B 2
-A C 3
-B C 1
-B D 4
-C D 5
-C E 6
-D E 7</pre>
-    </div>
+    <h3>Kruskal's Algorithm</h3>
+    <p>Kruskal builds a minimum spanning tree: the cheapest set of edges that joins every node without a loop. It works from the edges rather than from a start node.</p>
+    <p>It sorts every edge by cost and takes them cheapest first, skipping any edge whose two ends are already joined, because that edge would close a loop.</p>
+    <p>If the graph is in separate pieces, it builds one tree per piece.</p>
+    <p class="panel-complexity-note">How long it takes and how much memory it needs, for the code on this site, are in the Complexity tab of the Learn panel, with the reason for each figure.</p>
+    <p><strong>Good for</strong></p>
+    <ul>
+        <li>Connecting everything as cheaply as possible, the same job as Prim.</li>
+        <li>Grouping points into clusters, by stopping before the most expensive joins.</li>
+    </ul>
 </div>
 {% endblock %}

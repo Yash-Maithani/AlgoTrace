@@ -5,13 +5,14 @@
 {% block extra_content %}
 <div class="algorithm-info">
     <h3>Floyd-Warshall Algorithm</h3>
-    <p>The Floyd-Warshall algorithm finds shortest paths between all pairs of nodes in a weighted graph (with positive or negative edge weights, but no negative cycles).</p>
-    <p class="panel-complexity-note">Time and space complexity for this implementation are in the Complexity tab of the Learn panel above, with the reason for each figure.</p>
-    <p><strong>Use Cases:</strong></p>
+    <p>Floyd-Warshall finds the shortest distance between every pair of nodes at once, in a table.</p>
+    <p>For each node in turn it asks, for every pair: is going through this node shorter than the best route so far?</p>
+    <p>Negative edge costs are fine, as long as no loop adds up to less than zero.</p>
+    <p class="panel-complexity-note">How long it takes and how much memory it needs, for the code on this site, are in the Complexity tab of the Learn panel, with the reason for each figure.</p>
+    <p><strong>Good for</strong></p>
     <ul>
-        <li>All-pairs shortest path in networks</li>
-        <li>Transitive closure of directed graphs</li>
-        <li>Routing protocols</li>
+        <li>A full table of distances between every pair of places, such as a mileage chart.</li>
+        <li>Small, dense graphs, where answering every pair at once is worth it.</li>
     </ul>
 </div>
 {% endblock %}

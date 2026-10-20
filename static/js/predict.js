@@ -61,6 +61,17 @@
 
     function option(id, label) { return { id: String(id), label: label }; }
 
+    /* Options that come from the run's own data (nodes, cells, count slots,
+       buckets) are listed in a neutral order, by name or by position, never
+       in the order the algorithm will take them, so where the answer sits in
+       the list says nothing about which one it is. Fixed pairs such as Yes and
+       No keep one set order, which carries no information either. */
+    function byName(list) {
+        return list.slice().sort(function (a, b) {
+            return String(a).localeCompare(String(b), undefined, { numeric: true });
+        });
+    }
+
     /* --- sorting -------------------------------------------------------------- */
 
     /* Each sort has its own natural question, and the step meta says which sort
@@ -397,10 +408,10 @@
     }
 
     var FRONTIER_LABEL = {
-        queue: 'The queue, front first: ',
-        stack: 'The stack, top last: ',
-        unvisited: 'Not yet settled: ',
-        frontier: 'Waiting to join the tree: '
+        queue: 'Waiting in the queue, listed by name: ',
+        stack: 'Waiting on the stack, listed by name: ',
+        unvisited: 'Not yet settled, listed by name: ',
+        frontier: 'Waiting to join the tree, listed by name: '
     };
 
     var GRAPH = {};
@@ -412,26 +423,29 @@
         if (!held || held.nodes.length < 2 || held.nodes.indexOf(answer) === -1) return null;
         return {
             kind: 'graph-visit',
-            prompt: FRONTIER_LABEL[held.key] + held.nodes.join(', ') + '. Which node is visited next?',
-            options: held.nodes.map(function (n) { return option(n, n); }),
+            prompt: FRONTIER_LABEL[held.key] + byName(held.nodes).join(', ') + '. Which node is visited next?',
+            options: byName(held.nodes).map(function (n) { return option(n, n); }),
             answer: answer,
             explain: next.explain.beginner
         };
     };
 
     /* Topological sort: the queue holds every node with in-degree 0, and
-       Kahn's algorithm takes the one at the front. Options are the real queue. */
+       Kahn's algorithm takes the one that joined it first. Options are the
+       real queue, listed by name, so the learner has to remember the order
+       the nodes joined (the strip under the graph shows it). */
     GRAPH.topo = function (ctx, now, next) {
         var queue = (now.vars && now.vars.queue || []).map(String);
         var answer = String(next.indices[0]);
         if (queue.length < 2 || queue.indexOf(answer) === -1) return null;
         return {
             kind: 'topo-remove',
-            prompt: 'The queue of nodes with in-degree 0, front first: ' + queue.join(', ') +
+            prompt: 'Nodes with in-degree 0 waiting in the queue, listed by name: ' + byName(queue).join(', ') +
                 '. Which node is removed next?',
-            options: queue.map(function (n) { return option(n, n); }),
+            options: byName(queue).map(function (n) { return option(n, n); }),
             answer: answer,
-            explain: next.explain.beginner + ' This algorithm always takes the node at the front of the queue.'
+            explain: next.explain.beginner + ' The queue is first in, first out: ' + answer +
+                ' joined it before ' + (queue.length === 2 ? 'the other one' : 'the others') + '.'
         };
     };
 
@@ -442,8 +456,8 @@
         if (!held || held.nodes.length < 2 || held.nodes.indexOf(answer) === -1) return null;
         return {
             kind: 'graph-join',
-            prompt: FRONTIER_LABEL[held.key] + held.nodes.join(', ') + '. Which node joins the tree next?',
-            options: held.nodes.map(function (n) { return option(n, n); }),
+            prompt: FRONTIER_LABEL[held.key] + byName(held.nodes).join(', ') + '. Which node joins the tree next?',
+            options: byName(held.nodes).map(function (n) { return option(n, n); }),
             answer: answer,
             explain: next.explain.beginner
         };
@@ -547,8 +561,10 @@
             return pa[0] - pb[0] || pa[1] - pb[1];
         });
         var winner = candidates.filter(function (c) { return c.cell === answer; })[0];
+        // A tie on both f and h is broken by push order, which the question
+        // cannot show, so it is not asked.
+        if (candidates.filter(function (c) { return c.f === winner.f && c.h === winner.h; }).length > 1) return null;
         var tied = candidates.filter(function (c) { return c.f === winner.f; }).length > 1;
-        var tiedH = candidates.filter(function (c) { return c.f === winner.f && c.h === winner.h; }).length > 1;
         return {
             step: ctx.next,
             kind: 'grid-expand',
@@ -559,8 +575,7 @@
             }),
             answer: answer,
             explain: cellLabel(answer) + ' has the lowest f, ' + winner.f +
-                (tied ? ', and among the cells with that f the lowest h, ' + winner.h : '') +
-                (tiedH ? ', and it joined the open set first' : '') + '. ' +
+                (tied ? ', and among the cells with that f the lowest h, ' + winner.h : '') + '. ' +
                 asked.explain.beginner
         };
     }

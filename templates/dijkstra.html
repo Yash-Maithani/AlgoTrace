@@ -5,33 +5,14 @@
 {% block extra_content %}
 <div class="algorithm-info">
     <h3>Dijkstra's Algorithm</h3>
-    <p>Dijkstra's algorithm is used to find the shortest path between nodes in a graph with non-negative edge weights.</p>
-    <p class="panel-complexity-note">Time and space complexity for this implementation are in the Complexity tab of the Learn panel above, with the reason for each figure.</p>
-    <p><strong>Use Cases:</strong></p>
+    <p>Dijkstra finds the cheapest route from one start node to every other node, where each edge has a cost.</p>
+    <p>It always settles the nearest node it has not settled yet, then checks whether going through it makes any neighbour cheaper.</p>
+    <p>It needs every edge cost to be zero or more; a negative cost can fool it.</p>
+    <p class="panel-complexity-note">How long it takes and how much memory it needs, for the code on this site, are in the Complexity tab of the Learn panel, with the reason for each figure.</p>
+    <p><strong>Good for</strong></p>
     <ul>
-        <li>GPS navigation systems</li>
-        <li>Network routing protocols</li>
-        <li>Traffic management systems</li>
-        <li>Game pathfinding</li>
+        <li>Cheapest or shortest routes when the roads have lengths, as in a route planner.</li>
+        <li>Routing data through a network where each link has a cost.</li>
     </ul>
-    <p><strong>Note:</strong> For Dijkstra's algorithm, the graph input must carry edge
-    weights. The format guide above the input box shows the usual edge list; a JSON
-    object of neighbours and weights is accepted as well, and has to use double
-    quotes. Either of these runs as written:</p>
-    <pre tabindex="0" role="region" aria-label="Example input, edge list">5 7
-A B 4
-A C 2
-B C 5
-B D 10
-C D 3
-C E 7
-D E 6
-A</pre>
-    <pre tabindex="0" role="region" aria-label="Example input, JSON object">{
-    "A": {"B": 4, "C": 2},
-    "B": {"A": 4, "D": 3},
-    "C": {"A": 2, "D": 1},
-    "D": {"B": 3, "C": 1}
-}</pre>
 </div>
 {% endblock %}

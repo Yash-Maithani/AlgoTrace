@@ -5,27 +5,14 @@
 {% block extra_content %}
 <div class="algorithm-info">
     <h3>Prim's Algorithm</h3>
-    <p>Prim's algorithm is used to find the minimum spanning tree of a connected, undirected graph. It starts with a single vertex and grows the MST by adding the cheapest edge that connects a vertex in the tree to a vertex outside the tree.</p>
-    <p class="panel-complexity-note">Time and space complexity for this implementation are in the Complexity tab of the Learn panel above, with the reason for each figure.</p>
-    <p><strong>Use Cases:</strong></p>
+    <p>Prim builds a minimum spanning tree: the cheapest set of edges that joins every node without a loop.</p>
+    <p>It grows one tree from the start node, always adding the cheapest edge that reaches a node not yet in the tree.</p>
+    <p>The edges waiting to be tried sit in a heap, so the cheapest one is always on top.</p>
+    <p class="panel-complexity-note">How long it takes and how much memory it needs, for the code on this site, are in the Complexity tab of the Learn panel, with the reason for each figure.</p>
+    <p><strong>Good for</strong></p>
     <ul>
-        <li>Network design</li>
-        <li>Circuit design</li>
-        <li>Clustering algorithms</li>
-        <li>Image segmentation</li>
+        <li>Connecting buildings with the least cable, or towns with the least road.</li>
+        <li>Any network that must reach everywhere as cheaply as possible.</li>
     </ul>
-    <p><strong>Note:</strong> For Prim's algorithm, the graph input should include edge weights. Example format:</p>
-    <pre>
-{
-   "5 6
-    A D 11
-    A C 7
-    B D 11
-    B E 7
-    A E 9
-    C E 7
-    A"
-}
-    </pre>
 </div>
 {% endblock %}

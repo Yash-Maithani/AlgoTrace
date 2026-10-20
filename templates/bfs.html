@@ -5,14 +5,15 @@
 {% block extra_content %}
 <div class="algorithm-info">
     <h3>Breadth-First Search (BFS)</h3>
-    <p>BFS is a graph traversal algorithm that explores all vertices at the present depth before moving on to vertices at the next depth level.</p>
-    <p class="panel-complexity-note">Time and space complexity for this implementation are in the Complexity tab of the Learn panel above, with the reason for each figure.</p>
-    <p><strong>Use Cases:</strong></p>
+    <p>BFS starts at one node and visits everything one edge away, then everything two edges away, and so on, ring by ring.</p>
+    <p>It keeps the nodes waiting their turn in a queue: first in, first out.</p>
+    <p>Because it goes ring by ring, the first time it reaches a node is by the fewest edges possible.</p>
+    <p class="panel-complexity-note">How long it takes and how much memory it needs, for the code on this site, are in the Complexity tab of the Learn panel, with the reason for each figure.</p>
+    <p><strong>Good for</strong></p>
     <ul>
-        <li>Shortest path finding in unweighted graphs</li>
-        <li>Web crawling</li>
-        <li>Social networking (finding connections)</li>
-        <li>GPS navigation systems</li>
+        <li>Fewest hops between two places when every hop counts the same, such as degrees of separation in a friendship network.</li>
+        <li>Checking which nodes can be reached from a starting point at all.</li>
+        <li>Finding the shortest way through a maze drawn on a grid of equal steps.</li>
     </ul>
 </div>
 {% endblock %}

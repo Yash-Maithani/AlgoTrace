@@ -187,6 +187,8 @@ def index():
     hero_steps, hero_stats = _bubble_steps(HERO_ARRAY)
     return render_template(
         "landing.html",
+        start_here=LEARN_ORDER[:START_HERE_COUNT],
+        counts=_algorithm_counts(),
         hero_steps=hero_steps,
         hero_start=HERO_ARRAY,
         hero_sorted=sorted(HERO_ARRAY),
@@ -737,10 +739,81 @@ def run_search():
         return jsonify({"error": "An error occurred: %s" % e}), 500
 
 
+# The suggested beginner order, one entry per algorithm: lesson id, name,
+# the page and query that open it, and one line on what it does. /learn lists
+# it in full and Home's "Start here" shows its first few, so the two pages
+# cannot disagree; every count on either page is worked out from the
+# registries below, never written by hand. The complexity figures on /learn
+# come from the lesson files themselves (static/js/learnfigures.js).
+LEARN_ORDER = [
+    ("linear_search", "Linear Search", "searching_page", "algorithm=linear_search",
+     "Check every item until you find it."),
+    ("binary_search", "Binary Search", "searching_page", "algorithm=binary_search",
+     "Halve a sorted list over and over."),
+    ("jump_search", "Jump Search", "searching_page", "algorithm=jump_search",
+     "Jump ahead in blocks, then scan the one that can hold it."),
+    ("bubble_sort", "Bubble Sort", "sorting_page", "algorithm=Bubble+Sort",
+     "Swap neighbours until nothing is out of order."),
+    ("selection_sort", "Selection Sort", "sorting_page", "algorithm=Selection+Sort",
+     "Find the smallest, place it, repeat."),
+    ("insertion_sort", "Insertion Sort", "sorting_page", "algorithm=Insertion+Sort",
+     "Slide each value back into a sorted prefix."),
+    ("merge_sort", "Merge Sort", "sorting_page", "algorithm=Merge+Sort",
+     "Split, sort the halves, merge them back."),
+    ("quick_sort", "Quick Sort", "sorting_page", "algorithm=Quick+Sort",
+     "Partition around a pivot, then recurse."),
+    ("heap_sort", "Heap Sort", "sorting_page", "algorithm=Heap+Sort",
+     "Build a heap, pull the largest off the top."),
+    ("counting_sort", "Counting Sort", "sorting_page", "algorithm=Counting+Sort",
+     "Count each value, then write them back in order. No comparisons."),
+    ("radix_sort", "Radix Sort", "sorting_page", "algorithm=Radix+Sort",
+     "Bucket by the ones digit, then by the tens. No comparisons."),
+    ("bfs", "Breadth-First Search", "graph_page", "algo=bfs",
+     "Explore a network one ring at a time."),
+    ("dfs", "Depth-First Search", "graph_page", "algo=dfs",
+     "Follow one path as far as it goes, then back up."),
+    ("topological_sort", "Topological Sort", "graph_page", "algo=topological_sort",
+     "Order tasks so every arrow points forward, or find the cycle."),
+    ("dijkstra", "Dijkstra's Algorithm", "graph_page", "algo=dijkstra",
+     "Cheapest route when edges have lengths."),
+    ("astar", "A* Search", "graph_page", "algo=astar",
+     "Dijkstra steered towards a goal, on a grid you draw."),
+    ("prim", "Prim's Algorithm", "graph_page", "algo=prim",
+     "Grow one tree outward by the cheapest edge."),
+    ("kruskal", "Kruskal's Algorithm", "graph_page", "algo=kruskal",
+     "Take cheap edges that do not close a loop."),
+    ("bellman_ford", "Bellman-Ford", "graph_page", "algo=bellman_ford",
+     "Shortest paths that survive negative edges."),
+    ("floyd_warshall", "Floyd-Warshall", "graph_page", "algo=floyd_warshall",
+     "Shortest path between every pair at once."),
+]
+
+# How many of the first entries Home's "Start here" shows.
+START_HERE_COUNT = 6
+
+_NUMBER_WORDS = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight",
+                 "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
+                 "sixteen", "seventeen", "eighteen", "nineteen", "twenty"]
+
+
+def _algorithm_counts():
+    """Every count the Home and /learn pages print, from the registries."""
+    counts = {"sorting": len(sorting_algo_dict), "searching": len(SEARCH_ALGORITHMS),
+              "graphs": len(GRAPH_PICKER), "total": len(LEARN_ORDER)}
+    assert counts["total"] == counts["sorting"] + counts["searching"] + counts["graphs"]
+    return counts
+
+
+@app.template_filter("words")
+def _words(number):
+    """A count as a word, for running text: 8 -> eight."""
+    return _NUMBER_WORDS[number] if 0 <= number < len(_NUMBER_WORDS) else str(number)
+
+
 @app.route("/learn")
 def learn():
     """Algorithm index with a suggested beginner order."""
-    return render_template("learn.html")
+    return render_template("learn.html", learn_order=LEARN_ORDER, counts=_algorithm_counts())
 
 
 @app.route("/big-o")

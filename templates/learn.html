@@ -18,85 +18,26 @@
         <p>Work down the list. Each one assumes the idea above it.</p>
 
         <ol class="order-list">
-            <li class="is-next">
-                <a class="order-name" href="{{ url_for('searching_page') }}?algorithm=linear_search">Linear Search</a>
-                <span class="order-note">Check every item until you find it.</span>
-                <span class="order-tag">O(n)</span>
+            {% for lesson, name, page, query, note in learn_order %}
+            <li{% if loop.first %} class="is-next"{% endif %}>
+                <a class="order-name" href="{{ url_for(page) }}?{{ query }}">{{ name }}</a>
+                <span class="order-note">{{ note }}</span>
+                <span class="order-tag" data-lesson="{{ lesson }}" data-figure="worst"></span>
             </li>
-            <li>
-                <a class="order-name" href="{{ url_for('searching_page') }}?algorithm=binary_search">Binary Search</a>
-                <span class="order-note">Halve a sorted list over and over.</span>
-                <span class="order-tag">O(log n)</span>
-            </li>
-            <li>
-                <a class="order-name" href="{{ url_for('searching_page') }}?algorithm=jump_search">Jump Search</a>
-                <span class="order-note">Jump ahead in blocks, then scan the one that can hold it.</span>
-                <span class="order-tag">O(&radic;n)</span>
-            </li>
-            <li><a class="order-name" href="{{ url_for('sorting_page') }}?algorithm=Bubble+Sort">Bubble Sort</a>
-                <span class="order-note">Swap neighbours until nothing is out of order.</span>
-                <span class="order-tag">O(n&sup2;)</span></li>
-            <li><a class="order-name" href="{{ url_for('sorting_page') }}?algorithm=Selection+Sort">Selection Sort</a>
-                <span class="order-note">Find the smallest, place it, repeat.</span>
-                <span class="order-tag">O(n&sup2;)</span></li>
-            <li><a class="order-name" href="{{ url_for('sorting_page') }}?algorithm=Insertion+Sort">Insertion Sort</a>
-                <span class="order-note">Slide each value back into a sorted prefix.</span>
-                <span class="order-tag">O(n&sup2;)</span></li>
-            <li><a class="order-name" href="{{ url_for('sorting_page') }}?algorithm=Merge+Sort">Merge Sort</a>
-                <span class="order-note">Split, sort the halves, merge them back.</span>
-                <span class="order-tag">O(n log n)</span></li>
-            <li><a class="order-name" href="{{ url_for('sorting_page') }}?algorithm=Quick+Sort">Quick Sort</a>
-                <span class="order-note">Partition around a pivot, then recurse.</span>
-                <span class="order-tag">O(n log n)</span></li>
-            <li><a class="order-name" href="{{ url_for('sorting_page') }}?algorithm=Heap+Sort">Heap Sort</a>
-                <span class="order-note">Build a heap, pull the largest off the top.</span>
-                <span class="order-tag">O(n log n)</span></li>
-            <li><a class="order-name" href="{{ url_for('sorting_page') }}?algorithm=Counting+Sort">Counting Sort</a>
-                <span class="order-note">Count each value, then write them back in order. No comparisons.</span>
-                <span class="order-tag">O(n + k)</span></li>
-            <li><a class="order-name" href="{{ url_for('sorting_page') }}?algorithm=Radix+Sort">Radix Sort</a>
-                <span class="order-note">Bucket by the ones digit, then by the tens. No comparisons.</span>
-                <span class="order-tag">O(d(n + b))</span></li>
-            <li><a class="order-name" href="{{ url_for('graph_page') }}?algo=bfs">Breadth-First Search</a>
-                <span class="order-note">Explore a network one ring at a time.</span>
-                <span class="order-tag">O(V&middot;E)</span></li>
-            <li><a class="order-name" href="{{ url_for('graph_page') }}?algo=dfs">Depth-First Search</a>
-                <span class="order-note">Follow one path as far as it goes, then back up.</span>
-                <span class="order-tag">O(V&middot;E)</span></li>
-            <li><a class="order-name" href="{{ url_for('graph_page') }}?algo=topological_sort">Topological Sort</a>
-                <span class="order-note">Order tasks so every arrow points forward, or find the cycle.</span>
-                <span class="order-tag">O(V + E)</span></li>
-            <li><a class="order-name" href="{{ url_for('graph_page') }}?algo=dijkstra">Dijkstra's Algorithm</a>
-                <span class="order-note">Cheapest route when edges have lengths.</span>
-                <span class="order-tag">O(V&sup2;)</span></li>
-            <li><a class="order-name" href="{{ url_for('graph_page') }}?algo=astar">A* Search</a>
-                <span class="order-note">Dijkstra steered towards a goal, on a grid you draw.</span>
-                <span class="order-tag">O(V log V)</span></li>
-            <li><a class="order-name" href="{{ url_for('graph_page') }}?algo=prim">Prim's Algorithm</a>
-                <span class="order-note">Grow one tree outward by the cheapest edge.</span>
-                <span class="order-tag">O(E log E)</span></li>
-            <li><a class="order-name" href="{{ url_for('graph_page') }}?algo=kruskal">Kruskal's Algorithm</a>
-                <span class="order-note">Take cheap edges that do not close a loop.</span>
-                <span class="order-tag">O(E log E)</span></li>
-            <li><a class="order-name" href="{{ url_for('graph_page') }}?algo=bellman_ford">Bellman-Ford</a>
-                <span class="order-note">Shortest paths that survive negative edges.</span>
-                <span class="order-tag">O(V&middot;E)</span></li>
-            <li><a class="order-name" href="{{ url_for('graph_page') }}?algo=floyd_warshall">Floyd-Warshall</a>
-                <span class="order-note">Shortest path between every pair at once.</span>
-                <span class="order-tag">O(V&sup3;)</span></li>
+            {% endfor %}
         </ol>
 
         <h2>Searching</h2>
-        <p>Three algorithms. All figures below describe the implementations in
+        <p>{{ counts.searching|words|capitalize }} algorithms. All figures below describe the implementations in
            <code>searching_algorithms/</code>.</p>
         <div class="card-grid">
             <a class="algo-card" data-accent="1" href="{{ url_for('searching_page') }}?algorithm=linear_search">
                 <h3>Linear Search</h3>
                 <p>Walk the list from the start and stop at the first match.</p>
                 <dl class="algo-facts">
-                    <dt>Best</dt><dd>O(1)</dd>
-                    <dt>Worst</dt><dd>O(n)</dd>
-                    <dt>Space</dt><dd>O(1)</dd>
+                    <dt>Best</dt><dd data-lesson="linear_search" data-figure="best"></dd>
+                    <dt>Worst</dt><dd data-lesson="linear_search" data-figure="worst"></dd>
+                    <dt>Space</dt><dd data-lesson="linear_search" data-figure="space"></dd>
                 </dl>
                 <p class="algo-note">Ruling a value out means looking at every position,
                    so a failed search always costs the full n.</p>
@@ -105,9 +46,9 @@
                 <h3>Binary Search</h3>
                 <p>Halve the remaining range on every comparison. Needs a sorted list.</p>
                 <dl class="algo-facts">
-                    <dt>Best</dt><dd>O(1)</dd>
-                    <dt>Worst</dt><dd>O(log n)</dd>
-                    <dt>Space</dt><dd>O(1)</dd>
+                    <dt>Best</dt><dd data-lesson="binary_search" data-figure="best"></dd>
+                    <dt>Worst</dt><dd data-lesson="binary_search" data-figure="worst"></dd>
+                    <dt>Space</dt><dd data-lesson="binary_search" data-figure="space"></dd>
                 </dl>
                 <p class="algo-note">The iterative form keeps three markers and no
                    recursion, so its extra memory does not grow with the list.</p>
@@ -116,9 +57,9 @@
                 <h3>Jump Search</h3>
                 <p>Jump ahead a block of about &radic;n values at a time, then scan one block. Needs a sorted list.</p>
                 <dl class="algo-facts">
-                    <dt>Best</dt><dd>O(1)</dd>
-                    <dt>Worst</dt><dd>O(&radic;n)</dd>
-                    <dt>Space</dt><dd>O(1)</dd>
+                    <dt>Best</dt><dd data-lesson="jump_search" data-figure="best"></dd>
+                    <dt>Worst</dt><dd data-lesson="jump_search" data-figure="worst"></dd>
+                    <dt>Space</dt><dd data-lesson="jump_search" data-figure="space"></dd>
                 </dl>
                 <p class="algo-note">Between linear and binary search: at n = 1024 its
                    worst case is 64 comparisons, against 1024 and 11.</p>
@@ -126,16 +67,16 @@
         </div>
 
         <h2>Sorting</h2>
-        <p>Eight algorithms. All figures below describe the implementations in
+        <p>{{ counts.sorting|words|capitalize }} algorithms. All figures below describe the implementations in
            <code>sorting_algorithms/</code>. The last two never compare two values.</p>
         <div class="card-grid">
             <a class="algo-card" data-accent="1" href="{{ url_for('sorting_page') }}?algorithm=Bubble+Sort">
                 <h3>Bubble Sort</h3>
                 <p>Compare each neighbouring pair and swap them if they are out of order.</p>
                 <dl class="algo-facts">
-                    <dt>Best</dt><dd>O(n&sup2;)</dd>
-                    <dt>Worst</dt><dd>O(n&sup2;)</dd>
-                    <dt>Space</dt><dd>O(1)</dd>
+                    <dt>Best</dt><dd data-lesson="bubble_sort" data-figure="best"></dd>
+                    <dt>Worst</dt><dd data-lesson="bubble_sort" data-figure="worst"></dd>
+                    <dt>Space</dt><dd data-lesson="bubble_sort" data-figure="space"></dd>
                 </dl>
                 <p class="algo-note">No early exit, so even a sorted list costs n(n-1)/2
                    comparisons. The textbook O(n) best case needs a swapped flag.</p>
@@ -144,9 +85,9 @@
                 <h3>Selection Sort</h3>
                 <p>Scan for the smallest remaining value and move it into place.</p>
                 <dl class="algo-facts">
-                    <dt>Best</dt><dd>O(n&sup2;)</dd>
-                    <dt>Worst</dt><dd>O(n&sup2;)</dd>
-                    <dt>Space</dt><dd>O(1)</dd>
+                    <dt>Best</dt><dd data-lesson="selection_sort" data-figure="best"></dd>
+                    <dt>Worst</dt><dd data-lesson="selection_sort" data-figure="worst"></dd>
+                    <dt>Space</dt><dd data-lesson="selection_sort" data-figure="space"></dd>
                 </dl>
                 <p class="algo-note">The inner scan never stops early, so the comparison
                    count does not depend on the input at all.</p>
@@ -155,9 +96,9 @@
                 <h3>Insertion Sort</h3>
                 <p>Take the next value and slide it back until it sits in order.</p>
                 <dl class="algo-facts">
-                    <dt>Best</dt><dd>O(n)</dd>
-                    <dt>Worst</dt><dd>O(n&sup2;)</dd>
-                    <dt>Space</dt><dd>O(1)</dd>
+                    <dt>Best</dt><dd data-lesson="insertion_sort" data-figure="best"></dd>
+                    <dt>Worst</dt><dd data-lesson="insertion_sort" data-figure="worst"></dd>
+                    <dt>Space</dt><dd data-lesson="insertion_sort" data-figure="space"></dd>
                 </dl>
                 <p class="algo-note">This one does break out of the inner loop early, so an
                    already sorted list really is linear here.</p>
@@ -166,9 +107,9 @@
                 <h3>Merge Sort</h3>
                 <p>Split the list in half, sort both halves, then merge them.</p>
                 <dl class="algo-facts">
-                    <dt>Best</dt><dd>O(n log n)</dd>
-                    <dt>Worst</dt><dd>O(n log n)</dd>
-                    <dt>Space</dt><dd>O(n)</dd>
+                    <dt>Best</dt><dd data-lesson="merge_sort" data-figure="best"></dd>
+                    <dt>Worst</dt><dd data-lesson="merge_sort" data-figure="worst"></dd>
+                    <dt>Space</dt><dd data-lesson="merge_sort" data-figure="space"></dd>
                 </dl>
                 <p class="algo-note">Merging builds temporary lists, so the extra memory
                    grows with the input rather than staying constant.</p>
@@ -177,9 +118,9 @@
                 <h3>Quick Sort</h3>
                 <p>Partition around a pivot so small values land left and large ones right.</p>
                 <dl class="algo-facts">
-                    <dt>Best</dt><dd>O(n log n)</dd>
-                    <dt>Worst</dt><dd>O(n&sup2;)</dd>
-                    <dt>Space</dt><dd>O(n)</dd>
+                    <dt>Best</dt><dd data-lesson="quick_sort" data-figure="best"></dd>
+                    <dt>Worst</dt><dd data-lesson="quick_sort" data-figure="worst"></dd>
+                    <dt>Space</dt><dd data-lesson="quick_sort" data-figure="space"></dd>
                 </dl>
                 <p class="algo-note">The pivot is the last element, so an already sorted
                    list is the worst case and the recursion reaches depth n.</p>
@@ -188,20 +129,21 @@
                 <h3>Heap Sort</h3>
                 <p>Build a max heap, swap the top to the end, then repair the heap.</p>
                 <dl class="algo-facts">
-                    <dt>Best</dt><dd>O(n log n)</dd>
-                    <dt>Worst</dt><dd>O(n log n)</dd>
-                    <dt>Space</dt><dd>O(log n)</dd>
+                    <dt>Best</dt><dd data-lesson="heap_sort" data-figure="best"></dd>
+                    <dt>Worst</dt><dd data-lesson="heap_sort" data-figure="worst"></dd>
+                    <dt>Space</dt><dd data-lesson="heap_sort" data-figure="space"></dd>
                 </dl>
-                <p class="algo-note">Heapify here is recursive, so the call stack is the
-                   extra memory rather than the usual O(1).</p>
+                <p class="algo-note">The fast best case needs every value equal, so no repair
+                   moves anything; on distinct values every case is n log n. Heapify here is
+                   recursive, so the call stack is the extra memory rather than the usual O(1).</p>
             </a>
             <a class="algo-card" data-accent="1" href="{{ url_for('sorting_page') }}?algorithm=Counting+Sort">
                 <h3>Counting Sort</h3>
                 <p>Count how often each value from 0 to 99 appears, then write the list back from the counts.</p>
                 <dl class="algo-facts">
-                    <dt>Best</dt><dd>O(n + k)</dd>
-                    <dt>Worst</dt><dd>O(n + k)</dd>
-                    <dt>Space</dt><dd>O(k)</dd>
+                    <dt>Best</dt><dd data-lesson="counting_sort" data-figure="best"></dd>
+                    <dt>Worst</dt><dd data-lesson="counting_sort" data-figure="worst"></dd>
+                    <dt>Space</dt><dd data-lesson="counting_sort" data-figure="space"></dd>
                 </dl>
                 <p class="algo-note">No comparisons at all, which is how it gets under the
                    n log n limit for comparison sorts. It only takes whole numbers 0 to 99.</p>
@@ -210,9 +152,9 @@
                 <h3>Radix Sort</h3>
                 <p>Deal the values into ten buckets by the ones digit, collect them, then do the tens.</p>
                 <dl class="algo-facts">
-                    <dt>Best</dt><dd>O(d(n + b))</dd>
-                    <dt>Worst</dt><dd>O(d(n + b))</dd>
-                    <dt>Space</dt><dd>O(n + b)</dd>
+                    <dt>Best</dt><dd data-lesson="radix_sort" data-figure="best"></dd>
+                    <dt>Worst</dt><dd data-lesson="radix_sort" data-figure="worst"></dd>
+                    <dt>Space</dt><dd data-lesson="radix_sort" data-figure="space"></dd>
                 </dl>
                 <p class="algo-note">d is the digits per value, here 2, and b the 10 buckets.
                    No comparisons, and equal values keep their order.</p>
@@ -220,7 +162,7 @@
         </div>
 
         <h2>Graphs</h2>
-        <p>Nine algorithms. V is the number of nodes and E the number of edges.
+        <p>{{ counts.graphs|words|capitalize }} algorithms. V is the number of nodes and E the number of edges.
            Topological sort reads its edges as one way arrows, and A* works on a
            grid, where V is the number of cells.</p>
         <div class="card-grid">
@@ -228,8 +170,8 @@
                 <h3>Breadth-First Search</h3>
                 <p>Visit everything one step away, then everything two steps away.</p>
                 <dl class="algo-facts">
-                    <dt>Time</dt><dd>O(V&middot;E)</dd>
-                    <dt>Space</dt><dd>O(V)</dd>
+                    <dt>Time</dt><dd data-lesson="bfs" data-figure="worst"></dd>
+                    <dt>Space</dt><dd data-lesson="bfs" data-figure="space"></dd>
                 </dl>
                 <p class="algo-note">The queue is a plain list, so taking the front is
                    O(V) and the duplicate check scans it once per edge. With a deque and
@@ -239,8 +181,8 @@
                 <h3>Depth-First Search</h3>
                 <p>Follow one branch to its end before trying the next.</p>
                 <dl class="algo-facts">
-                    <dt>Time</dt><dd>O(V&middot;E)</dd>
-                    <dt>Space</dt><dd>O(V)</dd>
+                    <dt>Time</dt><dd data-lesson="dfs" data-figure="worst"></dd>
+                    <dt>Space</dt><dd data-lesson="dfs" data-figure="space"></dd>
                 </dl>
                 <p class="algo-note">Taking from the end of the stack is cheap, but the
                    same duplicate check scans the stack once per edge.</p>
@@ -249,8 +191,8 @@
                 <h3>Topological Sort</h3>
                 <p>Kahn's algorithm: keep placing a node that no remaining arrow points at.</p>
                 <dl class="algo-facts">
-                    <dt>Time</dt><dd>O(V + E)</dd>
-                    <dt>Space</dt><dd>O(V)</dd>
+                    <dt>Time</dt><dd data-lesson="topological_sort" data-figure="worst"></dd>
+                    <dt>Space</dt><dd data-lesson="topological_sort" data-figure="space"></dd>
                 </dl>
                 <p class="algo-note">The queue is a deque, so every node and every arrow
                    is handled a fixed number of times. A cycle stops it and is named.</p>
@@ -259,8 +201,8 @@
                 <h3>Dijkstra's Algorithm</h3>
                 <p>Always settle the nearest unvisited node next.</p>
                 <dl class="algo-facts">
-                    <dt>Time</dt><dd>O(V&sup2;)</dd>
-                    <dt>Space</dt><dd>O(V)</dd>
+                    <dt>Time</dt><dd data-lesson="dijkstra" data-figure="worst"></dd>
+                    <dt>Space</dt><dd data-lesson="dijkstra" data-figure="space"></dd>
                 </dl>
                 <p class="algo-note">The next node is picked with a linear scan over every
                    unvisited node, not a priority queue, so this is the V squared form.</p>
@@ -269,9 +211,9 @@
                 <h3>A* Search</h3>
                 <p>Expand the cell with the lowest cost so far plus a guess of the cost to go.</p>
                 <dl class="algo-facts">
-                    <dt>Best</dt><dd>O(1)</dd>
-                    <dt>Worst</dt><dd>O(V log V)</dd>
-                    <dt>Space</dt><dd>O(V)</dd>
+                    <dt>Best</dt><dd data-lesson="astar" data-figure="best"></dd>
+                    <dt>Worst</dt><dd data-lesson="astar" data-figure="worst"></dd>
+                    <dt>Space</dt><dd data-lesson="astar" data-figure="space"></dd>
                 </dl>
                 <p class="algo-note">A binary heap on a grid of V cells. With the guess set to
                    0 the same code is Dijkstra, and a button runs both on your grid.</p>
@@ -280,8 +222,8 @@
                 <h3>Prim's Algorithm</h3>
                 <p>Grow a single tree, always taking the cheapest edge leaving it.</p>
                 <dl class="algo-facts">
-                    <dt>Time</dt><dd>O(E log E)</dd>
-                    <dt>Space</dt><dd>O(V + E)</dd>
+                    <dt>Time</dt><dd data-lesson="prim" data-figure="worst"></dd>
+                    <dt>Space</dt><dd data-lesson="prim" data-figure="space"></dd>
                 </dl>
                 <p class="algo-note">Uses a real heap, so every edge costs a log E push
                    and pop.</p>
@@ -290,8 +232,8 @@
                 <h3>Kruskal's Algorithm</h3>
                 <p>Sort every edge, then take the cheap ones that do not close a loop.</p>
                 <dl class="algo-facts">
-                    <dt>Time</dt><dd>O(E log E)</dd>
-                    <dt>Space</dt><dd>O(V + E)</dd>
+                    <dt>Time</dt><dd data-lesson="kruskal" data-figure="worst"></dd>
+                    <dt>Space</dt><dd data-lesson="kruskal" data-figure="space"></dd>
                 </dl>
                 <p class="algo-note">The sort dominates. Union-Find uses path halving and
                    union by rank, so the cycle check is nearly constant.</p>
@@ -300,8 +242,8 @@
                 <h3>Bellman-Ford</h3>
                 <p>Relax every edge repeatedly until nothing improves.</p>
                 <dl class="algo-facts">
-                    <dt>Time</dt><dd>O(V&middot;E)</dd>
-                    <dt>Space</dt><dd>O(V)</dd>
+                    <dt>Time</dt><dd data-lesson="bellman_ford" data-figure="worst"></dd>
+                    <dt>Space</dt><dd data-lesson="bellman_ford" data-figure="space"></dd>
                 </dl>
                 <p class="algo-note">Stops early when a pass changes nothing, then makes
                    one extra pass to detect a negative cycle.</p>
@@ -310,8 +252,8 @@
                 <h3>Floyd-Warshall</h3>
                 <p>Ask, for every pair, whether going via some third node is shorter.</p>
                 <dl class="algo-facts">
-                    <dt>Time</dt><dd>O(V&sup3;)</dd>
-                    <dt>Space</dt><dd>O(V&sup2;)</dd>
+                    <dt>Time</dt><dd data-lesson="floyd_warshall" data-figure="worst"></dd>
+                    <dt>Space</dt><dd data-lesson="floyd_warshall" data-figure="space"></dd>
                 </dl>
                 <p class="algo-note">Three nested loops over every node, and a full
                    distance matrix held in memory.</p>
@@ -332,4 +274,14 @@
             </a>
         </div>
     </main>
+{% endblock %}
+
+{% block page_js %}
+    {# Every Best, Worst and Space figure above is filled in from the lesson
+       files, the one source of truth for complexity, so a card cannot drift
+       from the Complexity tab. #}
+    {% for lesson, name, page, query, note in learn_order %}
+    <script src="{{ url_for('static', filename='js/lessons/' + lesson + '.js') }}"></script>
+    {% endfor %}
+    <script src="{{ url_for('static', filename='js/learnfigures.js') }}"></script>
 {% endblock %}

@@ -156,11 +156,19 @@ def astar(rows, cols, walls, start, goal, draw, heuristic='manhattan', stats=Non
                 break
         closed.add(cell)
         stats['expanded'] += 1
+        # Say only what decided it: f alone, then h, then push order.
+        same_f = [e for e in live if e[0] == f and e[3] != cell]
+        if not same_f:
+            decided = ''
+        elif all(e[1] > h for e in same_f):
+            decided = ', and the lowest h among the cells with that f'
+        else:
+            decided = (', tied on f and h with another cell; it was added to the '
+                       'open set first, which breaks the tie')
         frame('visit', [cell], [cell_g, h], 'expand',
               state(cell, {'g': cell_g, 'h': h, 'f': f}),
               'Expand %s: it has the lowest f in the open set, %d = %d + %d%s.'
-              % (shown(cell), f, cell_g, h,
-                 '' if zero else ', and the lowest h among cells with that f'),
+              % (shown(cell), f, cell_g, h, decided),
               'Once a cell comes out of the open set its g is final: no route '
               'found later can be shorter.' if not zero else
               'With h = 0 this is Dijkstra: cells come out in order of their '

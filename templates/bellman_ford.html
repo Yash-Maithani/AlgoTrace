@@ -5,24 +5,15 @@
 {% block extra_content %}
 <div class="algorithm-info">
     <h3>Bellman-Ford Algorithm</h3>
-    <p>The Bellman-Ford algorithm finds the shortest paths from a single source vertex to all other vertices in a weighted graph. Unlike Dijkstra's algorithm, it can handle negative edge weights and detect negative cycles.</p>
-    <p class="panel-complexity-note">Time and space complexity for this implementation are in the Complexity tab of the Learn panel above, with the reason for each figure.</p>
-    <p><strong>Use Cases:</strong></p>
+    <p>Bellman-Ford finds the cheapest route from one start node to every other node, like Dijkstra, but it can handle negative edge costs.</p>
+    <p>It goes through every edge again and again, lowering distances, until a pass changes nothing.</p>
+    <p>If a distance still drops after that, the graph has a loop whose costs add up to less than zero, and it says so.</p>
+    <p class="panel-complexity-note">How long it takes and how much memory it needs, for the code on this site, are in the Complexity tab of the Learn panel, with the reason for each figure.</p>
+    <p><strong>Good for</strong></p>
     <ul>
-        <li>Shortest path with negative weights</li>
-        <li>Negative cycle detection</li>
-        <li>Currency arbitrage detection</li>
-        <li>Network routing protocols</li>
+        <li>Shortest routes when some costs are negative, such as gains as well as losses.</li>
+        <li>Spotting a loop that keeps getting cheaper, such as a run of currency exchanges that ends with more money than it started.</li>
     </ul>
-    <p><strong>Note:</strong> edges are read as undirected, so a single negative edge is
-    itself a negative cycle and will be reported as one. Example input:</p>
-    <pre>5 6
-A B 6
-A C 7
-B C 8
-B D 5
-C E 9
-D E 2
-A</pre>
+    <p>Edges here go both ways, so a single negative edge is already a loop below zero: walk it there and back. The run reports it as one.</p>
 </div>
 {% endblock %}

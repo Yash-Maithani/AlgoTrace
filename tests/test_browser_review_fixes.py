@@ -246,16 +246,23 @@ def test_compare_has_no_learn_panel_to_fill(browser, base_url):
 def test_the_graph_canvas_is_an_image_with_a_name_that_says_what_it_shows(browser, base_url, algo):
     page = page_for(browser, base_url, '/graph?algo=' + algo, width=1440)
     svg = '#graph-container svg.graph-svg'
+    # The starter graph is drawn on load, so the canvas names it before any run.
+    page.wait_for_selector('#graph-container g.nodes circle')
     assert page.get_attribute(svg, 'role') == 'img'
-    assert 'empty' in page.get_attribute(svg, 'aria-label') and 'Run the algorithm' in page.get_attribute(svg, 'aria-label')
+    before = page.get_attribute(svg, 'aria-label')
+    assert 'Nodes: ' in before and 'empty' not in before, before
 
     page.click('#run-button')
     page.wait_for_function('Workspace.current.steps.length > 0', timeout=10000)
     page.evaluate('Workspace.current.go(Workspace.current.steps.length - 1)')
     label = page.get_attribute(svg, 'aria-label')
-    nodes, edges = page.evaluate("[nodes.length, links.length]")
+    # An undirected edge is two links, A to B and B to A, and is named once.
+    nodes, edges = page.evaluate("""[nodes.length, new Set(links.map(l => {
+        const a = l.source.id || l.source, b = l.target.id || l.target;
+        return isDirected() ? a + '>' + b : [a, b].sort().join('|'); })).size]""")
+    noun = 'arrows' if algo == 'topological_sort' else 'edges'
     assert page.get_attribute(svg, 'role') == 'img'
-    assert ('%d nodes and %d edges' % (nodes, edges)) in label, label
+    assert ('%d nodes and %d %s' % (nodes, edges, noun)) in label, label
     assert label.startswith('Directed graph' if algo == 'topological_sort' else 'Graph'), label
     assert 'Nodes: ' in label
     assert (' to ' in label) if algo == 'topological_sort' else (' and ' in label)

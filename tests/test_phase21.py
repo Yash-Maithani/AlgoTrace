@@ -339,7 +339,7 @@ def test_learn_home_and_counts(client):
     html = client.get('/learn').get_data(as_text=True)
     order = re.findall(r'class="order-name"[^>]*>([^<]+)</a>', html)
     assert len(order) == 20
-    assert order.index('A* Search') == order.index("Dijkstra's Algorithm") + 1
+    assert order.index('A* Search') == order.index("Dijkstra&#39;s Algorithm") + 1
     assert '<h3>A* Search</h3>' in html
     home = client.get('/').get_data(as_text=True)
     assert '<span class="track-meta">%d algorithms</span>' % len(GRAPH_PICKER) in home

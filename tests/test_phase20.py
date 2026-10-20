@@ -288,7 +288,8 @@ def test_predict_asks_which_node_is_removed_next(client):
             assert q['kind'] == 'topo-remove'
             assert step['line'] == 'remove'
             assert q['prompt'].endswith('Which node is removed next?')
-            assert [o['id'] for o in q['options']] == now['vars']['queue']
+            # The real queue, listed by name so the answer's position gives nothing away.
+            assert [o['id'] for o in q['options']] == sorted(now['vars']['queue'], key=lambda n: [int(t) if t.isdigit() else t for t in __import__('re').split(r'(\d+)', n)])
             assert len(q['options']) >= 2
             assert q['answer'] == step['indices'][0] == now['vars']['queue'][0]
             seen += 1

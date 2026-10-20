@@ -5,14 +5,15 @@
 {% block extra_content %}
 <div class="algorithm-info">
     <h3>Depth-First Search (DFS)</h3>
-    <p>DFS is a graph traversal algorithm that explores as far as possible along each branch before backtracking.</p>
-    <p class="panel-complexity-note">Time and space complexity for this implementation are in the Complexity tab of the Learn panel above, with the reason for each figure.</p>
-    <p><strong>Use Cases:</strong></p>
+    <p>DFS follows one path as far as it can go, then backs up to the last place with a choice it has not tried.</p>
+    <p>It keeps the nodes waiting their turn on a stack: last in, first out.</p>
+    <p>It reaches every node the start can reach, but not by the shortest route.</p>
+    <p class="panel-complexity-note">How long it takes and how much memory it needs, for the code on this site, are in the Complexity tab of the Learn panel, with the reason for each figure.</p>
+    <p><strong>Good for</strong></p>
     <ul>
-        <li>Topological sorting</li>
-        <li>Cycle detection</li>
-        <li>Maze solving</li>
-        <li>Game tree exploration</li>
+        <li>Exploring every room of a maze, or every page a website links to.</li>
+        <li>Spotting a cycle: a path that leads back to a node still on the stack.</li>
+        <li>The basis of many other graph algorithms, including one way to order tasks.</li>
     </ul>
 </div>
 {% endblock %}

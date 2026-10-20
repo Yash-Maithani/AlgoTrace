@@ -569,14 +569,14 @@ def test_learn_lists_all_eighteen_in_order(client):
 
 @needs_node
 def test_learn_cards_quote_the_lessons(client):
+    """The cards hold no figure of their own: each slot names its lesson and
+    is filled from it (tests/test_review_fixes22.py checks the values)."""
     html = client.get('/learn').get_data(as_text=True)
-    shown = {'square root of n': '&radic;n', 'n plus k': 'n + k', 'd times (n plus b)': 'd(n + b)', '1': '1'}
     for key, name in (('jump_search', 'Jump Search'), ('counting_sort', 'Counting Sort'),
                       ('radix_sort', 'Radix Sort')):
         card = html.split('<h3>%s</h3>' % name, 1)[1].split('</a>', 1)[0]
-        c = lesson(key)['complexity']
-        assert '<dt>Best</dt><dd>O(%s)</dd>' % shown[c['time']['best']['theta']] in card
-        assert '<dt>Worst</dt><dd>O(%s)</dd>' % shown[c['time']['worst']['theta']] in card
+        for figure in ('best', 'worst', 'space'):
+            assert 'data-lesson="%s" data-figure="%s"' % (key, figure) in card
 
 
 def test_home_tiles_count_the_algorithms(client):

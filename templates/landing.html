@@ -9,10 +9,10 @@
         <section class="hero">
             <div class="wrap hero-grid">
                 <div class="hero-copy">
-                    <h1 class="hero-title">Interactive Algorithm Visualizer</h1>
+                    <h1 class="hero-title">Watch {{ counts.total }} algorithms run one step at a time</h1>
                     <p class="hero-subtitle">
-                        Watch an algorithm run one step at a time, read why it made each move,
-                        and see what it costs.
+                        Sorting, searching and graph algorithms, each step shown with the line of
+                        code that ran it, the reason in plain words, and what it cost.
                     </p>
                     <div class="hero-actions">
                         <a href="{{ url_for('learn') }}" class="btn btn-primary">Start learning</a>
@@ -112,8 +112,8 @@
                             <span style="--v: 55"></span>
                         </span>
                         <h3>Sorting</h3>
-                        <p>Eight ways to put a list in order, from bubble sort to radix sort, which never compares two values.</p>
-                        <span class="track-meta">8 algorithms</span>
+                        <p>Ways to put a list in order, from bubble sort to radix sort, which never compares two values.</p>
+                        <span class="track-meta">{{ counts.sorting }} algorithms</span>
                     </a>
 
                     <a href="{{ url_for('searching_page') }}" class="track-tile reveal" data-track="searching">
@@ -124,7 +124,7 @@
                         </span>
                         <h3>Searching</h3>
                         <p>Linear, binary and jump search, and why a sorted list changes everything.</p>
-                        <span class="track-meta">3 algorithms</span>
+                        <span class="track-meta">{{ counts.searching }} algorithms</span>
                     </a>
 
                     <a href="{{ url_for('graph_page') }}" class="track-tile reveal" data-track="graphs">
@@ -140,7 +140,7 @@
                         </span>
                         <h3>Graphs</h3>
                         <p>Traversals, shortest paths, spanning trees, a topological order, and A* on a grid you draw.</p>
-                        <span class="track-meta">9 algorithms</span>
+                        <span class="track-meta">{{ counts.graphs }} algorithms</span>
                     </a>
                 </div>
             </div>
@@ -153,20 +153,13 @@
                 <p class="section-lead">If you are new to this, work down the list.
                    Each one builds on the one above it.</p>
                 <ol class="start-list">
-                    <li class="is-first"><a href="{{ url_for('sorting_page') }}?algorithm=Bubble+Sort">Bubble Sort</a>
-                        <span>The simplest one to read. Start here.</span></li>
-                    <li><a href="{{ url_for('sorting_page') }}?algorithm=Selection+Sort">Selection Sort</a>
-                        <span>Find the smallest, put it in place, repeat.</span></li>
-                    <li><a href="{{ url_for('sorting_page') }}?algorithm=Insertion+Sort">Insertion Sort</a>
-                        <span>The one you already use to sort playing cards.</span></li>
-                    <li><a href="{{ url_for('sorting_page') }}?algorithm=Merge+Sort">Merge Sort</a>
-                        <span>Split the list, sort the halves, merge them back.</span></li>
-                    <li><a href="{{ url_for('graph_page') }}?algo=bfs">Breadth-First Search</a>
-                        <span>Explore a network one ring at a time.</span></li>
-                    <li><a href="{{ url_for('graph_page') }}?algo=dijkstra">Dijkstra's Algorithm</a>
-                        <span>The shortest route when the roads have lengths.</span></li>
+                    {# The first entries of the /learn order (LEARN_ORDER in app.py). #}
+                    {% for lesson, name, page, query, note in start_here %}
+                    <li{% if loop.first %} class="is-first"{% endif %}><a href="{{ url_for(page) }}?{{ query }}">{{ name }}</a>
+                        <span>{{ note }}</span></li>
+                    {% endfor %}
                 </ol>
-                <p class="start-more"><a href="{{ url_for('learn') }}">See all 15 in order</a></p>
+                <p class="start-more"><a href="{{ url_for('learn') }}">See all {{ counts.total }} in order</a></p>
             </div>
         </section>
     </main>
