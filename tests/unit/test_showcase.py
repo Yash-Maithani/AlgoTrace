@@ -30,7 +30,8 @@ def test_the_readme_leads_with_the_project_in_the_order_asked_for():
     lead = text.split('\n## ')[0]
     sentence = lead.split('\n\n')[1]
     assert sentence.startswith('AlgoTrace plays 20 ') and sentence.endswith('.') and '\n' not in sentence
-    assert '**Live demo:**' in lead and 'TODO' in lead.split('**Live demo:**')[1].split('\n')[0]
+    assert '**Live demo:** https://algotrace-zxiw.onrender.com' in lead
+    assert 'TODO' not in text
     assert 'docs/screenshots/predict-demo.gif' in lead
     assert lead.index('Live demo') < lead.index('predict-demo.gif')
 

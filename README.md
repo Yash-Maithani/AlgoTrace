@@ -2,7 +2,7 @@
 
 AlgoTrace plays 20 sorting, searching and graph algorithms one step at a time on input you choose, putting a plain language reason, the line of code that ran and a running count of the work beside every move.
 
-**Live demo:** TODO, add the address here after the first deploy.
+**Live demo:** https://algotrace-zxiw.onrender.com
 
 ![A bubble sort played with Predict on: the page asks whether the next two values will swap, scores the answer, and carries on](docs/screenshots/predict-demo.gif)
 
