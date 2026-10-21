@@ -1,0 +1,11 @@
+# AlgoTrace is a site, not a library: requirements.txt is what it runs on and
+# requirements-dev.txt what it is tested with. This file holds the tool settings.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# The repository root, for `from wsgi import app` and `algotrace`, and tests/,
+# for paths.py and browser_helpers.py, from a test in any of the folders below it.
+pythonpath = [".", "tests"]
+markers = [
+    "slow: measures growth over many sizes, compiles and runs the C, C++ and Java reference programs, or drives a real browser. Skip them with -m \"not slow\" for a quick run.",
+]

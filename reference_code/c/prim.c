@@ -1,4 +1,4 @@
-/* Prim in C11, a translation of /run_prim in app.py.
+/* Prim in C11, a translation of algotrace/algorithms/graph/prim.py.
  * Input and output: reference_code/README.md, "Graph programs".
  * The endpoint pushes (weight, u, v) tuples onto Python's heapq, so this
  * uses a binary heap ordered the same way: by weight, then u's name, then

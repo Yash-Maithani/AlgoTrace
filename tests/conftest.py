@@ -11,8 +11,8 @@ import threading
 import pytest
 
 # The rate limit on /run_* would throttle the thousands of runs these tests make
-# from one address. tests/test_rate_limit.py turns it back on for itself. This has
-# to be set before anything imports app.
+# from one address. tests/unit/test_rate_limit.py turns it back on for itself. This has
+# to be set before anything imports the app (wsgi.py).
 os.environ.setdefault('RATE_LIMIT_PER_MINUTE', '0')
 
 import browser_helpers as bh
@@ -47,7 +47,7 @@ def pytest_terminal_summary(terminalreporter):
 @pytest.fixture(scope='session')
 def base_url():
     from werkzeug.serving import make_server
-    from app import app
+    from wsgi import app
     app.config['TESTING'] = True
     server = make_server('127.0.0.1', 0, app, threaded=True)
     thread = threading.Thread(target=server.serve_forever, daemon=True)

@@ -1,4 +1,4 @@
-# Runtime. Flask is the only thing app.py imports that is not standard library.
+# Runtime. Flask is the only thing the site imports that is not standard library.
 Flask>=3.0
 
 # Production servers. One per platform: gunicorn does not run on Windows and

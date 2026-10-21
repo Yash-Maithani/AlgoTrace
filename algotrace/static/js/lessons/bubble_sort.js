@@ -1,0 +1,169 @@
+/* Lesson content for Bubble Sort. Contract: static/js/lessons/README.md
+   Every complexity figure here describes algotrace/algorithms/sorting/bubble_sort.py,
+   which has no early exit, and not the textbook version that does. */
+window.LESSONS = window.LESSONS || {};
+window.LESSONS.bubble_sort = {
+    id: 'bubble_sort',
+    name: 'Bubble Sort',
+    family: 'sorting',
+
+    idea: [
+        'Walk along the list and compare each value with the one next to it.',
+        'If the pair is the wrong way round, swap them, so the larger value moves right.',
+        'Repeat the walk until every pass has been made, by which point the list is in order.'
+    ],
+    analogy: 'Tidying a shelf of books by checking each neighbouring pair and swapping any that are out of order, over and over.',
+    whenToUse: 'Almost never in real code. It is here because it is the shortest sort to read, and it makes a clear picture of what a comparison and a swap are.',
+    stable: true,
+    presetNotes: {
+        random: "A typical input. Every run makes n(n-1)/2 comparisons here; only the swap count depends on the order.",
+        sorted: "No swaps are needed, yet it still makes all n(n-1)/2 comparisons, because this version has no early exit.",
+        reversed: "The most swaps possible: every pair is out of order, so there is one swap for every comparison.",
+        equal: "Nothing swaps, because only a strictly larger left value moves. The comparisons are still n(n-1)/2.",
+        nearly: "Only a few swaps, but the comparison count does not drop, because each pass still runs to the end."
+    },
+
+    code: {
+        pseudocode: [
+            { id: null, text: 'n = length of list', indent: 0 },
+            { id: 'pass', text: 'repeat n times:', indent: 0 },
+            { id: 'walk', text: 'for each neighbouring pair, left to right:', indent: 1 },
+            { id: 'compare', text: 'if left value > right value:', indent: 2 },
+            { id: 'swap', text: 'swap the two values', indent: 3 }
+        ],
+        python: [
+            { id: null, text: 'n = len(arr)', indent: 0 },
+            { id: 'pass', text: 'for i in range(n):', indent: 0 },
+            { id: 'walk', text: 'for j in range(0, n-i-1):', indent: 1 },
+            { id: 'compare', text: 'if arr[j] > arr[j+1]:', indent: 2 },
+            { id: 'swap', text: 'arr[j], arr[j+1] = arr[j+1], arr[j]', indent: 3 }
+        ]
+    },
+
+    complexity: {
+        time: {
+            best: {
+                value: 'O(n squared)',
+                theta: 'n squared',
+                reason: 'The inner loop runs n-1 times, then n-2, and so on, whatever the values are. Nothing in this code stops a pass early, so a sorted list costs exactly as much as a shuffled one.'
+            },
+            average: {
+                value: 'O(n squared)',
+                theta: 'n squared',
+                reason: 'The number of comparisons does not depend on the input at all. It is always n(n-1)/2.'
+            },
+            worst: {
+                value: 'O(n squared)',
+                theta: 'n squared',
+                reason: 'Same count again. A reverse sorted list costs no more comparisons than a sorted one, only more swaps.'
+            }
+        },
+        overall: { O: 'n squared', Omega: 'n squared', Theta: 'n squared' },
+        misconception: 'Best, average and worst are cases: three kinds of input. O, Omega and Theta are bounds: a ceiling on the growth, a floor under it, and both at once. Every case has its own bounds, so reading O as the worst case, Omega as the best and Theta as the average mixes up two different ideas.',
+        worked: {
+            input: '[5, 3, 8, 1, 9]',
+            comparisons: 10,
+            note: 'n = 5, so n(n-1)/2 = 10 comparisons. Any other five values give 10 as well. Only the swap count changes: this input needs 4, a sorted list needs 0, and a reversed one needs 10.'
+        },
+        space: {
+            value: 'O(1)',
+            what: 'two loop counters and one temporary during each swap, no matter how long the list is'
+        },
+        auxiliaryNote: 'Auxiliary space is the memory the algorithm needs on top of the input array itself.',
+        thisRun: 'Big O describes how work grows as the input grows and ignores constants. The counter shows the exact work for this one input.',
+        growth: 'n2',
+        growthBasis: null,
+        growthNote: null,
+        divergence: 'Textbooks usually give bubble sort a best case of O(n), because their version keeps a flag and stops once a pass makes no swaps. This implementation has no such flag, so its best case is O(n squared). Adding the flag would not change the worst case.',
+        claims: [
+            { input: 'sorted', comparisons: 'n*(n-1)/2', bound: 'exact', where: 'time.best' },
+            { input: 'random', comparisons: 'n*(n-1)/2', bound: 'exact', where: 'time.average' },
+            { input: 'reversed', comparisons: 'n*(n-1)/2', bound: 'exact', where: 'time.worst' },
+            { input: 'equal', comparisons: 'n*(n-1)/2', bound: 'exact', where: 'presetNotes.equal' }
+        ]
+    },
+
+    /* The switch in the Setup column. "off" is the code above; "on" adds
+       the textbook flag. Contract: static/js/lessons/README.md section 3. */
+    variants: {
+        key: 'early_exit',
+        label: 'Early exit',
+        default: 'off',
+        options: {
+            off: {
+                label: 'Off',
+                note: 'Every pass runs to the end, even after the list is sorted.'
+            },
+            on: {
+                label: 'On',
+                note: 'A pass that makes no swaps stops the sort: the list must already be in order.',
+                idea: [
+                    'Walk along the list and compare each value with the one next to it.',
+                    'If the pair is the wrong way round, swap them, so the larger value moves right.',
+                    'Repeat the walk, but stop as soon as a whole walk makes no swaps, because then nothing is out of order.'
+                ],
+                presetNotes: {
+                    random: "A typical input needs most of its passes before one comes back clean, so the flag saves only a little.",
+                    sorted: "The best case: the first pass makes n-1 comparisons and no swaps, so the flag stops the sort right there.",
+                    reversed: "Every pass swaps, so the flag never fires and all n(n-1)/2 comparisons are made, the same as without it.",
+                    equal: "Nothing swaps in the first pass, so it stops after n-1 comparisons.",
+                    nearly: "One pass puts the swapped neighbours back and the next comes back clean, so it stops after about 2n comparisons."
+                },
+                code: {
+                    pseudocode: [
+                        { id: null, text: 'n = length of list', indent: 0 },
+                        { id: 'pass', text: 'repeat n times:', indent: 0 },
+                        { id: null, text: 'swapped = false', indent: 1 },
+                        { id: 'walk', text: 'for each neighbouring pair, left to right:', indent: 1 },
+                        { id: 'compare', text: 'if left value > right value:', indent: 2 },
+                        { id: 'swap', text: 'swap the two values and set swapped = true', indent: 3 },
+                        { id: null, text: 'if swapped is still false: stop, the list is sorted', indent: 1 }
+                    ],
+                    python: [
+                        { id: null, text: 'n = len(arr)', indent: 0 },
+                        { id: 'pass', text: 'for i in range(n):', indent: 0 },
+                        { id: null, text: 'swapped = False', indent: 1 },
+                        { id: 'walk', text: 'for j in range(0, n-i-1):', indent: 1 },
+                        { id: 'compare', text: 'if arr[j] > arr[j+1]:', indent: 2 },
+                        { id: 'swap', text: 'arr[j], arr[j+1] = arr[j+1], arr[j]', indent: 3 },
+                        { id: null, text: 'swapped = True', indent: 3 },
+                        { id: null, text: 'if not swapped:', indent: 1 },
+                        { id: null, text: 'break', indent: 2 }
+                    ]
+                },
+                complexity: {
+                    time: {
+                        best: {
+                            value: 'O(n)',
+                            theta: 'n',
+                            reason: 'On a list that is already in order the first pass makes n-1 comparisons and no swaps, so the flag ends the sort after that one pass.'
+                        },
+                        average: {
+                            value: 'O(n squared)',
+                            theta: 'n squared',
+                            reason: 'A shuffled list keeps swapping until its last few passes, so the passes that are skipped are the short ones and the total still grows as n squared.'
+                        },
+                        worst: {
+                            value: 'O(n squared)',
+                            theta: 'n squared',
+                            reason: 'A reversed list swaps in every pass, so no pass comes back clean early and all n(n-1)/2 comparisons are made, exactly as without the flag.'
+                        }
+                    },
+                    overall: { O: 'n squared', Omega: 'n', Theta: null },
+                    worked: {
+                        input: '[5, 3, 8, 1, 9]',
+                        comparisons: 10,
+                        note: 'n = 5. This input still costs 10: the 1 has to walk three places to the left, so each of the first three passes swaps and the flag never gets to stop it early. The sorted list [1, 3, 5, 8, 9] costs 4, which is n-1: one clean pass, then stop.'
+                    },
+                    divergence: null,
+                    claims: [
+                        { input: 'sorted', comparisons: 'n-1', bound: 'exact', where: 'time.best' },
+                        { input: 'equal', comparisons: 'n-1', bound: 'exact', where: 'presetNotes.equal' },
+                        { input: 'nearly', comparisons: '2*n-3', bound: 'atMost', where: 'presetNotes.nearly' },
+                        { input: 'reversed', comparisons: 'n*(n-1)/2', bound: 'exact', where: 'time.worst' }
+                    ]
+                }
+            }
+        }
+    }
+};

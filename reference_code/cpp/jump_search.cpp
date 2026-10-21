@@ -1,4 +1,4 @@
-// Jump Search in C++17, a translation of searching_algorithms/jump_search.py.
+// Jump Search in C++17, a translation of algotrace/algorithms/searching/jump_search.py.
 // The list must already be sorted; the site refuses an unsorted one before
 // searching, so this program assumes it. Input and output:
 // reference_code/README.md.

@@ -1,6 +1,6 @@
 """Extract the teaching part of each reference program into a lesson file.
 
-    python tools/extract_code.py           write static/js/lessons/code/<algo>.js
+    python tools/extract_code.py           write algotrace/static/js/lessons/code/<algo>.js
     python tools/extract_code.py --check   exit 1 if any of them is out of date
 
 The source of truth is reference_code/ (see reference_code/README.md for the
@@ -8,7 +8,7 @@ markers). Each generated file holds, per language and per variant, the same
 {id, text, indent} lines a lesson's Python listing has, so the Code tab can
 show any language and keep the highlight on the same line id.
 
-Never edit the generated files by hand: tests/test_reference_code.py fails
+Never edit the generated files by hand: tests/reference/test_reference_code.py fails
 when they no longer match what this script would write.
 """
 import json
@@ -18,7 +18,7 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REF = os.path.join(ROOT, 'reference_code')
-OUT = os.path.join(ROOT, 'static', 'js', 'lessons', 'code')
+OUT = os.path.join(ROOT, 'algotrace', 'static', 'js', 'lessons', 'code')
 
 # Lesson id -> Java class name. The C and C++ files are named after the id.
 ALGORITHMS = {

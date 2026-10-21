@@ -1,4 +1,4 @@
-// Depth-First Search in C++17, a translation of /run_dfs in app.py.
+// Depth-First Search in C++17, a translation of algotrace/algorithms/graph/dfs.py.
 // Input and output: reference_code/README.md, "Graph programs".
 // Like the endpoint, `not in stack` scans the stack, so the membership test
 // is linear: the lesson's O(V times E).

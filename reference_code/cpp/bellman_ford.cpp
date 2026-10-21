@@ -1,4 +1,4 @@
-// Bellman-Ford in C++17, a translation of /run_bellman_ford in app.py.
+// Bellman-Ford in C++17, a translation of algotrace/algorithms/graph/bellman_ford.py.
 // Input and output: reference_code/README.md, "Graph programs".
 // The graph is directed as given. Edges are swept in input order, at most
 // V-1 times, stopping after a pass that changes nothing; one more sweep

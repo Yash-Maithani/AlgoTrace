@@ -1,5 +1,5 @@
 // Topological Sort (Kahn's algorithm) in Java 17, a translation of
-// /run_topological_sort in app.py. Input and output: reference_code/README.md,
+// algotrace/algorithms/graph/topological_sort.py. Input and output: reference_code/README.md,
 // "Graph programs". The queue is an ArrayDeque, as the endpoint's is a deque,
 // so taking from the front is O(1): the lesson's O(V plus E).
 import java.io.IOException;

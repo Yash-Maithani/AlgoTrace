@@ -1,4 +1,4 @@
-// Radix Sort in Java 17, a translation of sorting_algorithms/radix_sort.py.
+// Radix Sort in Java 17, a translation of algotrace/algorithms/sorting/radix_sort.py.
 // Least significant digit first, base 10, told the key range in advance,
 // whole numbers from 0 to 99, so it compares nothing. Input and output:
 // reference_code/README.md. The second count is writes, reported as swaps,

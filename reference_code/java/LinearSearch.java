@@ -1,4 +1,4 @@
-// Linear Search in Java 17, a translation of searching_algorithms/linear_search.py.
+// Linear Search in Java 17, a translation of algotrace/algorithms/searching/linear_search.py.
 // Input and output: reference_code/README.md.
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

@@ -1,4 +1,4 @@
-// Breadth-First Search in Java 17, a translation of /run_bfs in app.py.
+// Breadth-First Search in Java 17, a translation of algotrace/algorithms/graph/bfs.py.
 // Input and output: reference_code/README.md, "Graph programs".
 // Like the endpoint, `not in queue` scans the queue, so the membership test
 // is linear: the lesson's O(V times E).

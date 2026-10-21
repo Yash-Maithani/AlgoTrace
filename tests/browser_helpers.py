@@ -49,7 +49,7 @@ def page_for(browser, base_url, path, width=1280, height=900, scheme='light', re
     # bypass_csp: Playwright's wait_for_function evaluates its expression as a string
     # with eval, which the site's Content-Security-Policy (rightly) refuses. The
     # functional tests are about behaviour, so they run without the policy;
-    # tests/test_browser_launch.py runs with it on and polls without eval.
+    # tests/browser/test_browser_launch.py runs with it on and polls without eval.
     ctx = browser.new_context(viewport={'width': width, 'height': height}, color_scheme=scheme,
                               reduced_motion=reduced, bypass_csp=True)
     if tour_seen:

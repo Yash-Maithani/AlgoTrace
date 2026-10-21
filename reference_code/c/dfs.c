@@ -1,4 +1,4 @@
-/* Depth-First Search in C11, a translation of /run_dfs in app.py.
+/* Depth-First Search in C11, a translation of algotrace/algorithms/graph/dfs.py.
  * Input and output: reference_code/README.md, "Graph programs".
  * Like the endpoint, the stack is a list scanned by `not in stack`, so the
  * membership test is linear: the lesson's O(V times E).

@@ -1,4 +1,4 @@
-/* Kruskal in C11, a translation of /run_kruskal in app.py.
+/* Kruskal in C11, a translation of algotrace/algorithms/graph/kruskal.py.
  * Input and output: reference_code/README.md, "Graph programs".
  * Python's sorted() is stable: edges of equal weight keep their input
  * order. C's qsort promises no such thing, so the edges are sorted here

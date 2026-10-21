@@ -1,4 +1,4 @@
-// Dijkstra in Java 17, a translation of /run_dijkstra in app.py.
+// Dijkstra in Java 17, a translation of algotrace/algorithms/graph/dijkstra.py.
 // Input and output: reference_code/README.md, "Graph programs".
 // The nearest node is found by a linear scan over the nodes in input order,
 // taking the first smallest, exactly as the endpoint's min() does, so ties

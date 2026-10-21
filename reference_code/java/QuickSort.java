@@ -1,8 +1,8 @@
-// Quick Sort in Java 17, a translation of sorting_algorithms/quick_sort.py.
+// Quick Sort in Java 17, a translation of algotrace/algorithms/sorting/quick_sort.py.
 // Input and output: reference_code/README.md. Variant last takes the last
 // value as pivot; middle and random swap their choice to the end first and
 // run the same partition. random draws from mulberry32, the same generator
-// as sorting_algorithms/seeded.py, so a seed gives the same run as Python.
+// as algotrace/algorithms/sorting/seeded.py, so a seed gives the same run as Python.
 // lesson:variants last middle random
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -22,7 +22,7 @@ public class QuickSort {
         out.append(" depth=").append(depth).append(" range=").append(lo).append(':').append(hi).append('\n');
     }
 
-    // mulberry32, as in sorting_algorithms/seeded.py: a double in [0, 1).
+    // mulberry32, as in algotrace/algorithms/sorting/seeded.py: a double in [0, 1).
     // Java's int arithmetic wraps at 32 bits, and >>> is the unsigned shift.
     static int rngState;
 

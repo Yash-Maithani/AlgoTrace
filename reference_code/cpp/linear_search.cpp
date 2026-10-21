@@ -1,4 +1,4 @@
-// Linear Search in C++17, a translation of searching_algorithms/linear_search.py.
+// Linear Search in C++17, a translation of algotrace/algorithms/searching/linear_search.py.
 // Input and output: reference_code/README.md.
 #include <initializer_list>
 #include <iostream>

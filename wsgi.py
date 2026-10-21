@@ -3,9 +3,11 @@
     gunicorn wsgi:app            (Linux, and Render)
     waitress-serve wsgi:app      (Windows)
 
-`python app.py` is for local development only. Importing this module never
-starts a server and never turns debug mode on.
+For local development, `flask --app algotrace run --port 5002` (see README.md).
+Importing this module never starts a server and never turns debug mode on.
 """
-from app import app
+from algotrace import create_app
+
+app = create_app()
 
 __all__ = ["app"]

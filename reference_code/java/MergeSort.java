@@ -1,4 +1,4 @@
-// Merge Sort in Java 17, a translation of sorting_algorithms/merge_sort.py.
+// Merge Sort in Java 17, a translation of algotrace/algorithms/sorting/merge_sort.py.
 // Input and output: reference_code/README.md. The second count is writes,
 // reported as swaps, exactly as the site does. Variant lt compares with <
 // (not stable), le with <= (stable).

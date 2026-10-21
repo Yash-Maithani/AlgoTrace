@@ -1,4 +1,4 @@
-// Selection Sort in Java 17, a translation of sorting_algorithms/selection_sort.py.
+// Selection Sort in Java 17, a translation of algotrace/algorithms/sorting/selection_sort.py.
 // Input and output: reference_code/README.md.
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

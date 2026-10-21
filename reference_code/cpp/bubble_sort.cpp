@@ -1,4 +1,4 @@
-// Bubble Sort in C++17, a translation of sorting_algorithms/bubble_sort.py.
+// Bubble Sort in C++17, a translation of algotrace/algorithms/sorting/bubble_sort.py.
 // Input and output: reference_code/README.md.
 // lesson:variants off on
 #include <initializer_list>

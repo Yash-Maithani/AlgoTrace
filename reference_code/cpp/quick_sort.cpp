@@ -1,8 +1,8 @@
-// Quick Sort in C++17, a translation of sorting_algorithms/quick_sort.py.
+// Quick Sort in C++17, a translation of algotrace/algorithms/sorting/quick_sort.py.
 // Input and output: reference_code/README.md. Variant last takes the last
 // value as pivot; middle and random swap their choice to the end first and
 // run the same partition. random draws from mulberry32, the same generator
-// as sorting_algorithms/seeded.py, so a seed gives the same run as Python.
+// as algotrace/algorithms/sorting/seeded.py, so a seed gives the same run as Python.
 // lesson:variants last middle random
 #include <cstdint>
 #include <initializer_list>
@@ -28,7 +28,7 @@ static void step_at(int depth, int lo, int hi, const char *action, const char *l
     std::cout << " depth=" << depth << " range=" << lo << ':' << hi << '\n';
 }
 
-// mulberry32, as in sorting_algorithms/seeded.py: a double in [0, 1).
+// mulberry32, as in algotrace/algorithms/sorting/seeded.py: a double in [0, 1).
 static std::uint32_t rng_state = 0;
 
 static double rand_unit()

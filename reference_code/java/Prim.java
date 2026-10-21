@@ -1,4 +1,4 @@
-// Prim in Java 17, a translation of /run_prim in app.py.
+// Prim in Java 17, a translation of algotrace/algorithms/graph/prim.py.
 // Input and output: reference_code/README.md, "Graph programs".
 // The endpoint pushes (weight, u, v) tuples onto Python's heapq. Here the
 // same tuples go into a PriorityQueue, a binary heap, compared as whole

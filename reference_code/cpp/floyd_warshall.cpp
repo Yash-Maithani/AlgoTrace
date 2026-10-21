@@ -1,4 +1,4 @@
-// Floyd-Warshall in C++17, a translation of /run_floyd_warshall in app.py.
+// Floyd-Warshall in C++17, a translation of algotrace/algorithms/graph/floyd_warshall.py.
 // Input and output: reference_code/README.md, "Graph programs".
 // Edges are undirected and a parallel edge only replaces a dearer one.
 // Three nested loops with nothing to cut them short: the lesson's V cubed.

@@ -1,4 +1,4 @@
-/* Insertion Sort in C11, a translation of sorting_algorithms/insertion_sort.py.
+/* Insertion Sort in C11, a translation of algotrace/algorithms/sorting/insertion_sort.py.
  * Input and output: reference_code/README.md. The second count is shifts,
  * reported as swaps, exactly as the site does.
  */

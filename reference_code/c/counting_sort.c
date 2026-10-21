@@ -1,4 +1,4 @@
-/* Counting Sort in C11, a translation of sorting_algorithms/counting_sort.py.
+/* Counting Sort in C11, a translation of algotrace/algorithms/sorting/counting_sort.py.
  * Told the key range in advance, whole numbers from 0 to 99, so it compares
  * nothing. Input and output: reference_code/README.md. The second count is
  * writes, reported as swaps, exactly as the site does.

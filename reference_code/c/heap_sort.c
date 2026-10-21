@@ -1,4 +1,4 @@
-/* Heap Sort in C11, a translation of sorting_algorithms/heap_sort.py.
+/* Heap Sort in C11, a translation of algotrace/algorithms/sorting/heap_sort.py.
  * Input and output: reference_code/README.md. heapify calls itself, as the
  * Python does, which is why the lesson gives O(log n) auxiliary space.
  */

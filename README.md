@@ -38,7 +38,7 @@ The screenshots are captured by `tools/make_screenshots.py`, in the light theme 
 
 ## Tech stack
 
-- **Server:** Python 3.11, Flask 3 and Jinja2 templates. The algorithms are plain Python generators; the graph algorithms are in `app.py`.
+- **Server:** Python 3.11, Flask 3 and Jinja2 templates. One package, `algotrace/`, with a Flask blueprint for each part of the site; the algorithms are plain Python in `algotrace/algorithms/`.
 - **Browser:** vanilla JavaScript and plain CSS, no framework, no bundler, no build step. D3 7 draws the graphs and is served from this repository, not a CDN.
 - **Production:** gunicorn on Linux and waitress on Windows, a Render blueprint (`render.yaml`), a Content-Security-Policy with a nonce on every inline script, and a per-address rate limit on the endpoints that run an algorithm.
 - **Tests:** pytest, and Playwright driving a real Chromium for layout, themes, reduced motion and the policy. The C, C++ and Java reference programs are compiled with `gcc`, `g++` and a JDK and compared with the Python step for step.
@@ -53,15 +53,21 @@ Python 3.11 or newer.
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
-python app.py
 ```
 
-The site is then at http://localhost:5002. `python app.py` starts Flask's
-development server with debug mode **off**. Turn debug mode on, for the reloader
-and the in-browser traceback, only on your own machine:
+Then start the site with one command:
+
+```bash
+flask --app algotrace run --port 5002
+```
+
+The site is then at http://localhost:5002. `flask run` finds `create_app()` in
+the `algotrace` package and starts Flask's development server with debug mode
+**off**. Turn debug mode on, for the reloader and the in-browser traceback, only
+on your own machine:
 
 ```powershell
-$env:FLASK_DEBUG = "1"; python app.py
+$env:FLASK_DEBUG = "1"; flask --app algotrace run --port 5002
 ```
 
 ### As a production server, locally (Windows)
@@ -86,10 +92,9 @@ Then open http://localhost:8000. On Linux or macOS the same thing is
 |---|---|---|
 | `SITE_URL` | The public address, with no trailing slash, for canonical links, `sitemap.xml`, `robots.txt` and social previews. Set it to `https://your-domain` when the custom domain is attached; no code changes. | Links use the address the request came to, which is right locally and wrong behind a proxy. |
 | `SECRET_KEY` | Flask's secret key. The site keeps no sessions, so nothing uses it today. It is read from here so a future feature never needs one committed. | No key is set. |
-| `FLASK_DEBUG` | `1` turns on Flask's debug mode, for `python app.py` on your own machine only. | Off. |
+| `FLASK_DEBUG` | `1` turns on Flask's debug mode, for `flask --app algotrace run` on your own machine only. | Off. |
 | `TRUST_PROXY` | `1` to believe `X-Forwarded-Proto`, `X-Forwarded-Host` and `X-Forwarded-For` from the one proxy in front, as on Render. The rate limit then counts the real client address, not the proxy's. | Not trusted. |
 | `RATE_LIMIT_PER_MINUTE` | How many requests one address may make to the `/run_*` endpoints in a minute. Over it, the answer is a JSON 429 that the pages show as "wait N seconds and try again". `0` turns it off. | 30 |
-| `PORT` | The port `python app.py` listens on. A production server takes its port from its own command line. | 5002 |
 
 ### Deploying
 
@@ -97,10 +102,10 @@ Then open http://localhost:8000. On Linux or macOS the same thing is
 https://github.com/Yash-Maithani/AlgoTrace: it installs `requirements.txt`, starts
 `gunicorn wsgi:app` on `$PORT`, pins Python 3.11, and expects `SITE_URL` to be
 filled in on the dashboard. `Procfile` holds the same start command for hosts
-that read one. [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md) lists what is left to
+that read one. [docs/development/LAUNCH_CHECKLIST.md](docs/development/LAUNCH_CHECKLIST.md) lists what is left to
 do by hand.
 
-The `/run_*` endpoints are rate limited per address (`ratelimit.py`, standard
+The `/run_*` endpoints are rate limited per address (`algotrace/core/ratelimit.py`, standard
 library only, a sliding minute). The counts live in one process, so under
 gunicorn with two workers an address can make up to twice the limit; that is
 enough to stop a loop, which is what it is for. Pages and static files are not
@@ -110,7 +115,7 @@ Pages carry a Content-Security-Policy that allows this site's own scripts and
 styles and the Google Fonts it imports, with a fresh nonce on every inline
 script, so there are no inline event handlers in the markup. Static files are
 served with a content hash in their address and a one year cache; pages are
-revalidated on every visit. D3 is served from `static/vendor/`, not a CDN, so the
+revalidated on every visit. D3 is served from `algotrace/static/vendor/`, not a CDN, so the
 graph pages work offline.
 
 ## Run the tests
@@ -126,8 +131,9 @@ python -m playwright install chromium
 The second line downloads Chromium (about 150 MB, once). If you skip it, the
 browser tests use a Chrome or Edge that is already installed, and if there is
 none they skip. A run without them says so in a warning at the top and the
-bottom, so a green result is never mistaken for a complete one. Browser tests
-are in `tests/test_browser_phase14.py` and the files that follow it.
+bottom, so a green result is never mistaken for a complete one. The tests are
+in three folders: `tests/unit/` (no browser), `tests/browser/` (Playwright) and
+`tests/reference/` (the C, C++ and Java programs).
 
 Two ways to run them:
 
@@ -145,14 +151,16 @@ compile and run the C, C++ and Java reference programs, and every test that
 drives a real browser. It runs about 2,150 tests in about a minute; the full set
 is about 2,900 and takes about 20 minutes with the browser tests. Use the quick
 run while working and the full set before a commit. Run the full set on its own:
-two at once starve each other and make the browser tests time out. The marker is
-registered in `pytest.ini`.
+two at once starve each other and make the browser tests time out. The marker, the test
+folders and the import paths are set in `pyproject.toml`.
 
 The compile tests need `gcc`, `g++` and a JDK 17 or newer (`javac` and `java`)
 on the path. Without one, that language's tests skip and say what to install.
 
 Most tests exist to prove that visual work did not change any algorithm's
-behaviour:
+behaviour. A `test_browser_` file is in `tests/browser/`, a `test_reference_`
+file and the two listing tests in `tests/reference/`, and the rest in
+`tests/unit/`:
 
 | File | What it holds to account |
 |---|---|
@@ -164,22 +172,22 @@ behaviour:
 | `test_big_o.py` | Every figure the Big O page quotes, re-derived by running the code |
 | `test_kruskal.py` | Union-find behaviour on disconnected input |
 | `test_variants.py` | Every variant switch: output, counts, stability, seeds, and each lesson claim measured against the code |
-| `test_phase11.py` | Each case's stated Theta, checked by growing the input and counting real work (slow) |
+| `test_theta_measured.py` | Each case's stated Theta, checked by growing the input and counting real work (slow) |
 | `test_reference_code.py` | The C, C++ and Java sorts and searches, compiled and run, match the Python step by step (slow) |
-| `test_compare.py`, `test_browser_phase17.py` | `/compare`: counts equal `/run_sort`'s, both sides finish and the shorter waits, every "What to try" sentence holds, layout at 375 to 1440 in both themes, reduced motion, and the three workspaces still run after the refactor (browser half slow) |
+| `test_compare.py`, `test_browser_compare.py` | `/compare`: counts equal `/run_sort`'s, both sides finish and the shorter waits, every "What to try" sentence holds, layout at 375 to 1440 in both themes, reduced motion, and the three workspaces still run after the refactor (browser half slow) |
 | `test_reference_graphs.py` | The C, C++ and Java graph programs match every `/run_*` endpoint step by step on the recorded graphs and on generated ones built to hit ties, negative weights and negative cycles (slow) |
 | `test_code_listings.py` | The listings generated from those programs are current and use the lesson's line ids |
-| `test_phase14b.py` | Every visible source line is in its generated listing, and a statement over several lines carries its id on all of them |
-| `test_browser_phase14.py` | In a real browser: reduced motion, the Code panel in every language, the Complexity tab for every algorithm and variant, no sideways scroll at 375, 768 and 1440 in both themes |
-| `test_phase15.py`, `test_browser_phase15.py` | The Home player: its steps are the real `/run_sort` steps, all four cards change together on every step, it starts and pauses with the viewport, and under emulated reduced motion it stays on its frozen step while Step still works |
-| `test_phase16.py`, `test_browser_phase16.py` | Predict mode: every question the builders ask, over real runs of every algorithm, has an answer that matches the step that really follows and options taken from the run; in a browser, the flow, the score, Step back, autoplay waiting, keyboard, widths and themes |
+| `test_listing_completeness.py` | Every visible source line is in its generated listing, and a statement over several lines carries its id on all of them |
+| `test_browser_code_and_complexity.py` | In a real browser: reduced motion, the Code panel in every language, the Complexity tab for every algorithm and variant, no sideways scroll at 375, 768 and 1440 in both themes |
+| `test_home_player.py`, `test_browser_home_player.py` | The Home player: its steps are the real `/run_sort` steps, all four cards change together on every step, it starts and pauses with the viewport, and under emulated reduced motion it stays on its frozen step while Step still works |
+| `test_predict.py`, `test_browser_predict.py` | Predict mode: every question the builders ask, over real runs of every algorithm, has an answer that matches the step that really follows and options taken from the run; in a browser, the flow, the score, Step back, autoplay waiting, keyboard, widths and themes |
 | `test_predict_neutral.py` | Predict options taken from the run are listed by name or position, never in the order the algorithm takes them: over many random runs of eight algorithms no position holds the answer more than 60 percent of the time, no prompt says which end of a queue or stack is taken, and A* never asks a question that push order decides |
-| `test_review_fixes22.py` | /learn and Home's "Start here" share one order and every count comes from the registry; /learn's figures are read from the lesson files; the Merge and Heap wording; the graph copy and labels; every graph page draws its starter graph before a run, and an edit throws the run away and redraws |
+| `test_learn_and_home.py`, `test_browser_learn_and_graph_preview.py` | /learn and Home's "Start here" share one order and every count comes from the registry; /learn's figures are read from the lesson files; the Merge and Heap wording; the graph copy and labels; every graph page draws its starter graph before a run, and an edit throws the run away and redraws |
 | `test_random_range.py` | One range for every random value, 1 to 99: server random arrays, presets and the searching page; every preset at every size runs on every sort, so Compare never refuses a generated input |
-| `test_phase21.py`, `test_browser_phase21.py`, `test_reference_grid.py` | A*: on 400 random grids the path is as short as a BFS shortest path and valid, no path is reported exactly when BFS finds none, A* never expands more cells than Dijkstra, the tie-break and stale entries, the endpoint's refusals, the cases measured (Theta(1) and Theta(V log V) heap comparisons), the presets, the Predict question against the real open set; in a browser, drawing and erasing walls by pointer and by keyboard, moving start and goal, the Dijkstra button and result line, and the page at 375, 768 and 1440 in both themes; C, C++ and Java take the same steps with the same heap comparisons |
-| `test_phase20.py`, `test_browser_phase20.py` | Topological sort: on 300 random DAGs every arrow u to v has u before v; on 300 graphs with a planted cycle the run stops, names the nodes left, and the cycle it reports is real; the step meta; exactly 2(V + E) + 1 steps on a DAG; Theta(V + E) measured; the Predict question against the real queue; in a browser, arrowheads that stop at the node's rim, no arrows on the seven undirected pages, badges and strip at 375, 768 and 1440 in both themes, step back, the random DAG generator and reduced motion |
-| `test_phase19.py`, `test_browser_phase19.py` | Jump, Counting and Radix: sorted output and found index against Python's `sorted` and `index` on random, sorted, reversed, all equal, duplicate and edge-size inputs; zero comparisons; the 0 to 99 rule and its messages; every worked figure; Theta per case measured (n + k over a grid of n and k, d(n + b) as n and d grow, 1 and square root of n); the three new Predict questions against the real steps; in a browser, the strips at 375, 768 and 1440 in both themes with no bar clipped, reduced motion, and the Compare banner counting steps when a side never compares |
-| `test_phase18.py`, `test_browser_phase18.py` | The call tree matches the recursion the real merge and quick sort functions made (found by profiling them, not from the step meta) for 200 runs across every variant; in a browser, the toggle, stepping forward and back, large arrays, both themes, and the seven item navbar at desktop widths |
+| `test_astar.py`, `test_browser_astar.py`, `test_reference_grid.py` | A*: on 400 random grids the path is as short as a BFS shortest path and valid, no path is reported exactly when BFS finds none, A* never expands more cells than Dijkstra, the tie-break and stale entries, the endpoint's refusals, the cases measured (Theta(1) and Theta(V log V) heap comparisons), the presets, the Predict question against the real open set; in a browser, drawing and erasing walls by pointer and by keyboard, moving start and goal, the Dijkstra button and result line, and the page at 375, 768 and 1440 in both themes; C, C++ and Java take the same steps with the same heap comparisons |
+| `test_topological_sort.py`, `test_browser_topological_sort.py` | Topological sort: on 300 random DAGs every arrow u to v has u before v; on 300 graphs with a planted cycle the run stops, names the nodes left, and the cycle it reports is real; the step meta; exactly 2(V + E) + 1 steps on a DAG; Theta(V + E) measured; the Predict question against the real queue; in a browser, arrowheads that stop at the node's rim, no arrows on the seven undirected pages, badges and strip at 375, 768 and 1440 in both themes, step back, the random DAG generator and reduced motion |
+| `test_jump_counting_radix.py`, `test_browser_jump_counting_radix.py` | Jump, Counting and Radix: sorted output and found index against Python's `sorted` and `index` on random, sorted, reversed, all equal, duplicate and edge-size inputs; zero comparisons; the 0 to 99 rule and its messages; every worked figure; Theta per case measured (n + k over a grid of n and k, d(n + b) as n and d grow, 1 and square root of n); the three new Predict questions against the real steps; in a browser, the strips at 375, 768 and 1440 in both themes with no bar clipped, reduced motion, and the Compare banner counting steps when a side never compares |
+| `test_call_tree.py`, `test_browser_call_tree.py` | The call tree matches the recursion the real merge and quick sort functions made (found by profiling them, not from the step meta) for 200 runs across every variant; in a browser, the toggle, stepping forward and back, large arrays, both themes, and the seven item navbar at desktop widths |
 | `test_browser_visibility.py` | What is on screen, asked of the browser rather than read from an attribute: only the chosen algorithm's variant switch, the seed only for a random pivot, on /sorting and both sides of /compare |
 | `test_browser_review_fixes.py` | A run is cleared when its input changes (sorting and searching), every graph page opens with a runnable graph, every Learn panel says what to do before a run, the graph canvas and A* grid have a role and a name, and the Counting Sort count list reads at 4.5:1 in both themes |
 | `test_compression.py`, `test_browser_compression.py` | Large JSON and HTML are gzipped only for a client that accepts it and only over 1 KB, with correct `Content-Encoding`, `Content-Length` and `Vary`; the decompressed body equals the plain one byte for byte; over a real connection a 100 value bubble sort arrives at a few percent of its size and every page and run still works |
@@ -195,7 +203,7 @@ Two more checks are not pytest:
 
 ```bash
 python tools/check_banned_patterns.py .
-node tests/validate_lessons.js
+node tests/js/validate_lessons.js
 python tools/extract_code.py --check
 ```
 
@@ -209,68 +217,95 @@ says whether the code listings need regenerating: after editing anything in
 ## Project structure
 
 No build step, no bundler, no frontend framework, and no CDN libraries: D3 is
-self-hosted in `static/vendor/`. Plain CSS, vanilla JavaScript, Jinja templates
-and one Flask file (plus `siteconfig.py` for everything a public site needs).
+self-hosted in `algotrace/static/vendor/`. Plain CSS, vanilla JavaScript, Jinja
+templates, and one Python package for the server.
 
 ```
-app.py                     every route, the eight graph algorithms, gzip for large responses
-siteconfig.py              site name, meta tags, SITE_URL, robots.txt, sitemap.xml, site.webmanifest, 404 and 500, security and cache headers
-ratelimit.py               the per-address limit on /run_*
-wsgi.py                    the entry point for gunicorn and waitress
+wsgi.py                    the entry point for gunicorn and waitress (wsgi:app)
+pyproject.toml             pytest settings: test paths, import paths, the slow marker
 Procfile, render.yaml      how it is started and deployed on Render
 .python-version            the Python it is built with
-LICENSE                    MIT
-grid_algorithms/           A* on a grid (Dijkstra is the same code with h = 0)
-teacher.py                 the builder graph steps pass through (sorts and searches use sorting_algorithms/teacher.py)
-sorting_algorithms/        eight sorts, each yielding teacher steps, plus a seeded generator
-searching_algorithms/      linear, binary and jump search
-reference_code/            all twenty algorithms in C, C++ and Java
-templates/
-  layout.html              the shell every page extends
-  landing.html             Home
-  learn.html               the algorithm index
-  sorting.html             sorting workspace
-  searching.html           searching workspace
-  compare.html             two sorts side by side
-  big_o.html               the complexity guide
-  graph_base.html          the graph workspace and the whole D3 visualizer
-  bfs.html ... etc         eight children (seven graph algorithms and topological_sort), each an information panel
-  astar.html               A* on its own grid workspace
-  _graph_picker.html       the algorithm picker the graph pages and A* share
-  404.html, 500.html       the error pages
-  privacy.html, terms.html
-static/
-  styles.css               the whole design system, one light set and one dark
-  og-image.svg, og-image.png   the 1200 x 630 social preview (the PNG is drawn from the SVG)
-  favicon.svg, favicon-32.png, icon-192.png, icon-512.png, apple-touch-icon.png   the icons (the PNGs are drawn from the SVG by tools/make_icons.py)
-  vendor/                  D3 7.9.0 and its licence, with the hash the tests hold it to
-  js/workspace.js          run, play, pause, step, reset, speed; more than one can share a page
-  js/teacher.js            the Learn panel
-  js/codeview.js           the language tabs, listings, helpers and Expand dialog
-  js/predict.js            Predict mode: the question for every algorithm
-  js/calltree.js           the recursion tree for merge and quick sort
-  js/compare.js            the Compare page
-  js/sortstage.js          the bars, shared by Sorting and Compare
-  js/sortstrip.js          the count list and buckets under the bars
-  js/gridstage.js          the A* grid
-  js/presets.js, variants.js   input presets, variant switches
-  js/growth.js, notations.js   the growth chart and the O, Omega, Theta explorer
-  js/learnfigures.js       fills /learn's complexity figures from the lesson files
-  js/home_player.js, home_code.js   the Home player and its code card
-  js/nav.js, theme.js      the narrow header menu, the light and dark toggle
-  js/tour.js               the first-visit tour of each workspace and its Take the tour button
-  js/lessons/*.js          twenty lesson files, one per algorithm
-  js/lessons/README.md     the step contract every phase follows
-  js/lessons/code/*.js     C, C++ and Java listings, generated, never edited
-tests/                     pytest suites, the two recorded baselines, and the node checks they call
-tools/check_banned_patterns.py
-tools/extract_code.py      writes js/lessons/code/ from reference_code/
-tools/make_icons.py        draws the PNG icons from static/favicon.svg
-tools/make_screenshots.py  captures docs/screenshots/ and the demo GIF with Playwright
-DESIGN.md                  the design spec
-REBUILD_PLAN.md            the plan the rebuild followed
-LAUNCH_CHECKLIST.md        what is left before this goes live
 requirements.txt, requirements-dev.txt   what runs it, and what tests it
+LICENSE                    MIT
+algotrace/                 the site, as one Python package
+  __init__.py              create_app(): the Flask app, its blueprints and hooks
+  catalog.py               which algorithms exist: the pickers, the /learn order, every count, the sitemap's deep links
+  routes/                  one Flask blueprint per part of the site
+    pages.py               Home, /learn, /big-o, /privacy, /terms
+    sorting.py             /sorting and its form post, /run_sort, /compare, the variant switches
+    searching.py           /searching, /run_search
+    graphs.py              /graph and the eight graph /run_* endpoints, /generate_random_graph
+    grid.py                /run_astar
+    values.py              reading the numbers a visitor typed
+  algorithms/              plain Python, no Flask
+    sorting/               eight sorts, each yielding teacher steps, plus a seeded generator
+    searching/             linear, binary and jump search
+    graph/                 BFS, DFS, Dijkstra, Prim, Kruskal, Floyd-Warshall, Bellman-Ford, topological sort, the random graph, and the step log they share
+    grid/                  A* on a grid (Dijkstra is the same code with h = 0)
+  core/
+    teacher.py             the teacher payload every sort, search and A* step carries
+    compression.py         gzip for large JSON and HTML responses
+    ratelimit.py           the per-address limit on /run_*
+    siteconfig.py          site name, meta tags, SITE_URL, robots.txt, sitemap.xml, site.webmanifest, 404 and 500, security and cache headers
+  templates/
+    layout.html            the shell every page extends
+    landing.html           Home
+    learn.html             the algorithm index
+    sorting.html           sorting workspace
+    searching.html         searching workspace
+    compare.html           two sorts side by side
+    big_o.html             the complexity guide
+    graph_base.html        the graph workspace and the whole D3 visualizer
+    bfs.html ... etc       eight children (seven graph algorithms and topological_sort), each an information panel
+    astar.html             A* on its own grid workspace
+    _graph_picker.html     the algorithm picker the graph pages and A* share
+    404.html, 500.html     the error pages
+    privacy.html, terms.html
+  static/
+    styles.css             the whole design system, one light set and one dark
+    og-image.svg, og-image.png   the 1200 x 630 social preview (the PNG is drawn from the SVG)
+    favicon.svg, favicon-32.png, icon-192.png, icon-512.png, apple-touch-icon.png   the icons (the PNGs are drawn from the SVG by tools/make_icons.py)
+    vendor/                D3 7.9.0 and its licence, with the hash the tests hold it to
+    js/workspace.js        run, play, pause, step, reset, speed; more than one can share a page
+    js/teacher.js          the Learn panel
+    js/codeview.js         the language tabs, listings, helpers and Expand dialog
+    js/predict.js          Predict mode: the question for every algorithm
+    js/calltree.js         the recursion tree for merge and quick sort
+    js/compare.js          the Compare page
+    js/sortstage.js        the bars, shared by Sorting and Compare
+    js/sortstrip.js        the count list and buckets under the bars
+    js/gridstage.js        the A* grid
+    js/presets.js, variants.js   input presets, variant switches
+    js/growth.js, notations.js   the growth chart and the O, Omega, Theta explorer
+    js/learnfigures.js     fills /learn's complexity figures from the lesson files
+    js/home_player.js, home_code.js   the Home player and its code card
+    js/nav.js, theme.js    the narrow header menu, the light and dark toggle
+    js/tour.js             the first-visit tour of each workspace and its Take the tour button
+    js/lessons/*.js        twenty lesson files, one per algorithm
+    js/lessons/README.md   the step contract every phase follows
+    js/lessons/code/*.js   C, C++ and Java listings, generated, never edited
+reference_code/            all twenty algorithms in C, C++ and Java
+tests/
+  conftest.py              the browser fixtures, the slow marker for browser tests, the rate limit off
+  browser_helpers.py       starting a browser, and the returning-visitor setup that skips the tour
+  paths.py                 where the package, the node checks and the baselines are
+  unit/                    pytest, no browser: routes, steps, lessons, copy, growth measured
+  browser/                 Playwright in a real Chromium: layout, themes, reduced motion, the policy
+  reference/               the C, C++ and Java programs compiled and run against the Python, and the listings made from them
+  js/                      node checks the tests call (lessons, Predict, presets, code view, call tree)
+  baselines/               the responses recorded before the rebuild, held byte for byte
+tools/
+  check_banned_patterns.py the writing rules: no em dashes, no emoji
+  extract_code.py          writes static/js/lessons/code/ from reference_code/
+  generate_docs.py         writes docs/project_documentation/ from the lesson files and the routes
+  make_icons.py            draws the PNG icons from static/favicon.svg
+  make_screenshots.py, make_gif.py   capture docs/screenshots/ and the demo GIF with Playwright
+docs/
+  DESIGN.md                the design spec
+  development/REBUILD_PLAN.md       the plan the rebuild followed
+  development/LAUNCH_CHECKLIST.md   what is left before this goes live
+  project_documentation/   the summary and the generated quick reference, as Markdown, text and HTML
+  screenshots/             the README's screenshots and GIF
 ```
 
 ### The step contract
@@ -279,7 +314,7 @@ Every step carries `action`, `indices`, `values`, `line`, `vars` and
 `explain: {beginner, why}`. Sorting and searching steps keep their original
 `array` and `compared` fields alongside, so the drawing code did not have to
 change. Graph endpoints keep their typed step arrays and return a parallel
-`meta` list of the same length. `static/js/lessons/README.md` is the
+`meta` list of the same length. `algotrace/static/js/lessons/README.md` is the
 authoritative description.
 
 ### Endpoints that return steps
@@ -310,12 +345,12 @@ Large runs are compressed on the way out. A bubble sort of 100 values is about
 that sends `Accept-Encoding: gzip`, any JSON or HTML response over 1 KB is sent
 gzipped (the first becomes about 256 KB and the second about 693 KB), with
 `Content-Encoding`, `Content-Length` and `Vary: Accept-Encoding` set. It is one
-`after_request` hook in `app.py` using only the standard library, and the step
+`after_request` hook in `algotrace/core/compression.py` using only the standard library, and the step
 format is the same once the browser has unzipped it.
 
 Unreachable distances come back as the string for infinity, never a bare
 `Infinity`, because JSON has no infinity literal and `JSON.parse` rejects one.
-`_wire()` in `app.py` is the only place that converts, and `isUnreachable()` in
+`wire()` in `algotrace/algorithms/graph/steps.py` is the only place that converts, and `isUnreachable()` in
 `graph_base.html` is the only place that reads it.
 
 ## What is on the site
@@ -334,7 +369,7 @@ Unreachable distances come back as the string for infinity, never a bare
 ### Sorting
 
 Bubble, Selection, Insertion, Heap, Merge, Quick, Counting and Radix, in
-`sorting_algorithms/`. Each one yields a step for every comparison, swap and
+`algotrace/algorithms/sorting/`. Each one yields a step for every comparison, swap and
 write, and the page replays those steps rather than guessing what changed
 between frames.
 
@@ -346,15 +381,15 @@ hundred square, or the ten buckets of the current digit pass.
 
 ### Searching
 
-Linear, Binary (iterative) and Jump, in `searching_algorithms/`. Binary and
+Linear, Binary (iterative) and Jump, in `algotrace/algorithms/searching/`. Binary and
 jump search refuse an unsorted array instead of answering wrongly, explain
 why, and offer to sort it for you. Jump search jumps a block of floor(sqrt n)
 values at a time, then scans the one block that can hold the target.
 
 ### Graphs
 
-BFS, DFS, Dijkstra, Prim, Kruskal, Floyd-Warshall and Bellman-Ford, generated
-in `app.py` and drawn with D3. Dijkstra scans for its minimum linearly, Prim
+BFS, DFS, Dijkstra, Prim, Kruskal, Floyd-Warshall and Bellman-Ford, one file
+each in `algotrace/algorithms/graph/`, drawn with D3. Dijkstra scans for its minimum linearly, Prim
 uses `heapq`, Kruskal uses union-find and returns a spanning forest when the
 graph is disconnected, and Bellman-Ford reports a negative cycle rather than
 looping on one.
@@ -386,7 +421,7 @@ compared pair will swap, whether a search finds, goes left or goes right, which
 node a graph search visits or joins next. The answer is read from the step that
 really follows and the options come from the run's own queue, stack or
 unvisited set. A score counts the run, Skip is always there, and Step back never
-re-asks an answered question. The questions are built in `static/js/predict.js`;
+re-asks an answered question. The questions are built in `algotrace/static/js/predict.js`;
 the shared shell only asks it whether a step may play. Every algorithm has a
 question: bubble sort "will these two swap?", selection sort "is this the new
 smallest value?", insertion sort "will this value shift right?", merge sort
@@ -400,7 +435,7 @@ k shorter?" and topological sort "which node is removed next?" and A* "which cel
 ### The call tree
 
 Under the stage on /sorting, Merge Sort and Quick Sort draw their recursion as a
-tree of boxes (`static/js/calltree.js`). It is built only from the `depth` and
+tree of boxes (`algotrace/static/js/calltree.js`). It is built only from the `depth` and
 `range` every step of those two sorts already carries, so it agrees with the
 stage by construction and works for every variant. A box appears when its call
 starts, the call at work is highlighted and announced in words, finished calls
@@ -410,7 +445,7 @@ own box.
 
 ### The Learn panel
 
-Four tabs beside every visualization, driven by `static/js/teacher.js`:
+Four tabs beside every visualization, driven by `algotrace/static/js/teacher.js`:
 
 - **Explain**: the current step in one sentence, with the real values, plus a
   one line reason. Updates on every step, forwards and backwards.
@@ -438,7 +473,7 @@ and 1440px.
 
 ## Licence
 
-MIT, copyright 2026 Yash Maithani. See [LICENSE](LICENSE). D3 in `static/vendor/`
+MIT, copyright 2026 Yash Maithani. See [LICENSE](LICENSE). D3 in `algotrace/static/vendor/`
 keeps its own ISC licence, `d3-LICENSE.txt`.
 
 ## Author

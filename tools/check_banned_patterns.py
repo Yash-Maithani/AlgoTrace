@@ -8,7 +8,6 @@ decodes the escaped forms before looking:
     surrogate pairs              \\uD83D\\uDE80 is one emoji
     &mdash; &#8212; &#x2014;      HTML entities
 """
-import glob
 import html
 import os
 import re

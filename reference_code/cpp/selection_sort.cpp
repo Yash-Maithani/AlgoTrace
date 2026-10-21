@@ -1,4 +1,4 @@
-// Selection Sort in C++17, a translation of sorting_algorithms/selection_sort.py.
+// Selection Sort in C++17, a translation of algotrace/algorithms/sorting/selection_sort.py.
 // Input and output: reference_code/README.md.
 #include <initializer_list>
 #include <iostream>

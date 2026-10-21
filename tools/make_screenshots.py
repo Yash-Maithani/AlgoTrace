@@ -34,7 +34,7 @@ COMPARE_VALUES = "34, 12, 55, 7, 81, 23, 66, 41, 9, 72, 18, 48, 60, 3"
 
 def start_site():
     from werkzeug.serving import make_server
-    from app import app
+    from wsgi import app
     server = make_server("127.0.0.1", 0, app, threaded=True)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     return "http://127.0.0.1:%d" % server.server_port, server

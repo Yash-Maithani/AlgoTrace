@@ -1,4 +1,4 @@
-// Binary Search in Java 17, a translation of searching_algorithms/binary_search.py.
+// Binary Search in Java 17, a translation of algotrace/algorithms/searching/binary_search.py.
 // Iterative, as the Python is. The list must already be sorted; the site
 // refuses an unsorted one before searching, so this program assumes it.
 // Input and output: reference_code/README.md.

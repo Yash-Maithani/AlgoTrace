@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AlgoTrace: project documentation</title>
+<style>
+body { font-family: system-ui, sans-serif; line-height: 1.55; max-width: 960px; margin: 2rem auto; padding: 0 1rem; color: #1a1a18; }
+table { border-collapse: collapse; margin: 1rem 0; } th, td { border: 1px solid #c9c5b8; padding: 4px 10px; text-align: left; }
+code, pre { font-family: Consolas, monospace; background: #f1eee6; } pre { padding: 0.75rem; overflow-x: auto; }
+h1 { border-bottom: 2px solid #1a1a18; } h2 { margin-top: 2rem; }
+</style>
+</head>
+<body>
+<h1>AlgoTrace: project summary</h1>
+<p>AlgoTrace is a Flask web site that plays an algorithm one step at a time, says in plain</p>
+<p>language why it made each move, shows the line of code that ran, and counts what the move</p>
+<p>cost. It is a learning tool for students, and a student project: no accounts, no</p>
+<p>database, no analytics.</p>
+<p>Source: https://github.com/Yash-Maithani/AlgoTrace (branch <code>main</code>). Licence: MIT,</p>
+<p>copyright 2026 Yash Maithani.</p>
+<h2>What it teaches</h2>
+<p>Twenty algorithms in three workspaces:</p>
+<ul>
+<li><strong>Sorting</strong>: bubble, selection, insertion, heap, merge, quick, counting and radix sort.</li>
+</ul>
+<p>  Merge sort has a stable variant, quick sort three pivot rules, bubble sort an early exit.</p>
+<ul>
+<li><strong>Searching</strong>: linear, binary and jump search.</li>
+<li><strong>Graphs</strong>: BFS, DFS, Dijkstra, Prim, Kruskal, Floyd-Warshall, Bellman-Ford and</li>
+</ul>
+<p>  topological sort on a graph you type or generate, and A* on a grid you draw walls on.</p>
+<p>Every workspace has the same layout: set up a run on the left, the visualization with</p>
+<p>its control bar in the middle, and a Learn panel on the right with four tabs.</p>
+<ul>
+<li><strong>Explain</strong>: the current step in one sentence with the real values, and a one line why.</li>
+<li><strong>Code</strong>: pseudocode, Python, C, C++ or Java with the running line highlighted and the</li>
+</ul>
+<p>  live variables beside it.</p>
+<ul>
+<li><strong>Complexity</strong>: best, average and worst case with the tight bound (Theta) of each, the</li>
+</ul>
+<p>  overall O, Omega and Theta, a worked example, the extra memory, and the count from this</p>
+<p>  run beside what the formula predicts.</p>
+<ul>
+<li><strong>About</strong>: the idea, an everyday analogy, and when to use it.</li>
+</ul>
+<p>Other pages: <strong>Home</strong> (a real bubble sort played three ways), <strong>Learn</strong> (all twenty in a</p>
+<p>suggested order), <strong>Compare</strong> (two sorts on one input), <strong>Complexity</strong> (O, Omega, Theta</p>
+<p>with a chart you can drive), <strong>Privacy</strong> and <strong>Terms</strong>.</p>
+<p>Teaching features: <strong>Predict</strong> mode asks what the next step will do before it plays;</p>
+<p><strong>input presets</strong> (sorted, reversed, nearly sorted, all equal); a <strong>call tree</strong> for the</p>
+<p>recursion of merge and quick sort; <strong>keyboard shortcuts</strong> (Space, arrows, R).</p>
+<h2>How it is built</h2>
+<ul>
+<li>Flask, one Python package (<code>algotrace/</code>, with a blueprint per part of the site), Jinja</li>
+</ul>
+<p>  templates, vanilla JavaScript, plain CSS. No build step, no bundler, no framework. D3</p>
+<p>  7.9.0 is self-hosted in <code>algotrace/static/vendor/</code>.</p>
+<ul>
+<li>Algorithms are plain Python in <code>algotrace/algorithms/</code> (sorting, searching, graph and</li>
+</ul>
+<p>  grid, one file per algorithm). Each yields a step for every</p>
+<p>  comparison, swap or write; the page replays those steps rather than guessing.</p>
+<ul>
+<li>Lesson content (idea, analogy, code listings, complexity figures) lives in</li>
+</ul>
+<p>  <code>algotrace/static/js/lessons/&lt;algorithm&gt;.js</code>, and is the single source of truth for every</p>
+<p>  complexity figure on the site.</p>
+<ul>
+<li>All twenty algorithms also exist as real, compilable C, C++ and Java programs in</li>
+</ul>
+<p>  <code>reference_code/</code>, checked step for step against the Python. The listings on the Code</p>
+<p>  tab are extracted from them by <code>tools/extract_code.py</code>.</p>
+<ul>
+<li><code>algotrace/core/siteconfig.py</code> holds what a public site needs: meta tags, <code>SITE_URL</code>, robots and</li>
+</ul>
+<p>  sitemap, error pages, cache and security headers.</p>
+<h2>Properties worth knowing</h2>
+<ul>
+<li>Complexity text describes this code, not the textbook. Bubble sort here has no early</li>
+</ul>
+<p>  exit, so its best case is quadratic; quick sort takes the last element as its pivot, so a</p>
+<p>  sorted list is its worst case.</p>
+<ul>
+<li>The endpoints that run an algorithm are rate limited per address (30 a minute by</li>
+</ul>
+<p>  default, standard library only). A student who goes over it is told how long to wait.</p>
+<ul>
+<li>The site has PNG icons, an Apple touch icon and a web app manifest, all drawn from</li>
+</ul>
+<p>  <code>algotrace/static/favicon.svg</code>.</p>
+<ul>
+<li>Large runs are gzipped on the way out (a 100 value bubble sort is about 7 MB of steps,</li>
+</ul>
+<p>  about 256 KB on the wire).</p>
+<ul>
+<li>Pages carry a Content-Security-Policy: this site&#x27;s scripts and styles and the Google</li>
+</ul>
+<p>  Fonts it imports, with a nonce on every inline script and no inline event handlers.</p>
+<ul>
+<li>Every page is keyboard operable, meets 4.5:1 text contrast in both themes, and has a</li>
+</ul>
+<p>  <code>prefers-reduced-motion</code> fallback.</p>
+<ul>
+<li>The browser stores three small notes in localStorage (<code>theme</code>, <code>pbl2.codeLanguage</code> and</li>
+</ul>
+<p>  <code>pbl2.tourSeen</code>, the workspaces whose first visit tour has been shown),</p>
+<p>  nothing else, and nothing is sent to a server.</p>
+<h2>Quality checks</h2>
+<p>About 2,900 automated tests, among them: every sort&#x27;s output and counts against recorded</p>
+<p>baselines, every graph endpoint&#x27;s steps against a recorded baseline, every stated</p>
+<p>complexity bound measured by growing the input, the C, C++ and Java programs compiled and</p>
+<p>run against the Python, and a real browser (Playwright) checking behaviour, layout at 375,</p>
+<p>768 and 1440 pixels in both themes, reduced motion, and the Content-Security-Policy with</p>
+<p>the network off. <code>python tools/check_banned_patterns.py .</code> enforces the writing rules.</p>
+<h2>Deployment</h2>
+<p>Deployed on Render from the <code>main</code> branch with <code>gunicorn wsgi:app</code> (<code>render.yaml</code>).</p>
+<p><code>docs/development/LAUNCH_CHECKLIST.md</code> lists what is done and what is left.</p>
+<h1>AlgoTrace: quick reference</h1>
+<p>Generated by <code>tools/generate_docs.py</code> from the lesson files and the</p>
+<p>routes. Do not edit it by hand; edit the site or the script and run the script again.</p>
+<h2>The algorithms</h2>
+<p>20 algorithms. Figures are the ones on each Complexity tab, derived from this code.</p>
+<h3>Sorting (8)</h3>
+<table><thead><tr><th>Algorithm</th><th>Best</th><th>Worst</th><th>Extra memory</th><th>Variants</th></tr></thead><tbody>
+<tr><td>Bubble Sort</td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td><td>off, on</td></tr>
+<tr><td>Counting Sort</td><td>O(n + k)</td><td>O(n + k)</td><td>O(k)</td><td>none</td></tr>
+<tr><td>Heap Sort</td><td>O(n)</td><td>O(n log n)</td><td>O(log n)</td><td>none</td></tr>
+<tr><td>Insertion Sort</td><td>O(n)</td><td>O(n²)</td><td>O(1)</td><td>none</td></tr>
+<tr><td>Merge Sort</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n)</td><td>le, lt</td></tr>
+<tr><td>Quick Sort</td><td>O(n log n)</td><td>O(n²)</td><td>O(n)</td><td>last, middle, random</td></tr>
+<tr><td>Radix Sort</td><td>O(d·(n + b))</td><td>O(d·(n + b))</td><td>O(n + b)</td><td>none</td></tr>
+<tr><td>Selection Sort</td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td><td>none</td></tr>
+</tbody></table>
+<h3>Searching (3)</h3>
+<table><thead><tr><th>Algorithm</th><th>Best</th><th>Worst</th><th>Extra memory</th><th>Variants</th></tr></thead><tbody>
+<tr><td>Binary Search</td><td>O(1)</td><td>O(log n)</td><td>O(1)</td><td>none</td></tr>
+<tr><td>Jump Search</td><td>O(1)</td><td>O(√n)</td><td>O(1)</td><td>none</td></tr>
+<tr><td>Linear Search</td><td>O(1)</td><td>O(n)</td><td>O(1)</td><td>none</td></tr>
+</tbody></table>
+<h3>Graphs and grids (9)</h3>
+<table><thead><tr><th>Algorithm</th><th>Best</th><th>Worst</th><th>Extra memory</th><th>Variants</th></tr></thead><tbody>
+<tr><td>A* Search</td><td>O(1)</td><td>O(V log V)</td><td>O(V)</td><td>none</td></tr>
+<tr><td>Bellman-Ford</td><td>O(E)</td><td>O(V·E)</td><td>O(V + E)</td><td>none</td></tr>
+<tr><td>Breadth-First Search</td><td>O(V)</td><td>O(V·E)</td><td>O(V)</td><td>none</td></tr>
+<tr><td>Depth-First Search</td><td>O(V)</td><td>O(V·E)</td><td>O(V)</td><td>none</td></tr>
+<tr><td>Dijkstra&#x27;s Algorithm</td><td>O(V²)</td><td>O(V²)</td><td>O(V)</td><td>none</td></tr>
+<tr><td>Floyd-Warshall</td><td>O(V³)</td><td>O(V³)</td><td>O(V²)</td><td>none</td></tr>
+<tr><td>Kruskal&#x27;s Algorithm</td><td>O(E)</td><td>O(E log E)</td><td>O(V + E)</td><td>none</td></tr>
+<tr><td>Prim&#x27;s Algorithm</td><td>O(V)</td><td>O(E log E)</td><td>O(V + E)</td><td>none</td></tr>
+<tr><td>Topological Sort</td><td>O(V + E)</td><td>O(V + E)</td><td>O(V)</td><td>none</td></tr>
+</tbody></table>
+<h2>Pages</h2>
+<ul>
+<li><code>/</code></li>
+<li><code>/big-o</code></li>
+<li><code>/compare</code></li>
+<li><code>/graph</code></li>
+<li><code>/learn</code></li>
+<li><code>/privacy</code></li>
+<li><code>/robots.txt</code></li>
+<li><code>/searching</code></li>
+<li><code>/site.webmanifest</code></li>
+<li><code>/sitemap.xml</code></li>
+<li><code>/sorting</code></li>
+<li><code>/terms</code></li>
+</ul>
+<h2>Endpoints that run an algorithm (POST, JSON)</h2>
+<ul>
+<li><code>/generate_random_graph</code></li>
+<li><code>/run_astar</code></li>
+<li><code>/run_bellman_ford</code></li>
+<li><code>/run_bfs</code></li>
+<li><code>/run_dfs</code></li>
+<li><code>/run_dijkstra</code></li>
+<li><code>/run_floyd_warshall</code></li>
+<li><code>/run_kruskal</code></li>
+<li><code>/run_prim</code></li>
+<li><code>/run_search</code></li>
+<li><code>/run_sort</code></li>
+<li><code>/run_topological_sort</code></li>
+</ul>
+<h2>Commands</h2>
+<pre>
+pip install -r requirements.txt
+flask --app algotrace run --port 5002   # development, http://localhost:5002
+waitress-serve --host=127.0.0.1 --port=8000 wsgi:app   # production, Windows
+gunicorn wsgi:app --bind 127.0.0.1:8000                # production, Linux
+pip install -r requirements-dev.txt &amp;&amp; python -m playwright install chromium
+pytest -q -m &quot;not slow&quot;              # about a minute
+pytest -q                          # everything, about 20 minutes, run alone
+python tools/check_banned_patterns.py .
+node tests/js/validate_lessons.js
+python tools/extract_code.py --check
+</pre>
+<h2>Environment variables</h2>
+<table><thead><tr><th>Variable</th><th>Use</th></tr></thead><tbody>
+<tr><td><code>SITE_URL</code></td><td>public address for canonical links, sitemap, robots and social previews</td></tr>
+<tr><td><code>SECRET_KEY</code></td><td>Flask secret key; nothing uses it today</td></tr>
+<tr><td><code>FLASK_DEBUG</code></td><td><code>1</code> for debug mode on your own machine</td></tr>
+<tr><td><code>TRUST_PROXY</code></td><td><code>1</code> behind one proxy, as on Render; the rate limit then counts the real client address</td></tr>
+<tr><td><code>RATE_LIMIT_PER_MINUTE</code></td><td>requests one address may make to <code>/run_*</code> a minute; 30 by default, 0 turns it off</td></tr>
+</tbody></table>
+</body>
+</html>

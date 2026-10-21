@@ -1,4 +1,4 @@
-// A* on a grid in C++17, a translation of grid_algorithms/astar.py.
+// A* on a grid in C++17, a translation of algotrace/algorithms/grid/astar.py.
 // Input and output: reference_code/README.md, "Grid programs". Moves go up,
 // right, down, left at cost 1; h is the Manhattan distance, or 0 for
 // Dijkstra. The heap is the same binary heap as the Python, ordered by

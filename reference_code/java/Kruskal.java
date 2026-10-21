@@ -1,4 +1,4 @@
-// Kruskal in Java 17, a translation of /run_kruskal in app.py.
+// Kruskal in Java 17, a translation of algotrace/algorithms/graph/kruskal.py.
 // Input and output: reference_code/README.md, "Graph programs".
 // Python's sorted() is stable, so equal weights keep their input order.
 // List.sort is a stable merge sort too, so the order matches. Union-Find

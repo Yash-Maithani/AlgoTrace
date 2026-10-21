@@ -1,5 +1,5 @@
 /* Topological Sort (Kahn's algorithm) in C11, a translation of
- * /run_topological_sort in app.py. Input and output: reference_code/README.md,
+ * algotrace/algorithms/graph/topological_sort.py. Input and output: reference_code/README.md,
  * "Graph programs". The queue is a ring of node numbers, so taking from the
  * front is O(1), as the endpoint's deque is: the lesson's O(V plus E).
  */

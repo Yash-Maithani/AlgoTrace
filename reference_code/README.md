@@ -1,8 +1,8 @@
 # Reference code: C, C++ and Java
 
 One real, compilable program per algorithm per language, each a line by line
-translation of the Python in `sorting_algorithms/`, `searching_algorithms/`
-and the seven graph endpoints in `app.py`. They copy this repository's
+translation of the Python in `algotrace/algorithms/sorting/`, `algotrace/algorithms/searching/`
+and the graph algorithms in `algotrace/algorithms/graph/`. They copy this repository's
 behaviour, not the textbook's: no early exit in bubble sort unless the variant
 asks for it, `<` in merge sort unless the variant says `<=`, the last element
 as pivot unless the variant says otherwise, the same seeded generator
@@ -16,7 +16,7 @@ sort in Kruskal, and Prim's heap ordered by the whole (weight, u, v) tuple.
 | C++ | C++17 | `cpp/` | `<algo>.cpp` |
 | Java | Java 17 (`javac --release 17`) | `java/` | `<Algo>.java` |
 
-`tests/test_reference_code.py` compiles every program and checks it against
+`tests/reference/test_reference_code.py` compiles every program and checks it against
 the Python, step by step. `tools/extract_code.py` turns the teaching part of
 each file into `static/js/lessons/code/<algo>.js`, which the Code tab will
 read; never edit those by hand.
@@ -88,7 +88,7 @@ Blank lines and comment-only lines inside a block are left out.
 ## Graph programs (Phase 13)
 
 BFS, DFS, Dijkstra, Prim, Kruskal, Bellman-Ford, Floyd-Warshall and Topological
-Sort (Phase 20) copy the eight `/run_*` endpoints in `app.py`. They read one graph format:
+Sort (Phase 20) copy the eight graph algorithms behind the `/run_*` endpoints, in `algotrace/algorithms/graph/`. They read one graph format:
 
 ```
 <number of cases>
@@ -152,7 +152,7 @@ behind a toggle. Helper lines carry no line ids.
 
 ## Grid programs (Phase 21)
 
-A* copies `grid_algorithms/astar.py`, including its binary heap, so the same
+A* copies `algotrace/algorithms/grid/astar.py`, including its binary heap, so the same
 entries come out in the same order with the same number of comparisons.
 Moves are tried up, right, down, left; every move costs 1; h is the
 Manhattan distance, or 0 for Dijkstra. The heap orders entries by lowest f,
