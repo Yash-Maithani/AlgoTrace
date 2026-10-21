@@ -69,7 +69,7 @@ graphs is `GRAPH_ACTIONS` in algotrace/algorithms/graph/steps.py.
 2. **Adding teacher fields must not change behaviour.** The number of steps, the order of
    steps, the contents of `array` and `compared`, and the comparison and swap counts stay
    exactly as they were. `tests/unit/test_sorting_parity.py` enforces this against the golden
-   file recorded at commit e0fe171.
+   file recorded at commit b202fcb.
 3. **`line` ids are shared.** The same id labels the matching line in both the pseudocode
    and the Python listing, so the Code tab can highlight either view from one step.
 4. **Complexity text describes the code in this repository**, not the textbook. Where they

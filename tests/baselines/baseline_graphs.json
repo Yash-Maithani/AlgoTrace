@@ -1,5 +1,5 @@
 {
-  "baseline_commit": "4a1cec8",
+  "baseline_commit": "25fa0ed",
   "note": "Responses from every /run_* endpoint before Phase 4b added meta. The step arrays recorded here must survive unchanged. The run_dijkstra rows are the exception: they were re-recorded after its two bugs were fixed, so they carry the corrected output and are marked with rebaselined.",
   "responses": [
     {

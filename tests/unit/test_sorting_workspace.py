@@ -1,6 +1,6 @@
 """Phase 6: the sorting workspace, its JSON endpoint, and the three gap fixes.
 
-Parity with commit e0fe171 is tested in test_sorting_parity.py and still
+Parity with commit b202fcb is tested in test_sorting_parity.py and still
 holds for everything except insertion sort's frame count, which is the point
 of the first fix. These tests cover what Phase 6 added or changed.
 """

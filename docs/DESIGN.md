@@ -4,7 +4,7 @@ Design specification for the PBL2 rebuild. Written in Phase 1 of development/REB
 
 This file contains no code. It is the reference that Phases 2 to 8 build against.
 Where it says "token", the name is the CSS custom property that already exists in
-`static/styles.css` from commit 83b8f1b.
+`static/styles.css` from commit 09318e0.
 
 ---
 
@@ -202,7 +202,7 @@ Headings use `text-wrap: balance`. Long identifiers and pasted graph input use
 
 ## 6. Colour
 
-**Unchanged from commit 83b8f1b.** This spec adds no colours and renames nothing.
+**Unchanged from commit 09318e0.** This spec adds no colours and renames nothing.
 
 The rule that governs it stays in force: chrome may not use any hue the data uses. The
 nine state accents keep the same hue in both themes, and dark mode lightens rather than
@@ -589,5 +589,5 @@ reader they led somewhere and ignored the space bar. `workspace.js` finds either
 
 - Lesson copy and pseudocode, which are Phase 4.
 - The step data format, which is specified in development/REBUILD_PLAN.md and built in Phase 4.
-- Any colour value. The palette is fixed at commit 83b8f1b.
+- Any colour value. The palette is fixed at commit 09318e0.
 - Anything about Flask routing beyond the route list already in the plan.

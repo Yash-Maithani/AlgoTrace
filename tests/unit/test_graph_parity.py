@@ -1,7 +1,7 @@
 """Phase 4b added a meta list to every /run_* endpoint. The steps did not move.
 
 `tests/baselines/baseline_graphs.json` holds the full response of every endpoint as it
-stood at commit 4a1cec8, over 51 requests covering connected, disconnected,
+stood at commit 25fa0ed, over 51 requests covering connected, disconnected,
 single node, self loop, parallel edge, zero weight, negative weight and
 negative cycle graphs. These tests replay them and demand the same step
 arrays.
@@ -50,7 +50,7 @@ def post(client, row):
 
 
 # ---------------------------------------------------------------------------
-# Parity with commit 4a1cec8
+# Parity with commit 25fa0ed
 # ---------------------------------------------------------------------------
 
 @pytest.mark.parametrize('row', STABLE, ids=ident)

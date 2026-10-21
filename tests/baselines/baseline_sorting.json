@@ -1,6 +1,6 @@
 {
-  "baseline_commit": "e0fe171",
-  "note": "Generated from the sorting_algorithms package as it stood at e0fe171. Teacher fields added in Phase 4 must not change any number in here. Phase 6 fixed the three highlight gaps in the lessons README. Only insertion_sort moved: it now draws the frame where the held key lands in its gap, which adds one frame per outer loop pass. The merge_sort and heap_sort fixes changed what compared holds, not how many frames there are, so no number in this file moved for them. Sorted output, comparison counts and swap counts are unchanged for all six.",
+  "baseline_commit": "b202fcb",
+  "note": "Generated from the sorting_algorithms package as it stood at b202fcb. Teacher fields added in Phase 4 must not change any number in here. Phase 6 fixed the three highlight gaps in the lessons README. Only insertion_sort moved: it now draws the frame where the held key lands in its gap, which adds one frame per outer loop pass. The merge_sort and heap_sort fixes changed what compared holds, not how many frames there are, so no number in this file moved for them. Sorted output, comparison counts and swap counts are unchanged for all six.",
   "cases": {
     "random_30": {
       "input": [
